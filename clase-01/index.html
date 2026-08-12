@@ -488,12 +488,35 @@
         </div>
 
         <h3>Paso 1 — Repositorio</h3>
-        <ul>
-          <li>Un integrante crea el repositorio del equipo y agrega a los otros 3 como colaboradores.</li>
-          <li>Protegen la rama <span class="etiq">main</span>: nadie pushea directo y <strong>nadie aprueba su propio PR</strong>; todo entra revisado por un compañero.</li>
-          <li>Todos clonan y corren el proyecto en local.</li>
-        </ul>
-        <div class="caja-codigo">git clone &lt;url-del-repo&gt;
+        <p>
+          No arrancan de cero: el proyecto parte de un <strong>repositorio template</strong> de la
+          materia, que ya trae la configuración resuelta (TypeScript, Prisma, Tailwind, tests y CI)
+          y un ejemplo mínimo que después van a borrar.
+        </p>
+        <div class="callout">
+          <span class="callout-titulo">📦 El template de la materia</span>
+          <p>
+            <a href="https://github.com/dariomaranes/UAI-MDW-2026-template">https://github.com/dariomaranes/UAI-MDW-2026-template</a>
+          </p>
+        </div>
+        <p><strong>Un solo integrante</strong> hace esto:</p>
+        <ol>
+          <li>Entra al template y aprieta el botón verde <strong>“Use this template”</strong> → <em>Create a new repository</em>.</li>
+          <li>Le pone el nombre del proyecto del equipo y lo deja <strong>público</strong>.</li>
+          <li>En <em>Settings → Collaborators</em>, agrega a los otros tres integrantes.</li>
+          <li>En <em>Settings → Branches</em>, protege <span class="etiq">main</span>: nadie pushea directo y <strong>nadie aprueba su propio Pull Request</strong>.</li>
+        </ol>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">“Use this template”, no <em>Fork</em></span>
+          <p>
+            El botón de <em>fork</em> está al lado y parece lo mismo, pero no lo es: un fork
+            arrastra todo el historial del template, queda atado a él y complica el deploy.
+            <strong>Use this template</strong> crea un repositorio limpio, con un solo commit, que
+            es del equipo.
+          </p>
+        </div>
+        <p>Después, <strong>los cuatro</strong> clonan y lo corren en local:</p>
+        <div class="caja-codigo">git clone &lt;url-del-repo-del-equipo&gt;
 cd &lt;proyecto&gt;
 npm install
 cp .env.example .env.local
