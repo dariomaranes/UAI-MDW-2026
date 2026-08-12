@@ -148,10 +148,12 @@ El proyecto es del equipo; la nota es de cada uno. Se parte de la nota que sacó
 | Situación | Nota de esa instancia |
 |---|---|
 | Contribuyó al proyecto y puede explicar lo que entregó | **La del proyecto** |
-| Contribuyó claramente menos que el resto, o respondió con dificultad en la defensa | La del proyecto, **hasta 2 puntos menos** |
-| **Sin contribución verificable en el repositorio, o no puede explicar nada de lo entregado** | **Desaprueba la instancia** (máximo 3) |
+| Contribuyó menos que el resto, o respondió con dificultad en la defensa | La del proyecto **con descuento**, sin tope fijo |
+| **Sin contribución verificable en el repositorio, o no puede explicar lo entregado** | **Desaprueba la instancia** |
 
-La última fila es la que importa: **un integrante que no trabajó y no puede defender el proyecto desaprueba, aunque el equipo haya sacado 10.** No es un descuento, es una condición.
+El descuento **no tiene un máximo de puntos**: se gradúa según lo que muestren la evidencia y la defensa, y puede llegar hasta la desaprobación si corresponde.
+
+Lo que sí es una condición y no un descuento: **un integrante que no trabajó y no puede defender el proyecto desaprueba, aunque el equipo haya sacado 10.**
 
 Las dos señales que la determinan se pueden demostrar:
 
