@@ -40,7 +40,6 @@ Es el stack de las demos, del repositorio template y de las consignas de los tal
 | Eje metodológico (individual) | todas |
 | Proceso y concepto (individual) | todas |
 
-El peso de cada instancia está en [`docs/rubricas.md`](./docs/rubricas.md).
 
 Los parciales **no son un examen escrito**: son la demo y la defensa del proyecto en producción. La teoría se evalúa aplicada, en las preguntas de esas defensas.
 

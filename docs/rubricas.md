@@ -2,19 +2,17 @@
 
 > **El trabajo es grupal, la nota es individual.** El proyecto lo construye el equipo, pero la nota que se lleva cada uno se ajusta por su contribución y por cómo responde en las defensas. Cada instancia se califica de **1 a 10**; se aprueba con **4**, que equivale al 60% del trabajo bien realizado.
 
-## Distribución
+## Instancias
 
-| Instancia | Cuándo | Peso | Tipo |
-|---|---|---|---|
-| **Parcial I** — defensa del backend | Clase 8 | 25% | Del proyecto, ajustada por integrante |
-| **Parcial II** — defensa de la aplicación | Clase 15 | 25% | Del proyecto, ajustada por integrante |
-| Demo Day — cierre de la cursada | Clase 16 | 25% | Grupal + preguntas individuales |
-| Eje metodológico | Todas | 10% | Individual |
-| Proceso y concepto | Todas | 15% | Individual |
+| Instancia | Cuándo | Tipo |
+|---|---|---|
+| **Parcial I** — defensa del backend | Clase 8 | Del proyecto, ajustada por integrante |
+| **Parcial II** — defensa de la aplicación | Clase 15 | Del proyecto, ajustada por integrante |
+| Demo Day — cierre de la cursada | Clase 16 | Del proyecto + preguntas individuales |
+| Eje metodológico | Todas | Individual |
+| Proceso y concepto | Todas | Individual |
 
-**Nota final = Parcial I × 0,25 + Parcial II × 0,25 + Demo Day × 0,25 + Metodológico × 0,10 + Proceso × 0,15**
-
-Las tres primeras se calculan sobre la nota del proyecto, ajustada por integrante (ver *La nota individual*).
+Las tres primeras se califican sobre la nota del proyecto, ajustada por integrante (ver *La nota individual*).
 
 Los parciales de las clases 8 y 15 **no son un examen escrito**: son la demo y la defensa del proyecto. La teoría se evalúa aplicada, dentro de esas preguntas (ver `eje-metodologico.md`).
 
@@ -58,7 +56,7 @@ Ejemplo del Parcial I: un equipo con modelo de datos destacado (90%), API acepta
 
 ---
 
-## Parcial I — Clase 8 (25%)
+## Parcial I — Clase 8
 
 Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos de demo del backend en producción + preguntas. La defensa se toma **solo con el docente**, no frente al curso.
 
@@ -75,7 +73,7 @@ Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos de demo 
 
 ---
 
-## Parcial II — Clase 15 (25%)
+## Parcial II — Clase 15
 
 Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos recorriendo el flujo principal desde la UI. La defensa se toma **solo con el docente**, no frente al curso.
 
@@ -89,7 +87,7 @@ Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos recorrie
 
 ---
 
-## Cierre de la cursada — Clase 16 (25%)
+## Demo Day — Clase 16
 
 Presentación de 10 minutos + 10 de preguntas. El sistema debe estar en producción y con datos reales (no de prueba).
 
@@ -117,7 +115,7 @@ Se elige código del propio repo del equipo y se pregunta a un integrante al aza
 
 ---
 
-## Eje metodológico (10%) — individual
+## Eje metodológico — individual
 
 Las lecturas y sus cuestionarios se entregan fuera de clase, con deadline al inicio de la clase siguiente.
 
@@ -128,7 +126,7 @@ Las lecturas y sus cuestionarios se entregan fuera de clase, con deadline al ini
 
 ---
 
-## Proceso y concepto (15%) — individual
+## Proceso y concepto — individual
 
 Se mide sobre evidencia —el repositorio y las entregas—, no sobre percepción.
 
