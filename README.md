@@ -6,7 +6,7 @@ Proyecto con fines académicos.
 
 ## De qué se trata el cursado
 
-Durante el cuatrimestre, equipos de 4 alumnos construyen **un sistema web real, en producción desde la primera clase**. Las clases son 30% teoría y 70% taller.
+Durante el cuatrimestre, equipos de 4 alumnos construyen **un sistema web real, en producción desde la primera clase**. Las clases son mayormente taller: un bloque corto de concepto y el resto construyendo.
 
 La materia asume que los alumnos programan con IA. Por eso no se evalúa escribir sintaxis, sino estructurar una aplicación, decidir tecnología, revisar lo que la IA escribe y llevar el sistema a producción. La regla que ordena todo es **“Ship it, but own it”**: la IA está permitida y fomentada, pero en cualquier defensa se le puede pedir a cualquier integrante que explique cualquier línea del proyecto.
 
