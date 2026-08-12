@@ -137,7 +137,7 @@ Se mide sobre evidencia —el repositorio y las entregas—, no sobre percepció
 | Reviews | Comentarios hechos a los PRs de sus compañeros de equipo |
 | Documentación | ADRs, `spec.md`, `AGENTS.md` mantenidos al día |
 | Entregas del eje | Que estén todas hechas al 24/11, y que se hayan seguido clase a clase |
-| Ritual | Participación en los standups y en los code reviews |
+| Ritual | Avance visible clase a clase en la recorrida del docente, y participación en los code reviews |
 
 ---
 
