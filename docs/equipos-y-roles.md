@@ -2,7 +2,7 @@
 
 ## Conformación
 
-- **Equipos de 4** (con 40 alumnos: 10 equipos). Si el número no cierra, se admite un equipo de 3, nunca de 5.
+- **Equipos de 4 integrantes.**
 - Se arman en la **clase 1** y no se cambian durante el cuatrimestre.
 - Se permite que se armen por afinidad, con una condición: **ningún equipo puede tener a los cuatro integrantes con el mismo nivel de experiencia declarado**. Se pregunta a mano alzada al inicio (quién programó fuera de la facultad, quién nunca desplegó algo) y se balancea.
 - **Plan B si a los 20 minutos no están cerrados:** el docente asigna por lista. Se avisa desde el minuto 1 para que no se dilate.
