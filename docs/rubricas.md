@@ -168,7 +168,6 @@ Se comunica en la clase 1 y se aplica sin excepciones. Ante la duda, el docente 
 - Se toman **después** de las presentaciones, no en paralelo: el docente no puede conducir el Demo Day y tomar una defensa al mismo tiempo. Y como cualquier parcial, el recuperatorio se defiende **solo con el docente**.
 - Se puede recuperar **uno o los dos** parciales en esa misma instancia.
 - Se evalúa con la **misma rúbrica** del parcial correspondiente, sobre el estado actual del proyecto: lo que se corrigió después de la devolución cuenta.
-- Un parcial recuperado tiene nota máxima **7**.
 - El eje metodológico no se recupera: para eso están las 2 entregas descartadas.
 
 ---
