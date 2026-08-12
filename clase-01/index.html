@@ -338,7 +338,11 @@
         </p>
         <ul class="checklist">
           <li>Autenticación con al menos <strong>2 roles</strong> que puedan hacer cosas distintas.</li>
-          <li>Al menos <strong>3 entidades relacionadas</strong>, con CRUD completo sobre una de ellas.</li>
+          <li>
+            Al menos <strong>4 entidades propias del dominio</strong> —sin contar la de usuarios—
+            con <strong>una relación 1‑N y una N‑N</strong> entre ellas, y CRUD completo sobre al
+            menos una.
+          </li>
           <li>Un <strong>flujo de negocio real</strong> de punta a punta (reservar, aprobar, publicar, facturar…), no solo ABMs.</li>
           <li>Una <strong>integración externa</strong>: storage, email, pagos, mapas o IA dentro del producto.</li>
           <li><strong>Desplegado en producción</strong>, con una URL pública que no cambia en todo el cuatrimestre.</li>

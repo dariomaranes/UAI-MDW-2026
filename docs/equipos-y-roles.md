@@ -33,7 +33,11 @@ Se anota en el README junto con los roles. Si esa persona abandona la materia, e
 El dominio lo elige cada equipo, pero todos los proyectos deben cumplir estos cinco requisitos. Son los que hacen que todos los proyectos sean comparables y que las consignas semanales apliquen a todos por igual.
 
 1. **Autenticación con al menos 2 roles** que puedan hacer cosas distintas (no basta con "usuario logueado" / "usuario no logueado").
-2. **Al menos 3 entidades relacionadas**, con CRUD completo sobre al menos una. La base puede ser relacional (Postgres) o documental (MongoDB); la elección se justifica en un ADR.
+2. **Al menos 4 entidades propias del dominio** (sin contar la de usuarios), con **una relación 1‑N y una N‑N** entre ellas, y CRUD completo sobre al menos una.
+
+   El número solo es el piso; lo que se evalúa es que el modelo represente el dominio. Un sistema con seis tablas colgando todas del usuario está peor modelado que uno con cuatro bien relacionadas. La N‑N es obligatoria porque es donde aparece el trabajo de modelado de verdad: casi siempre necesita una tabla intermedia con datos propios (cantidad, precio, fecha, estado).
+
+   La base puede ser relacional (Postgres) o documental (MongoDB); la elección se justifica en un ADR.
 3. **Un flujo de negocio real de punta a punta**: reservar, aprobar, publicar, facturar, asignar. No alcanza con un conjunto de ABMs.
 4. **Una integración externa**: storage de archivos, envío de emails, pagos, mapas, o IA dentro del producto.
 5. **En producción desde la clase 1**, con una URL pública que no cambia durante todo el cuatrimestre.
