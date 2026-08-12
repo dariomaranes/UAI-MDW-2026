@@ -30,13 +30,15 @@ Next.js (App Router) · TypeScript · Postgres · Prisma · Zod · Auth.js · Ta
 
 ## Evaluación
 
-| Instancia | Clase | Peso |
-|---|---|---|
-| Parcial I — defensa del backend en producción | 8 | 25% |
-| Parcial II — defensa de la aplicación | 15 | 25% |
-| Demo Day — cierre de la cursada | 16 | 25% |
-| Eje metodológico (individual) | todas | 10% |
-| Proceso (individual) | todas | 15% |
+| Instancia | Clase |
+|---|---|
+| Parcial I — defensa del backend en producción | 8 |
+| Parcial II — defensa de la aplicación | 15 |
+| Demo Day — cierre de la cursada | 16 |
+| Eje metodológico (individual) | todas |
+| Proceso y concepto (individual) | todas |
+
+El peso de cada instancia está en [`docs/rubricas.md`](./docs/rubricas.md).
 
 Los parciales **no son un examen escrito**: son la demo y la defensa del proyecto en producción. La teoría se evalúa aplicada, en las preguntas de esas defensas.
 
