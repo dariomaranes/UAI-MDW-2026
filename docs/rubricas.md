@@ -58,7 +58,7 @@ Ejemplo del Parcial I: un equipo con modelo de datos destacado (90%), API acepta
 
 ## Parcial I — Clase 8 (25%)
 
-El equipo presenta 10 minutos: demo del backend funcionando en producción + preguntas.
+Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos de demo del backend en producción + preguntas. La defensa se toma **solo con el docente**, no frente al curso.
 
 | Criterio | Peso | Insuficiente (0–55%) | Aceptable (60–80%) | Destacado (85–100%) |
 |---|---|---|---|---|
@@ -75,7 +75,7 @@ El equipo presenta 10 minutos: demo del backend funcionando en producción + pre
 
 ## Parcial II — Clase 15 (25%)
 
-El equipo presenta 10 minutos: recorrido completo del flujo principal desde la UI.
+Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos recorriendo el flujo principal desde la UI. La defensa se toma **solo con el docente**, no frente al curso.
 
 | Criterio | Peso | Insuficiente (0–55%) | Aceptable (60–80%) | Destacado (85–100%) |
 |---|---|---|---|---|
@@ -156,7 +156,7 @@ La última fila es la que importa: **un integrante que no trabajó y no puede de
 Las dos señales que la determinan se pueden demostrar:
 
 1. **El historial del repositorio.** Commits, Pull Requests propios y reviews hechos, con fecha y autor. Es un dato objetivo que el alumno no puede discutir.
-2. **La defensa.** Se le pregunta sobre código del propio repositorio del equipo, delante de todos.
+2. **La defensa.** Se le pregunta sobre código del propio repositorio del equipo. Se toma **solo con el docente**, no frente al curso.
 
 Se comunica en la clase 1 y se aplica sin excepciones. Ante la duda, el docente pregunta más en la defensa: se resuelve con evidencia, no con impresión.
 
