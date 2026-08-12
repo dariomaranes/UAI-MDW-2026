@@ -50,6 +50,18 @@ El dominio lo elige cada equipo, pero todos los proyectos deben cumplir estos ci
 
 **Criterio rápido:** si pueden nombrar a una persona real que lo usaría el mes que viene, la idea sirve.
 
+### Lo ideal: conseguir un Product Owner de verdad
+
+Un amigo, un familiar, alguien con un emprendimiento, la secretaría de un club. Si el equipo consigue a **una persona real que vaya a usar el sistema**, esa persona pasa a ser su **Product Owner**, y eso cambia todo el cursado:
+
+- Los requerimientos de `docs/spec.md` (clase 2) salen de una conversación real, no de lo que el equipo imagina. Es un relevamiento de verdad.
+- Las historias de usuario se validan preguntando, que es la única forma de saber si están bien escritas.
+- Cuando en la clase 4 lean sobre Scrum y aparezca el rol de Product Owner, ya van a saber de qué se trata porque lo tienen.
+- Aparecen los requisitos que nadie inventa sentado en el aula: "esto tiene que poder cancelarse hasta 24 horas antes", "los precios de enero no se tocan".
+- Y en el Demo Day, poder decir *"esto lo está usando alguien"* pesa más que cualquier funcionalidad.
+
+No es obligatorio —un equipo puede definir su dominio y avanzar igual— pero es la diferencia entre un trabajo práctico y un producto. Vale la pena hacer un par de llamadas antes de la clase 2.
+
 ## El pitch (clase 1, 2 minutos)
 
 Tres preguntas, en voz alta, antes de escribir una línea:
