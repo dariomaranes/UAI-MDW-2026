@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 16 - Demo Day y defensa final</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 16 — MDW 2026</h1>
+      <p class="fecha-clase">martes 24/11/2026</p>
+      <h2>Demo Day: defensa final, retrospectiva y recuperación</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Qué pasa hoy</h2>
+        <p class="lead">
+          Cada equipo presenta el sistema que construyó durante el cuatrimestre, funcionando en
+          producción y con datos reales. Vale el <strong>25%</strong> de la nota final y es la
+          instancia donde se verifica, en serio, el <em>“Ship it, but own it”</em>.
+        </p>
+        <ul class="agenda">
+          <li><span class="min">10 min</span> <span>Presentación del equipo</span></li>
+          <li><span class="min">10 min</span> <span>Preguntas individuales sobre el código</span></li>
+        </ul>
+        <p>En paralelo se toma la <strong>recuperación de los parciales I y II</strong> a los equipos que la necesiten (nota máxima 7).</p>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo defienden</span>
+          <p>
+            La última lectura vuelve sobre <strong>programación paralela</strong>, esta vez desde
+            la escala: dividir un problema en partes que corren al mismo tiempo. Es la pregunta
+            de cierre del cuatrimestre y va a aparecer en la defensa:
+            <strong>¿qué harían si mañana su sistema tuviera diez mil usuarios?</strong>
+            Qué se rompe primero, qué se puede paralelizar, qué habría que sacar del camino
+            crítico y hacer en segundo plano.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-16.pdf">📄 Material de la clase 16 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>La presentación</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Min</th><th>Qué mostrar</th></tr></thead>
+            <tbody>
+              <tr><td>0–1</td><td><strong>El problema.</strong> Qué resuelve, para quién, y por qué eligieron esto</td></tr>
+              <tr><td>1–5</td><td><strong>El sistema funcionando.</strong> El flujo completo con datos reales, con los dos roles</td></tr>
+              <tr><td>5–7</td><td><strong>Cómo está hecho.</strong> Modelo de datos, arquitectura y las 2 decisiones técnicas más importantes: qué eligieron y qué descartaron</td></tr>
+              <tr><td>7–9</td><td><strong>Producción.</strong> Deploy, CI, qué pasa cuando algo falla, qué monitorean</td></tr>
+              <tr><td>9–10</td><td><strong>Retrospectiva.</strong> Lo planificado vs. lo real, qué salió bien, qué harían distinto</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <span class="callout-titulo">Hablan los cuatro</span>
+          <p>
+            No hay un "presentador del equipo". Cada integrante expone al menos una parte, y las
+            preguntas van a cualquiera. Es la forma más simple de verificar que el conocimiento
+            está repartido y no concentrado en una sola persona.
+          </p>
+        </div>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Datos reales, no de prueba</span>
+          <p>
+            "Producto 1", "asdf" y "test@test.com" bajan la nota. Un sistema con datos verosímiles
+            se entiende en 30 segundos; uno con basura obliga a imaginar qué hace, y en una demo
+            de 10 minutos eso se paga caro.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>Las preguntas</h2>
+        <p>
+          El docente abre el repositorio del equipo, elige código y pregunta a un integrante al
+          azar. No importa quién lo escribió ni si lo escribió una IA: importa si el equipo
+          entiende su propio sistema.
+        </p>
+        <ul>
+          <li>"¿Por qué esto corre en el servidor y no en el cliente?"</li>
+          <li>"Un usuario del rol A llama a este endpoint con Postman. ¿Qué pasa?"</li>
+          <li>"Borren esta línea mentalmente: ¿qué se rompe?"</li>
+          <li>"¿Qué pasa si dos usuarios hacen esta acción en el mismo instante?"</li>
+          <li>"Si mañana tienen 100.000 registros, ¿qué se cae primero?"</li>
+          <li>"¿Por qué esta relación es 1‑N y no N‑N?"</li>
+          <li>"Esta decisión, ¿qué alternativa descartaron y por qué?"</li>
+          <li>"Muéstrenme algo que la IA les propuso y ustedes rechazaron."</li>
+        </ul>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">La última pregunta es la más importante</span>
+          <p>
+            Un equipo que puede contar qué le rechazó a la IA y por qué, demuestra exactamente lo
+            que esta materia se propuso enseñar: <strong>criterio</strong>. Es lo que los va a
+            distinguir cuando entren a trabajar, donde todos van a tener las mismas herramientas.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>Rúbrica</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Criterio</th><th>Peso</th></tr></thead>
+            <tbody>
+              <tr><td>El producto funciona: recorrido completo, con datos reales, sin caerse</td><td>25%</td></tr>
+              <tr><td>Defensa técnica individual</td><td>35%</td></tr>
+              <tr><td>Decisiones y trade-offs: qué eligieron, qué descartaron, qué harían distinto</td><td>20%</td></tr>
+              <tr><td>Producción y operación</td><td>10%</td></tr>
+              <tr><td>Retrospectiva</td><td>10%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Recuerden que la nota grupal se ajusta por el <strong>factor individual</strong> (0.6 a 1.1).
+          Detalle en <a href="../docs/rubricas.md">docs/rubricas.md</a>.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>Retrospectiva del equipo</h2>
+        <p>Cierra el eje metodológico. Cuatro preguntas, respondidas con datos y no con impresiones:</p>
+        <ol>
+          <li><strong>Lo planificado vs. lo real:</strong> ¿qué alcance imaginaron en la clase 1 y con qué llegaron? ¿Dónde se fue el tiempo?</li>
+          <li><strong>Qué funcionó</strong> del proceso del equipo y vale la pena repetir.</li>
+          <li><strong>Qué no funcionó</strong> y qué harían distinto desde la clase 1.</li>
+          <li><strong>Qué aprendieron sobre trabajar con IA</strong> que no sabían en marzo.</li>
+        </ol>
+      </section>
+
+
+      <section>
+        <h2>Checklist final</h2>
+        <ul class="checklist">
+          <li>Sistema en producción con datos reales y verosímiles.</li>
+          <li>El flujo completo se recorre sin errores, con los dos roles.</li>
+          <li>Presentación ensayada y cronometrada en 10 minutos.</li>
+          <li>Los cuatro integrantes exponen y pueden responder por cualquier parte.</li>
+          <li>README, spec y ADRs actualizados.</li>
+          <li>CI en verde.</li>
+          <li>Retrospectiva preparada, con números.</li>
+          <li>Respuesta pensada a “¿qué pasa si mañana tienen diez mil usuarios?”.</li>
+        </ul>
+
+        <div class="callout">
+          <span class="callout-titulo">Lo que se llevan</span>
+          <p>
+            Un sistema real, en producción, construido en equipo, que pueden mostrar en una
+            entrevista. Y algo menos visible pero más duradero: el criterio para decidir qué
+            construir, cómo estructurarlo y cuándo desconfiar de lo que les propone una máquina.
+            Las herramientas van a cambiar; eso, no.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 16 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

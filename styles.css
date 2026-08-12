@@ -1,0 +1,456 @@
+/* ============================================================
+   styles.css — Metodologías de Desarrollo Web 2026
+   Universidad Abierta Interamericana
+
+   Paleta institucional UAI:
+     bordó   #9F0F3E   (color dominante de la identidad)
+     bordó oscuro #661125
+     azul noche   #0D1640 (secundario institucional)
+============================================================ */
+
+:root {
+  /* Identidad UAI */
+  --uai-bordo:        #9f0f3e;
+  --uai-bordo-osc:    #661125;
+  --uai-bordo-claro:  #c4265c;
+  --uai-bordo-wash:   #fbf2f5;
+  --uai-navy:         #0d1640;
+  --uai-navy-wash:    #f1f3f8;
+
+  /* Neutros */
+  --tinta:            #2b2b2b;
+  --tinta-suave:      #5c5c5c;
+  --linea:            #e4dde0;
+  --fondo:            #f7f4f5;
+  --papel:            #ffffff;
+
+  /* Funcionales */
+  --alerta:           #b45309;
+  --alerta-osc:       #8a3f07;
+  --alerta-wash:      #fdf6ec;
+  --puente:           #1f6f5c;
+  --puente-osc:       #14543f;
+  --puente-wash:      #f0f6f4;
+  --si:               #1f6f5c;
+  --no:               #b3261e;
+}
+
+
+/* =============================================
+   BASE DE LA PÁGINA
+============================================= */
+
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background-color: var(--fondo);
+  color: var(--tinta);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+header {
+  background-color: var(--uai-bordo);
+  background-image: linear-gradient(100deg, var(--uai-bordo-osc), var(--uai-bordo) 55%);
+  color: white;
+  padding: 18px 40px 24px;
+  border-bottom: 5px solid var(--uai-navy);
+}
+
+.marca {
+  font-size: 0.8em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f2c3d1;
+  margin: 0 0 14px;
+}
+
+.marca strong {
+  font-size: 1.5em;
+  letter-spacing: 0.06em;
+  color: white;
+  margin-right: 10px;
+  vertical-align: -1px;
+}
+
+.marca span {
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+  padding-left: 10px;
+}
+
+header a {
+  color: #f6d3de;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+
+header a:hover { text-decoration: underline; }
+
+header h1 {
+  margin: 10px 0 4px;
+  font-size: 1.6em;
+  letter-spacing: -0.01em;
+}
+
+header h2 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: normal;
+  color: #f2c3d1;
+  border: none;
+  padding: 0;
+}
+
+main {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 24px 60px;
+}
+
+section {
+  background-color: var(--papel);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+
+section h2 {
+  color: var(--uai-bordo-osc);
+  border-bottom: 3px solid var(--uai-bordo);
+  padding-bottom: 8px;
+  margin-top: 0;
+  font-size: 1.35em;
+}
+
+h3 {
+  color: var(--uai-navy);
+  margin-top: 28px;
+}
+
+h4 {
+  color: var(--uai-bordo-osc);
+  margin-bottom: 6px;
+}
+
+ol, ul {
+  padding-left: 24px;
+  line-height: 1.9;
+}
+
+a {
+  color: var(--uai-bordo);
+}
+
+a:hover { color: var(--uai-bordo-osc); }
+
+strong { color: #1f1f1f; }
+
+footer {
+  text-align: center;
+  padding: 22px;
+  font-size: 0.85em;
+  color: var(--tinta-suave);
+  border-top: 3px solid var(--uai-bordo);
+  background-color: var(--papel);
+}
+
+
+/* =============================================
+   COMPONENTES DE TEXTO
+============================================= */
+
+.caja-codigo {
+  background-color: var(--uai-navy);
+  color: #dfe4f2;
+  padding: 16px 20px;
+  border-radius: 6px;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.88em;
+  line-height: 1.7;
+  margin: 12px 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.etiq {
+  background-color: var(--uai-bordo-wash);
+  border: 1px solid #f0dbe3;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.86em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--uai-bordo);
+}
+
+.lead {
+  font-size: 1.03em;
+  color: #4a4a4a;
+}
+
+
+/* =============================================
+   CALLOUTS
+============================================= */
+
+.callout {
+  border-left: 4px solid var(--uai-bordo);
+  background-color: var(--uai-bordo-wash);
+  border-radius: 0 6px 6px 0;
+  padding: 16px 20px;
+  margin: 18px 0;
+}
+
+.callout p:first-child { margin-top: 0; }
+.callout p:last-child  { margin-bottom: 0; }
+
+.callout-titulo {
+  font-weight: bold;
+  color: var(--uai-bordo-osc);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.callout-ia {
+  border-left-color: var(--uai-navy);
+  background-color: var(--uai-navy-wash);
+}
+.callout-ia .callout-titulo { color: var(--uai-navy); }
+
+.callout-alerta {
+  border-left-color: var(--alerta);
+  background-color: var(--alerta-wash);
+}
+.callout-alerta .callout-titulo { color: var(--alerta-osc); }
+
+.callout-puente {
+  border-left-color: var(--puente);
+  background-color: var(--puente-wash);
+}
+.callout-puente .callout-titulo { color: var(--puente-osc); }
+
+
+/* =============================================
+   AGENDA / BLOQUES DE CLASE
+============================================= */
+
+.agenda {
+  list-style: none;
+  padding-left: 0;
+  margin: 16px 0 0;
+}
+
+.agenda li {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--linea);
+}
+
+.agenda li:last-child { border-bottom: none; }
+
+.agenda .min {
+  flex: 0 0 68px;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.85em;
+  font-weight: bold;
+  color: white;
+  background-color: var(--uai-bordo);
+  border-radius: 4px;
+  padding: 3px 0;
+  text-align: center;
+}
+
+.agenda .min.min-taller { background-color: var(--uai-navy); }
+.agenda .min.min-meto   { background-color: var(--uai-bordo-claro); }
+
+
+/* =============================================
+   TABLAS
+============================================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.94em;
+}
+
+th, td {
+  border: 1px solid var(--linea);
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background-color: var(--uai-bordo-wash);
+  color: var(--uai-bordo-osc);
+  border-bottom: 2px solid var(--uai-bordo);
+}
+
+tbody tr:nth-child(even) { background-color: #fcfafb; }
+
+.tabla-scroll { overflow-x: auto; }
+
+
+/* =============================================
+   GRILLAS Y COMPARACIONES
+============================================= */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 16px 0;
+}
+
+.tarjeta {
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  padding: 16px 18px;
+  background-color: #fdfcfc;
+}
+
+.tarjeta h4 { margin-top: 0; }
+
+.tarjeta-si { border-top: 3px solid var(--si); }
+.tarjeta-no { border-top: 3px solid var(--no); }
+
+
+/* =============================================
+   CHECKLIST DE ENTREGABLE
+============================================= */
+
+.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist li {
+  padding: 7px 0 7px 30px;
+  position: relative;
+  border-bottom: 1px dashed var(--linea);
+}
+
+.checklist li:last-child { border-bottom: none; }
+
+.checklist li::before {
+  content: "☐";
+  position: absolute;
+  left: 4px;
+  color: var(--uai-bordo);
+  font-size: 1.15em;
+}
+
+
+/* =============================================
+   ESQUEMAS / DIAGRAMAS
+============================================= */
+
+.esquema {
+  background-color: var(--uai-navy-wash);
+  border: 1px solid #ccd3e6;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 16px 0;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.88em;
+  color: var(--uai-navy);
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+
+/* =============================================
+   ÍNDICE DE CLASES
+============================================= */
+
+.lista-clases {
+  list-style: none;
+  padding-left: 0;
+}
+
+.lista-clases li {
+  border-bottom: 1px solid #f3eef0;
+  padding: 12px 4px 12px 14px;
+  border-left: 3px solid transparent;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.lista-clases li:last-child { border-bottom: none; }
+
+.lista-clases li:hover {
+  border-left-color: var(--uai-bordo);
+  background-color: var(--uai-bordo-wash);
+}
+
+.lista-clases a {
+  font-weight: bold;
+  text-decoration: none;
+  color: var(--uai-bordo-osc);
+}
+
+.lista-clases a:hover { text-decoration: underline; }
+
+.lista-clases .desc {
+  display: block;
+  color: var(--tinta-suave);
+  font-size: 0.9em;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 0.75em;
+  font-weight: bold;
+  padding: 2px 9px;
+  border-radius: 12px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.pill-hito    { background-color: var(--alerta-wash); color: var(--alerta-osc); }
+.pill-feriado { background-color: #eceff1; color: #546e7a; }
+.pill-final   { background-color: var(--puente-wash); color: var(--puente-osc); }
+
+
+/* =============================================
+   RESPONSIVE
+============================================= */
+
+@media (max-width: 720px) {
+  header { padding: 14px 20px 20px; }
+  .marca { font-size: 0.72em; }
+  main { margin: 24px auto; padding: 0 14px 40px; }
+  section { padding: 20px 18px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .agenda li { flex-direction: column; gap: 4px; }
+  .agenda .min { flex: none; display: inline-block; padding: 3px 10px; }
+}
+
+/* =============================================
+   FECHAS
+============================================= */
+
+.fecha-clase {
+  margin: 6px 0 0;
+  font-size: 0.85em;
+  color: #f2c3d1;
+  letter-spacing: 0.03em;
+}
+
+.lista-clases .fecha {
+  display: inline-block;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.78em;
+  font-weight: bold;
+  color: var(--uai-bordo);
+  background-color: var(--uai-bordo-wash);
+  border: 1px solid #f0dbe3;
+  border-radius: 4px;
+  padding: 1px 7px;
+  margin-right: 8px;
+  vertical-align: 1px;
+}

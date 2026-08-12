@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MDW 2026 - Metodologías de Desarrollo Web</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <h1>Metodologías de Desarrollo Web 2026</h1>
+      <h2>Ingeniería en Sistemas Informáticos · 4º año · Turno Noche</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>De qué se trata la materia</h2>
+        <p class="lead">
+          Durante el cuatrimestre cada equipo construye <strong>un sistema web real,
+          en producción, desde la primera clase</strong>. No hacemos ejercicios sueltos:
+          hacemos un producto que se puede usar.
+        </p>
+        <p>
+          La materia asume que van a programar con inteligencia artificial. Por eso lo que
+          se enseña y se evalúa no es escribir sintaxis de memoria, sino:
+        </p>
+        <ul>
+          <li><strong>Estructurar</strong> una aplicación completa y saber por qué va donde va.</li>
+          <li><strong>Decidir</strong> qué tecnología usar y poder justificar la decisión.</li>
+          <li><strong>Revisar</strong> lo que la IA escribe y detectar cuándo está mal.</li>
+          <li><strong>Entregar</strong>: llevarlo a producción y mantenerlo funcionando.</li>
+        </ul>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Regla de la materia: “Ship it, but own it”</span>
+          <p>
+            Pueden usar toda la IA que prefieran. Pero en cualquier defensa se le puede pedir a cualquier integrante
+            que expliquen <em>cualquier</em> línea del código del equipo. Lo que no pueden
+            explicar, no cuenta.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Cómo es una clase</h2>
+        <ul class="agenda">
+          <li><span class="min">5 min</span> <span><strong>Standup.</strong> Un equipo muestra su app en producción.</span></li>
+          <li><span class="min min-meto">5 min</span> <span><strong>Metodología.</strong> Puesta en común del material leído + cómo se aplica hoy.</span></li>
+          <li><span class="min">25 min</span> <span><strong>Concepto.</strong> El porqué del tema: arquitectura, decisiones, trade-offs.</span></li>
+          <li><span class="min">15 min</span> <span><strong>Demo con IA.</strong> El tema implementado en vivo, revisando y rechazando output.</span></li>
+          <li><span class="min min-taller">50 min</span> <span><strong>Taller.</strong> El equipo lo aplica en su propio proyecto.</span></li>
+          <li><span class="min">15 min</span> <span><strong>Code review.</strong> Un integrante revisa el Pull Request de otro.</span></li>
+          <li><span class="min">5 min</span> <span><strong>Cierre.</strong> Entregable de la clase y lectura para la próxima.</span></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Clases</h2>
+        <ul class="lista-clases">
+          <li>
+            <span class="fecha">mar 11/08</span>
+            <a href="clase-01/index.html">Clase 01 — Kickoff: cómo se cursa, equipos y primer deploy</a>
+            <span class="desc">Metodología del cursado, conformación de grupos, stack, repo y URL pública el día 1.</span>
+            <span class="desc">📄 Lectura: MIDAS, MDA y MDE</span>
+          </li>
+          <li>
+            <span class="fecha">mar 18/08</span>
+            <a href="clase-02/index.html">Clase 02 — La especificación y TypeScript como contrato</a>
+            <span class="desc">De los requisitos a los tipos: Zod, criterios de aceptación y accesibilidad como requisito.</span>
+            <span class="desc">📄 Lectura: Usabilidad y accesibilidad</span>
+          </li>
+          <li>
+            <span class="fecha">mar 25/08</span>
+            <a href="clase-03/index.html">Clase 03 — Modelado de datos y persistencia</a>
+            <span class="desc">Postgres, Prisma, migraciones y seed. La decisión que la IA no puede tomar por ustedes.</span>
+            <span class="desc">📄 Lectura: Programación Extrema (XP)</span>
+          </li>
+          <li>
+            <span class="fecha">mar 01/09</span>
+            <a href="clase-04/index.html">Clase 04 — La API: REST y Server Actions</a>
+            <span class="desc">Route Handlers, verbos, status codes, CRUD y pruebas con Postman.</span>
+            <span class="desc">📄 Lectura: Scrum</span>
+          </li>
+          <li>
+            <span class="fecha">mar 08/09</span>
+            <a href="clase-05/index.html">Clase 05 — Validación, errores y capas</a>
+            <span class="desc">Zod end-to-end, errores tipados, reglas de negocio en su lugar y primeros tests.</span>
+            <span class="desc">📄 Lectura: Ágil</span>
+          </li>
+          <li>
+            <span class="fecha">mar 15/09</span>
+            <a href="clase-06/index.html">Clase 06 — Autenticación y autorización</a>
+            <span class="desc">Sesiones, roles y protección real. Dónde NO confiar en la IA.</span>
+            <span class="desc">📄 Lectura: Monolitos vs. SOA</span>
+          </li>
+          <li>
+            <span class="fecha">mar 22/09</span>
+            <a href="clase-07/index.html">Clase 07 — Servicios externos: consumir e integrar</a>
+            <span class="desc">Storage, email, pagos o mapas. Secretos, webhooks y qué pasa cuando el proveedor falla.</span>
+            <span class="desc">📄 Lectura: SOA</span>
+          </li>
+          <li>
+            <span class="fecha">mar 29/09</span>
+            <a href="clase-08/index.html">Clase 08 — Parcial I: defensa del backend</a> <span class="pill pill-hito">Evaluación</span>
+            <span class="desc">Demo y defensa del sistema en producción. Vale el 25%.</span>
+          </li>
+          <li>
+            <span class="fecha">mar 06/10</span>
+            <a href="clase-09/index.html">Clase 09 — React moderno dentro de Next.js</a>
+            <span class="desc">Server vs. Client Components y hooks desde el <em>cuándo</em>, no desde el <em>cómo</em>.</span>
+            <span class="desc">📄 Lectura: MVC</span>
+          </li>
+          <li>
+            <span class="fecha">mar 13/10</span>
+            <a href="clase-10/index.html">Clase 10 — UI, design system y consumo de la API</a>
+            <span class="desc">Tailwind, shadcn/ui, responsive y auditoría de accesibilidad.</span>
+            <span class="desc">📄 Lectura: APIs, API First y REST</span>
+          </li>
+          <li>
+            <span class="fecha">mar 20/10</span>
+            <a href="clase-11/index.html">Clase 11 — Formularios, mutaciones y mobile-first</a>
+            <span class="desc">react-hook-form + Zod, Server Actions, estados de carga y error, optimistic UI.</span>
+            <span class="desc">📄 Lectura: Programación para móviles</span>
+          </li>
+          <li>
+            <span class="fecha">mar 27/10</span>
+            <a href="clase-12/index.html">Clase 12 — Testing y calidad</a>
+            <span class="desc">Qué testear cuando el tiempo es poco, E2E con Playwright y la regla del bug.</span>
+            <span class="desc">📄 Lectura: Pruebas</span>
+          </li>
+          <li>
+            <span class="fecha">mar 03/11</span>
+            <a href="clase-13/index.html">Clase 13 — IA dentro del producto</a>
+            <span class="desc">Asistentes y agentes: herramientas, autonomía, inyección de prompt y diseño para el error.</span>
+            <span class="desc">📄 Lectura: Agentes de software</span>
+          </li>
+          <li>
+            <span class="fecha">mar 10/11</span>
+            <a href="clase-14/index.html">Clase 14 — El sistema bajo carga</a>
+            <span class="desc">Race conditions, waterfalls, N+1, caching e invalidación, observabilidad y seguridad.</span>
+            <span class="desc">📄 Lectura: Programación paralela</span>
+          </li>
+          <li>
+            <span class="fecha">mar 17/11</span>
+            <a href="clase-15/index.html">Clase 15 — Parcial II: defensa de la aplicación</a> <span class="pill pill-hito">Evaluación</span>
+            <span class="desc">Flujo completo usable desde la UI, en producción. Vale el 25%.</span>
+          </li>
+          <li>
+            <span class="fecha">mar 24/11</span>
+            <a href="clase-16/index.html">Clase 16 — Demo Day</a> <span class="pill pill-final">Defensa final</span>
+            <span class="desc">Defensa final del sistema, escalabilidad y retrospectiva. Recuperación de parciales.</span>
+            <span class="desc">📄 Lectura: Programación paralela (2)</span>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Documentos de la materia</h2>
+        <ul>
+          <li><a href="docs/politica-ia.md">Política de uso de IA</a> — qué se permite, qué se exige y cómo se evalúa.</li>
+          <li><a href="docs/equipos-y-roles.md">Equipos, roles y núcleo obligatorio del proyecto</a>.</li>
+          <li><a href="docs/calendario.md">Calendario 2026</a> — las 16 fechas, entregas y parciales.</li>
+          <li><a href="docs/rubricas.md">Rúbricas de evaluación</a> — parciales, defensa final y nota individual.</li>
+          <li><a href="docs/eje-metodologico.md">Eje metodológico</a> — lecturas, entregas y su puente con el proyecto.</li>
+          <li><a href="docs/guia-docente.md">Guía docente</a> — plan minutado clase por clase.</li>
+          <li><a href="template/README.md">Repo template</a> — el punto de partida del proyecto.</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Metodologías de Desarrollo Web — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

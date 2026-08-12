@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 12 - Testing y calidad</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 12 — MDW 2026</h1>
+      <p class="fecha-clase">martes 27/10/2026</p>
+      <h2>Testing y calidad</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Probar que el sistema hace lo que dicen que hace. Y entender el reparto que define esta
+          clase: <strong>la IA escribe los tests, ustedes piensan los casos</strong> — porque el caso
+          borde que rompe su negocio no está en ningún dataset.
+        </p>
+        <ul class="agenda">
+          <li><span class="min">5 min</span> <span>Standup</span></li>
+          <li><span class="min min-meto">5 min</span> <span>Metodología: pruebas — dispositivos reales, emuladores y simuladores</span></li>
+          <li><span class="min">25 min</span> <span>La pirámide de tests · qué testear cuando el tiempo es poco · E2E</span></li>
+          <li><span class="min">15 min</span> <span>Demo: un test que atrapa un bug real</span></li>
+          <li><span class="min min-taller">50 min</span> <span>Taller: tests del flujo principal</span></li>
+          <li><span class="min">15 min</span> <span>Code review del equipo</span></li>
+          <li><span class="min">5 min</span> <span>Cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura compara <strong>dispositivos reales, emuladores y simuladores</strong>. La
+            versión web de ese mismo debate es: ¿alcanza con probar en su Chrome de escritorio?
+            No. Hoy el equipo prueba en las tres capas — tests automatizados (el simulador),
+            el <em>preview deployment</em> (el emulador) y <strong>un celular real de alguien del
+            equipo</strong>. Los tres encuentran cosas distintas.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-12.pdf">📄 Material de la clase 12 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. Qué testear cuando el tiempo es poco</h2>
+        <p>
+          En 16 clases no vamos a buscar cobertura del 100%: no tiene sentido y no se sostiene.
+          La pregunta correcta no es "¿cuánto testeo?" sino <strong>"¿qué me duele si se rompe
+          en silencio?"</strong>.
+        </p>
+
+        <div class="esquema">        ▲  pocos, lentos, caros
+       ╱ ╲    E2E — el flujo principal completo, como usuario
+      ╱───╲   "reservar un turno de punta a punta"
+     ╱     ╲
+    ╱ INTEG ╲ — el endpoint contra la base real
+   ╱─────────╲  "POST /turnos rechaza superposición"
+  ╱           ╲
+ ╱   UNITARIOS ╲ — reglas y schemas puros
+╱───────────────╲  "el schema rechaza un título vacío"
+   muchos, rápidos, baratos</div>
+
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Sí testear</h4>
+            <ul>
+              <li>Las reglas de negocio de su <span class="etiq">spec.md</span></li>
+              <li>Los casos borde: vacío, límite, duplicado, fecha pasada, simultaneidad</li>
+              <li>La autorización: que el rol equivocado reciba 403</li>
+              <li><strong>Todo lo que ya se rompió una vez</strong></li>
+              <li>El flujo principal, de punta a punta</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>No testear</h4>
+            <ul>
+              <li>Que Prisma sepa hacer un <span class="etiq">create</span></li>
+              <li>Que React renderice un <span class="etiq">div</span></li>
+              <li>Getters, setters y mapeos triviales</li>
+              <li>Código que va a cambiar la semana que viene</li>
+              <li>Los detalles visuales de un componente</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">La regla del bug</span>
+          <p>
+            Cada vez que encuentren un bug, <strong>primero escriben el test que lo reproduce</strong>
+            y recién después lo arreglan. Es la práctica más barata de todas y la que mejor
+            resultado da: garantiza que ese bug no vuelve, y va construyendo una suite de tests
+            que cubre exactamente lo que su sistema tiene de frágil.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>2. Tests de punta a punta</h2>
+        <p>
+          Un test E2E maneja un navegador de verdad: hace clic, escribe, espera y verifica. Es el
+          único que prueba que <em>todas</em> las piezas funcionan juntas.
+        </p>
+        <div class="caja-codigo">import { test, expect } from "@playwright/test";
+
+test("un usuario puede reservar un turno", async ({ page }) =&gt; {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill("usuario@ejemplo.com");
+  await page.getByRole("button", { name: "Ingresar" }).click();
+
+  await page.getByRole("link", { name: "Nuevo turno" }).click();
+  await page.getByLabel("Fecha").fill("2026-09-15T10:00");
+  await page.getByRole("button", { name: "Guardar" }).click();
+
+  await expect(page.getByText("Turno confirmado")).toBeVisible();
+});</div>
+        <p>
+          Fíjense cómo busca los elementos: por <strong>etiqueta y por rol</strong>, no por clase
+          CSS. Eso no es casualidad — un test escrito así <em>solo pasa si la página es accesible</em>.
+          Si el input no tiene su <span class="etiq">label</span>, el test no lo encuentra. Es la
+          verificación automática de lo que leyeron en la clase 2.
+        </p>
+
+        <h3>Cuántos E2E</h3>
+        <p>
+          Pocos: son lentos y se rompen por cualquier cambio de UI. <strong>Dos o tres</strong>
+          bien elegidos alcanzan para este proyecto: el flujo principal completo, un intento de
+          acceso no autorizado y un camino de error.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>3. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">El reparto que define esta clase</span>
+          <p>
+            Una IA genera tests con una facilidad asombrosa. El problema es <em>cuáles</em> genera:
+            los tres casos obvios, los que cualquiera hubiera pensado. El cuarto —el que rompe el
+            negocio— sale de conocer el dominio.
+          </p>
+          <p>
+            Pídanle <em>"escriban el test de este caso: dos usuarios confirman el mismo turno en el
+            mismo segundo"</em>, no <em>"escriban tests para este archivo"</em>. Lo primero produce
+            un test que vale; lo segundo, veinte tests que pasan siempre y no protegen de nada.
+          </p>
+        </div>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El antipatrón: el test que se acomoda al bug</span>
+          <p>
+            Si un test falla y le piden a la IA "arréglenlo", hay una probabilidad alta de que
+            <strong>modifique el test</strong> en vez del código. El test pasa, el bug queda, y
+            ahora además tienen un test que certifica el comportamiento incorrecto. Cuando algo
+            falla, primero preguntá <em>por qué</em> falla.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>4. Taller</h2>
+        <ol>
+          <li>Instalar Playwright y dejar corriendo el primer test E2E: login + ver el listado.</li>
+          <li>Test E2E del <strong>flujo principal completo</strong> del sistema.</li>
+          <li>Un test de <strong>autorización</strong>: el rol que no puede hacer algo, recibe 403 aunque llame al endpoint directamente.</li>
+          <li>Entre los cuatro, escribir <strong>tres casos borde</strong> del dominio en un papel. Recién ahí pedirle a la IA que los convierta en tests.</li>
+          <li>Probar la app en el <strong>celular real</strong> de cada integrante y anotar lo que falle. Cada hallazgo, un issue.</li>
+        </ol>
+        <p>Dejar los tests corriendo en el CI: un test que no corre solo, no existe.</p>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Test E2E del flujo principal, pasando.</li>
+          <li>Test de autorización que verifica el 403.</li>
+          <li>Tres tests de casos borde pensados por el equipo, no por la IA.</li>
+          <li>Todos los tests corriendo en el CI, en verde.</li>
+          <li>La app probada en al menos dos celulares reales distintos, con los hallazgos como issues.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>Lectura del eje metodológico + entrega del cuestionario.</li>
+          <li>Pensar: si el sistema tuviera un asistente adentro, <strong>¿qué haría por el usuario?</strong> Traelo escrito en una oración.</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 12 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

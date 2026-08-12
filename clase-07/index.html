@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 07 - Integraciones externas</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 07 — MDW 2026</h1>
+      <p class="fecha-clase">martes 22/09/2026</p>
+      <h2>Servicios externos: consumir e integrar</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Conectar el sistema con algo que no controlan, y —sobre todo— que siga funcionando
+          cuando eso que no controlan falle. Es el último requisito del núcleo obligatorio.
+        </p>
+        <ul class="agenda">
+          <li><span class="min">5 min</span> <span>Standup</span></li>
+          <li><span class="min min-meto">5 min</span> <span>Metodología: SOA — arquitectura orientada a servicios</span></li>
+          <li><span class="min">25 min</span> <span>Tipos de integración · secretos · fallas · webhooks</span></li>
+          <li><span class="min">15 min</span> <span>Demo: una integración end-to-end y su plan B</span></li>
+          <li><span class="min min-taller">50 min</span> <span>Taller: la integración del proyecto</span></li>
+          <li><span class="min">15 min</span> <span>Code review del equipo</span></li>
+          <li><span class="min">5 min</span> <span>Cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>SOA</strong>: servicios que se comparten, interoperabilidad,
+            proveedor y consumidor. Hoy el sistema pasa a ser <em>las dos cosas</em>: consume un
+            servicio de un tercero y expone el suyo. Documentás esa dependencia como lo que es
+            —un proveedor— con sus límites, su plan de contingencia y su contrato.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-07.pdf">📄 Material de la clase 07 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. Opciones y qué exige cada una</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Integración</th><th>Sirve para</th><th>Lo difícil</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Storage</strong> (Vercel Blob, Supabase Storage, S3)</td>
+                <td>Fotos de productos, comprobantes, documentos</td>
+                <td>Límite de tamaño, tipos permitidos, URLs públicas vs. privadas</td>
+              </tr>
+              <tr>
+                <td><strong>Email</strong> (Resend, SendGrid)</td>
+                <td>Confirmaciones, recordatorios, recupero de clave</td>
+                <td>Que no caiga en spam; nunca bloquear la operación esperando el envío</td>
+              </tr>
+              <tr>
+                <td><strong>Pagos</strong> (Mercado Pago, Stripe)</td>
+                <td>Cobrar de verdad</td>
+                <td>Webhooks, idempotencia, estados intermedios. El más complejo</td>
+              </tr>
+              <tr>
+                <td><strong>Mapas</strong> (Google Maps, Mapbox)</td>
+                <td>Direcciones, distancias, geolocalización</td>
+                <td>Costo por request, claves restringidas por dominio</td>
+              </tr>
+              <tr>
+                <td><strong>IA en el producto</strong> (Claude, OpenAI)</td>
+                <td>Resumir, clasificar, redactar, buscar en lenguaje natural</td>
+                <td>Latencia, costo por token, respuestas no deterministas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <span class="callout-titulo">Cómo elegir</span>
+          <p>
+            La que <strong>el sistema necesita</strong>, no la más impresionante. Si su turnero
+            necesita mandar recordatorios, es email. Meter IA porque queda bien en la
+            presentación, cuando no resuelve nada del dominio, baja la nota en vez de subirla.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>2. Todo lo externo falla. Siempre.</h2>
+        <p>
+          El proveedor se cae, el request tarda 30 segundos, se pasaron del límite gratuito, o
+          simplemente no hay internet. Un sistema serio contempla eso <em>antes</em> de que pase.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Frágil</h4>
+            <div class="caja-codigo">await enviarEmail(...);
+await crearTurno(...);
+
+// Si el email falla,
+// el turno nunca se crea.</div>
+            <p>Una funcionalidad secundaria bloquea la principal.</p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Resistente</h4>
+            <div class="caja-codigo">const turno = await crearTurno(...);
+
+try {
+  await enviarEmail(...);
+} catch (error) {
+  logger.error("Email falló", error);
+  // El turno YA está creado.
+  // El email se reintenta después.
+}
+
+return turno;</div>
+          </div>
+        </div>
+
+        <h3>Las cuatro preguntas de toda integración</h3>
+        <ol>
+          <li><strong>¿Es crítica o secundaria?</strong> Si es secundaria, nunca puede bloquear el flujo principal.</li>
+          <li><strong>¿Qué ve el usuario si falla?</strong> "No pudimos enviar el mail de confirmación, pero su turno quedó reservado" es infinitamente mejor que una pantalla de error.</li>
+          <li><strong>¿Se puede reintentar sin duplicar?</strong> Mandar dos emails molesta; cobrar dos veces es un problema serio. Eso es idempotencia.</li>
+          <li><strong>¿Cuánto cuesta cuando crezcan?</strong> Busquen los límites del plan gratuito <em>hoy</em>, no cuando lleguen.</li>
+        </ol>
+      </section>
+
+
+      <section>
+        <h2>3. Secretos y webhooks</h2>
+        <h3>Secretos</h3>
+        <ul>
+          <li>Las claves van en variables de entorno, cargadas en Vercel. Nunca en el código, nunca en el repo.</li>
+          <li><strong>Ninguna clave lleva el prefijo <span class="etiq">NEXT_PUBLIC_</span>:</strong> todo lo que lo lleva termina visible en el navegador.</li>
+          <li>Las llamadas al proveedor se hacen <strong>desde el servidor</strong>. Si el navegador llama a la API del proveedor, la clave viaja al navegador.</li>
+          <li>Si una clave se filtró alguna vez, se rota. No se "borra el commit".</li>
+        </ul>
+
+        <h3>Webhooks: cuando el proveedor llama al sistema</h3>
+        <div class="esquema">El sistema ──► "cobrale a este usuario" ──► Mercado Pago
+                                                    │
+                    (el usuario paga, pasan minutos) │
+                                                    ▼
+El sistema ◄── POST /api/webhooks/pagos ◄── Mercado Pago
+              "el pago 123 se aprobó"</div>
+        <p>Un endpoint de webhook es público: cualquiera en internet puede llamarlo. Por eso:</p>
+        <ul>
+          <li><strong>Verifiquen la firma</strong> del proveedor. Sin eso, cualquiera puede avisar que "pagó".</li>
+          <li><strong>Hacelo idempotente:</strong> los proveedores reenvían el mismo evento si no responden rápido.</li>
+          <li><strong>Respondé 200 enseguida</strong> y hacé el trabajo pesado después.</li>
+        </ul>
+      </section>
+
+
+      <section>
+        <h2>4. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">El riesgo específico de esta clase</span>
+          <p>
+            Las APIs de terceros <strong>cambian</strong>, y los asistentes recuerdan versiones
+            viejas: nombres de métodos que ya no existen, parámetros renombrados, SDKs
+            reemplazados. Si el código no funciona y "debería", abran la documentación oficial
+            antes de seguir pidiéndole variantes.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>El cliente del SDK y el manejo de errores</li>
+              <li>Los tipos de la respuesta del proveedor</li>
+              <li>La UI de subida de archivos con su progreso</li>
+              <li>Los reintentos con backoff</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Decidan ustedes</h4>
+            <ul>
+              <li>Si la integración es crítica o secundaria</li>
+              <li>Qué ve el usuario cuando falla</li>
+              <li>Dónde viven los secretos</li>
+              <li>Qué se guarda en su base de la respuesta del proveedor</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          Y siempre: <strong>validen con Zod la respuesta del proveedor</strong>. Es una entrada
+          externa como cualquier otra, aunque venga de una empresa grande.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>5. Taller</h2>
+        <ol>
+          <li>Configurar la cuenta del proveedor y las variables de entorno, en local y en Vercel.</li>
+          <li>Implementar la integración end-to-end, con su manejo de errores. Debe funcionar en producción, no solo en local.</li>
+          <li><strong>Romperla a propósito:</strong> poner una clave inválida y verificar qué ve el usuario. Si ve una pantalla de error o un mensaje incomprensible, arreglarlo.</li>
+          <li>Documentar la dependencia en <span class="etiq">docs/spec.md</span>: proveedor, para qué, límites del plan gratuito, qué pasa si se cae y plan de contingencia.</li>
+        </ol>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Integración funcionando en producción.</li>
+          <li>La falla del proveedor está contemplada y el usuario ve un mensaje útil.</li>
+          <li>Si es secundaria, no bloquea el flujo principal.</li>
+          <li>Secretos solo en variables de entorno del servidor; ninguno con <span class="etiq">NEXT_PUBLIC_</span>.</li>
+          <li>La respuesta del proveedor se valida con Zod.</li>
+          <li>Dependencia documentada con límites y plan de contingencia.</li>
+        </ul>
+
+        <div class="callout">
+          <span class="callout-titulo">Atención: la próxima es el Parcial I</span>
+          <p>
+            Se evalúa el <strong>backend completo en producción</strong>, con Postman y con los dos
+            roles. Repasen la <a href="../docs/rubricas.md">rúbrica</a> y ensayen la demo cronometrada.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 07 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

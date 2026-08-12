@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 10 - UI y design system</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 10 — MDW 2026</h1>
+      <p class="fecha-clase">martes 13/10/2026</p>
+      <h2>UI y design system</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Que el sistema se vea como un producto y no como un trabajo práctico. Hoy la IA
+          genera interfaz mejor que nunca: lo que se aprende es a
+          <strong>curar</strong> lo que genera.
+        </p>
+        <ul class="agenda">
+          <li><span class="min">5 min</span> <span>Standup</span></li>
+          <li><span class="min min-meto">5 min</span> <span>Metodología: APIs, API First, REST y JSON</span></li>
+          <li><span class="min">25 min</span> <span>Sistema de diseño · Tailwind · accesibilidad</span></li>
+          <li><span class="min">15 min</span> <span>Demo: generar un componente y curarlo</span></li>
+          <li><span class="min min-taller">50 min</span> <span>Taller: el flujo principal, navegable y presentable</span></li>
+          <li><span class="min">15 min</span> <span>Code review + prueba de usabilidad con otro equipo</span></li>
+          <li><span class="min">5 min</span> <span>Cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>API First</strong>. Fíjense lo que pasó sin darse cuenta:
+            construyeron la API <em>antes</em> que cualquier pantalla, así que hoy la interfaz
+            consume un contrato que ya existía. Eso es API First, y es la razón por la que mañana
+            podrían hacer una app móvil sin tocar el backend.
+            Además hoy se auditan los criterios de usabilidad y accesibilidad que escribieron en la
+            clase 2: al cierre de la clase, alguien de otro equipo usa el sistema sin que le
+            expliquen nada, y ustedes anotan en silencio dónde se traba.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-10.pdf">📄 Material de la clase 10 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. Un sistema de diseño es un conjunto de decisiones tomadas una vez</h2>
+        <p>
+          Una interfaz se ve amateur no por fea, sino por <strong>inconsistente</strong>: seis
+          azules distintos, botones de cuatro alturas, espaciados al azar. Cada uno de esos es
+          una decisión que se volvió a tomar cada vez.
+        </p>
+        <p>Un sistema de diseño fija de antemano estas cinco cosas:</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Decisión</th><th>Regla práctica para este proyecto</th></tr></thead>
+            <tbody>
+              <tr><td>Color</td><td>Un color de marca, uno de peligro, y grises. Nada más</td></tr>
+              <tr><td>Tipografía</td><td>Una familia, tres tamaños (título, texto, chico)</td></tr>
+              <tr><td>Espaciado</td><td>La escala de Tailwind (4, 8, 16, 24…). No inventar valores</td></tr>
+              <tr><td>Bordes y sombras</td><td>Un radio y una sombra para todo el sistema</td></tr>
+              <tr><td>Componentes</td><td>Un solo <span class="etiq">Button</span>, con variantes. No cinco botones distintos</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Por qué Tailwind y no CSS suelto</h3>
+        <ul>
+          <li>Las clases están limitadas a una escala: es difícil ser inconsistente sin querer.</li>
+          <li>El estilo vive al lado del marcado: no hay que buscar en qué archivo estaba.</li>
+          <li>No hay nombres de clase que inventar ni CSS muerto que nadie se anima a borrar.</li>
+          <li>Es lo que mejor generan los asistentes, porque no dependen de un archivo que no ven.</li>
+        </ul>
+
+        <h3>shadcn/ui: componentes que se copian, no se instalan</h3>
+        <p>
+          shadcn no es una librería: es un catálogo de componentes accesibles que
+          <strong>copian al repositorio</strong> y editan. Eso importa por dos razones: pueden
+          adaptarlos sin pelearte con la librería, y son código propio que también hay que
+          poder explicar.
+        </p>
+        <div class="caja-codigo">npx shadcn@latest init
+npx shadcn@latest add button input card dialog form table</div>
+      </section>
+
+
+      <section>
+        <h2>2. Accesibilidad: el mínimo que se evalúa</h2>
+        <p>
+          No es un extra de fin de curso: es la diferencia entre una interfaz que funciona
+          para todos y una que funciona para quien la programó.
+        </p>
+        <ul class="checklist">
+          <li>Todo se puede usar <strong>con el teclado</strong>: Tab llega a todos lados y se ve dónde está el foco.</li>
+          <li>Todo input tiene su <span class="etiq">&lt;label&gt;</span> asociado. Un placeholder no es una etiqueta.</li>
+          <li>Los botones son <span class="etiq">&lt;button&gt;</span> y los links son <span class="etiq">&lt;a&gt;</span>. Un <span class="etiq">div</span> con <span class="etiq">onClick</span> no existe para un lector de pantalla.</li>
+          <li>El contraste de texto es suficiente (gris clarito sobre blanco, no).</li>
+          <li>Las imágenes tienen <span class="etiq">alt</span>; las decorativas, <span class="etiq">alt=""</span>.</li>
+          <li>El error de un formulario se dice con texto, no solo pintando el borde de rojo.</li>
+        </ul>
+        <div class="callout">
+          <span class="callout-titulo">Prueba de 30 segundos</span>
+          <p>
+            Guarden el mouse y recorran su flujo principal solo con el teclado. Si no pueden
+            completarlo, la accesibilidad está rota — y probablemente también lo esté para
+            alguien que usa el sistema todo el día y quiere ir rápido.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>3. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">La UI es donde más rinde la IA… y donde peor se acumula</span>
+          <p>
+            Genera pantallas enteras muy rápido. El problema es que cada pantalla generada por
+            separado <strong>inventa su propio criterio</strong>: otro azul, otro espaciado, otro
+            botón. En tres clases tienen cinco sistemas de diseño conviviendo.
+          </p>
+          <p>
+            <strong>Antídoto:</strong> generen contra los componentes que ya tienen.
+            <em>"Usen el Button y el Card que están en components/ui. No agregues colores nuevos:
+            solo los del tema."</em>
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>Maquetar una pantalla a partir de un boceto</li>
+              <li>Hacer responsive algo que no lo es</li>
+              <li>Estados de carga, vacío y error</li>
+              <li>Revisar accesibilidad de un componente</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Decidan ustedes</h4>
+            <ul>
+              <li>La paleta y la tipografía</li>
+              <li>Qué información va primero en la pantalla</li>
+              <li>Cuál es la acción principal de cada vista</li>
+              <li>Qué se muestra cuando no hay datos</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>4. Taller</h2>
+        <ol>
+          <li>Fijar el tema: colores, tipografía y radio en <span class="etiq">globals.css</span>. Instalar shadcn y los componentes base.</li>
+          <li>Dejar el <strong>flujo principal completo navegable</strong>: listado, detalle y la acción principal. Consistente, responsive y con los tres estados (carga, vacío, error).</li>
+          <li>Pasada de accesibilidad con la checklist de arriba.</li>
+          <li>Probar en un celular real, no en el simulador del navegador.</li>
+        </ol>
+
+        <h3>Cierre: prueba de usabilidad con otro equipo</h3>
+        <ol>
+          <li>Una persona de otro equipo se sienta frente al sistema en producción.</li>
+          <li>Le dicen <strong>solo la tarea</strong>: "reservá un turno para mañana". Nada más.</li>
+          <li>Ustedes <strong>no hablan</strong>. Anotan dónde duda, dónde hace clic mal, qué no encuentra.</li>
+          <li>Los 3 hallazgos principales se convierten en issues del repo.</li>
+        </ol>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Lo más difícil del ejercicio</span>
+          <p>
+            Quedarse callado. Cada vez que sientas la necesidad de explicar algo, eso mismo es
+            un problema de diseño: el usuario real no va a tener a nadie al lado.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Tema definido y aplicado: colores, tipografía y espaciado consistentes.</li>
+          <li>Flujo principal navegable de punta a punta, responsive.</li>
+          <li>Estados de carga, vacío y error en todas las pantallas del flujo.</li>
+          <li>Checklist de accesibilidad cumplida.</li>
+          <li>3 hallazgos de la prueba de usabilidad, convertidos en issues.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>Lectura del eje metodológico + entrega del cuestionario.</li>
+          <li>Identificar el formulario más complejo del sistema: ese se hace la clase que viene.</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 10 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

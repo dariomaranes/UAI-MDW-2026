@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 03 - Modelado de datos y persistencia</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 03 — MDW 2026</h1>
+      <p class="fecha-clase">martes 25/08/2026</p>
+      <h2>Modelado de datos y persistencia</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Modelar el dominio del sistema. Es la decisión más cara de revertir
+          del cuatrimestre y la que <strong>ninguna IA puede tomar por ustedes</strong>, porque
+          depende de reglas de su negocio que no están escritas en ningún lado.
+        </p>
+        <ul class="agenda">
+          <li><span class="min">5 min</span> <span>Standup</span></li>
+          <li><span class="min min-meto">5 min</span> <span>Metodología: Programación Extrema (XP)</span></li>
+          <li><span class="min">25 min</span> <span>Relacional vs. documental · relaciones · índices</span></li>
+          <li><span class="min">15 min</span> <span>Demo: del texto de la historia al schema y la migración</span></li>
+          <li><span class="min min-taller">50 min</span> <span>Taller: modelar el dominio propio</span></li>
+          <li><span class="min">15 min</span> <span>Code review del equipo</span></li>
+          <li><span class="min">5 min</span> <span>Cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>XP</strong>: pair programming, code review y TDD. Hoy se
+            aplican las tres, no se comentan. El modelado se hace <strong>de a pares</strong> —dos
+            personas, una pantalla—, el schema entra por Pull Request revisado, y la restricción
+            de negocio se escribe como test <em>antes</em> de implementarla.
+            El modelo de datos sale de las historias de la clase 2: los sustantivos son entidades,
+            los verbos operaciones y los criterios de aceptación, restricciones.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-03.pdf">📄 Material de la clase 03 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. Relacional vs. documental</h2>
+        <p>
+          Esta es la primera decisión de arquitectura que toma el equipo, y hay que poder
+          justificarla. No se elige por moda: se elige por el tipo de problema.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta">
+            <h4>Documental (Mongo)</h4>
+            <ul>
+              <li>Guarden objetos completos, anidados</li>
+              <li>Rapidísimo cuando siempre leen el documento entero</li>
+              <li>Sin esquema: flexible al principio</li>
+              <li><strong>Duele cuando</strong> los datos se relacionan entre sí y hay que mantener consistencia</li>
+            </ul>
+          </div>
+          <div class="tarjeta">
+            <h4>Relacional (Postgres)</h4>
+            <ul>
+              <li>Guarden entidades separadas y sus relaciones</li>
+              <li>La base <em>garantiza</em> la integridad: no pueden tener un turno sin paciente</li>
+              <li>Consultas que cruzan entidades sin traer todo a memoria</li>
+              <li><strong>Duele cuando</strong> la forma de los datos cambia todo el tiempo</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          Los sistemas de gestión —que es lo que están construyendo casi todos— son
+          <strong>intrínsecamente relacionales</strong>: turnos que pertenecen a profesionales,
+          pedidos que tienen ítems, préstamos que involucran socios y libros. Por eso la
+          recomendación por defecto es <strong>Postgres</strong>: con un modelo documental hay
+          riesgo de terminar reimplementando a mano lo que la base da gratis.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Mongo también está permitido</span>
+          <p>
+            El equipo puede elegir <strong>MongoDB</strong> si su dominio lo justifica: documentos
+            que se leen enteros y casi no se cruzan, estructura que cambia seguido, o datos
+            heterogéneos que no entran en un esquema fijo. También vale si el equipo ya lo conoce
+            y quiere profundizarlo.
+          </p>
+          <p>
+            La condición es una sola: <strong>que la decisión esté escrita en un ADR</strong>, con
+            qué se gana y qué se resigna. En la defensa se pregunta por qué eligieron lo que
+            eligieron — y "porque ya lo sabía" es una razón válida siempre que sepan qué están
+            resignando.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">¿Qué es un ADR?</span>
+          <p>
+            <em>Architecture Decision Record</em>: un archivo de texto corto que deja escrito
+            <strong>por qué</strong> se tomó una decisión técnica. No documenta el código —
+            documenta el razonamiento, que es justo lo que se olvida en dos semanas.
+          </p>
+          <p>Cuatro secciones, media carilla:</p>
+          <div class="caja-codigo"># ADR 0002 — Usamos MongoDB en lugar de Postgres
+
+## Contexto
+Nuestro sistema guarda fichas médicas: cada una tiene campos distintos
+según la especialidad y cambian seguido. El equipo ya trabajó con Mongo.
+
+## Opciones consideradas
+- Postgres: integridad garantizada por la base, pero esquema rígido
+  para fichas que varían mucho.
+- MongoDB: flexible para documentos heterogéneos, sin integridad
+  referencial.
+
+## Decisión
+MongoDB Atlas, con Prisma como capa de acceso.
+
+## Consecuencias
+- Se gana: flexibilidad en las fichas; el equipo arranca más rápido.
+- Se resigna: la base no impide una ficha sin paciente — lo garantiza
+  nuestro código en lib/db/, y hay que testearlo.
+- A revisar: si aparecen reportes que crucen muchas entidades.</div>
+          <p>
+            <strong>La sección que importa es la última.</strong> Un ADR que solo dice qué
+            eligieron no sirve: el valor está en qué se resigna, porque eso es lo que se pregunta
+            en la defensa.
+          </p>
+          <p>
+            Van en <span class="etiq">docs/adr/</span> del repositorio, numerados. La plantilla ya
+            está ahí, en <span class="etiq">docs/adr/0001-plantilla.md</span>.
+          </p>
+          <p>
+            <strong>Cuándo escribir uno:</strong> cuando la decisión sea cara de revertir — el
+            modelo de datos, dónde vive una regla de negocio, cómo se resuelve la autorización,
+            sumar una dependencia externa. <strong>Cuándo no:</strong> para elegir el nombre de
+            una variable. Regla práctica: si lo discutieron más de cinco minutos, va a un ADR.
+          </p>
+        </div>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Lo bueno: casi nada cambia</span>
+          <p>
+            Prisma soporta MongoDB como proveedor. Se cambia una línea del schema y el resto del
+            proyecto sigue igual: la misma capa <span class="etiq">lib/db/</span>, los mismos tipos
+            generados, los mismos schemas de Zod y las mismas consignas de todas las clases.
+          </p>
+          <div class="caja-codigo">datasource db {
+  provider = "mongodb"        // en vez de "postgresql"
+  url      = env("DATABASE_URL")
+}</div>
+          <p>
+            El equipo que elija Mongo usa <strong>MongoDB Atlas</strong> (plan gratuito) en lugar
+            de Supabase.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1 bis. Qué cambia si eligen Mongo</h2>
+        <p>
+          Nada de lo que se enseña deja de aplicar, pero hay cuatro diferencias que hay que
+          conocer <em>antes</em> de decidir, no después:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Tema</th><th>Postgres</th><th>MongoDB</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Integridad referencial</td>
+                <td>La base impide dejar un turno sin paciente</td>
+                <td><strong>No existe.</strong> Lo tiene que garantizar el código del equipo</td>
+              </tr>
+              <tr>
+                <td>Migraciones</td>
+                <td><span class="etiq">prisma migrate</span> versionadas en el repositorio</td>
+                <td><span class="etiq">prisma db push</span>: no hay historial de cambios de estructura</td>
+              </tr>
+              <tr>
+                <td>Índices únicos</td>
+                <td><span class="etiq">@@unique</span> compuesto, garantizado por la base</td>
+                <td>También existe — es lo que salva de las race conditions de la clase 14</td>
+              </tr>
+              <tr>
+                <td>Transacciones</td>
+                <td>Nativas, sin configuración</td>
+                <td>Requieren replica set. Atlas ya lo trae, una instalación local no</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La fila que más importa es la primera: <strong>lo que la base no garantiza, lo tiene que
+          garantizar el código</strong> — y en la defensa se pregunta exactamente eso.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>2. Las tres relaciones</h2>
+
+        <div class="esquema">1 - N   Un profesional tiene muchos turnos
+        [Profesional] ──&lt; [Turno]
+        La foreign key va del lado "muchos": Turno.profesionalId
+
+N - 1   Mirada inversa de la anterior. Es la misma relación.
+
+N - N   Un turno puede tener varias mascotas; una mascota, varios turnos
+        [Turno] &gt;── [TurnoMascota] ──&lt; [Mascota]
+        Necesita una TABLA INTERMEDIA, que casi siempre
+        termina teniendo datos propios (cantidad, precio, orden...)</div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">La pregunta que define el modelo</span>
+          <p>
+            "¿Un X puede tener varios Y? ¿Y un Y, varios X?" Contéstenla en voz alta, con un
+            caso real de su dominio, <em>antes</em> de escribir el schema. La mitad de los
+            modelos mal hechos salen de no haberla preguntado.
+          </p>
+        </div>
+
+        <h3>Cómo se escribe en Prisma</h3>
+        <div class="caja-codigo">model Profesional {
+  id      String   @id @default(cuid())
+  nombre  String
+  turnos  Turno[]                       // lado "muchos": no crea columna
+}
+
+model Turno {
+  id             String   @id @default(cuid())
+  fecha          DateTime
+  estado         EstadoTurno @default(PENDIENTE)
+
+  profesional    Profesional @relation(fields: [profesionalId], references: [id])
+  profesionalId  String                 // esta SÍ es una columna real
+
+  @@index([profesionalId])              // sin esto, filtrar es lento
+  @@unique([profesionalId, fecha])      // no dos turnos a la misma hora
+}
+
+enum EstadoTurno {
+  PENDIENTE
+  CONFIRMADO
+  CANCELADO
+}</div>
+
+        <p>Fíjense que hay <strong>tres reglas de negocio</strong> escritas ahí, no solo estructura:</p>
+        <ul>
+          <li><span class="etiq">@default(PENDIENTE)</span>: un turno nace pendiente.</li>
+          <li><span class="etiq">@@unique</span>: el mismo profesional no puede tener dos turnos a la misma hora. <strong>La base lo impide</strong>, aunque su código tenga un bug.</li>
+          <li><span class="etiq">enum</span>: no existen estados fuera de esos tres.</li>
+        </ul>
+      </section>
+
+
+      <section>
+        <h2>3. Migraciones: por qué no se toca la base a mano</h2>
+        <p>
+          Una migración es un archivo versionado con el cambio a la estructura de la base.
+          Está en el repositorio, igual que el código.
+        </p>
+        <div class="caja-codigo">npx prisma migrate dev --name agrega-estado-a-turno</div>
+        <p>Qué les da:</p>
+        <ul>
+          <li>Sus 3 compañeros aplican el mismo cambio con un comando.</li>
+          <li>Producción se actualiza sola en el deploy.</li>
+          <li>Hay un historial de cómo evolucionó el modelo.</li>
+        </ul>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Reglas que evitan el 90% de los problemas</span>
+          <ul>
+            <li>Nunca editar una migración ya aplicada. Se crea una nueva.</li>
+            <li>Nunca cambiar la estructura desde el panel del proveedor. Se hace por migración.</li>
+            <li>Una migración por cambio conceptual, con nombre descriptivo.</li>
+          </ul>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>4. Decisiones y trade-offs</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>Cuándo una</th><th>Cuándo la otra</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Borrado físico vs. lógico (<span class="etiq">deletedAt</span>)</td>
+                <td>Físico: datos sin valor histórico</td>
+                <td>Lógico: si alguien va a preguntar "¿qué pasó con aquel turno?"</td>
+              </tr>
+              <tr>
+                <td>Enum vs. tabla de catálogo</td>
+                <td>Enum: valores que cambian con un deploy (estados)</td>
+                <td>Tabla: valores que administra el usuario (categorías, servicios)</td>
+              </tr>
+              <tr>
+                <td>Guardar el total calculado vs. calcularlo</td>
+                <td>Calcular: siempre correcto, más simple</td>
+                <td>Guardar: si el precio de mañana no debe cambiar la factura de ayer</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">cuid</span> vs. autoincremental</td>
+                <td>cuid: no revela cuántos registros tienen, se genera sin ir a la base</td>
+                <td>Autoincremental: legible para humanos (número de pedido)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Cualquiera de estas decisiones que discutan más de cinco minutos, va a un ADR en
+          <span class="etiq">docs/adr/</span>. Es exactamente para eso.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>5. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Esta es la clase donde menos hay que confiar</span>
+          <p>
+            Una IA les escribe un schema plausible en segundos. El problema es que
+            <em>plausible</em> no es <em>correcto</em>: no sabe que en su veterinaria un turno
+            puede incluir varias mascotas del mismo dueño, ni que los precios históricos no
+            se actualizan. Esas reglas están en su cabeza y en su spec, en ningún dataset.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>Traducir un modelo que ya decidieron a sintaxis de Prisma</li>
+              <li>Escribir el <span class="etiq">seed.ts</span> con datos realistas</li>
+              <li>Sugerir qué índices podrían faltar</li>
+              <li>Explicarte qué hace una migración generada</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Decidan ustedes</h4>
+            <ul>
+              <li>Qué entidades existen y cuáles son atributos</li>
+              <li>La cardinalidad de cada relación</li>
+              <li>Qué es único y qué se puede repetir</li>
+              <li>Qué pasa al borrar (¿cascada? ¿se prohíbe?)</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          <strong>Buen prompt de esta clase:</strong> "Este es mi schema. Estas son mis reglas
+          de negocio. Díganme qué reglas <em>no</em> están garantizadas por la base y podrían
+          violarse si mi código tiene un bug."
+        </p>
+      </section>
+
+
+      <section>
+        <h2>6. Taller</h2>
+        <ol>
+          <li>Subrayar los sustantivos de las historias de la spec. Esos son los candidatos a entidad. Descartar los que sean atributos.</li>
+          <li>Dibujar el diagrama de relaciones en el pizarrón o en papel, con la cardinalidad escrita. <em>Antes</em> de tocar el teclado.</li>
+          <li>Escribir <span class="etiq">prisma/schema.prisma</span>: mínimo 3 entidades relacionadas, con índices en las foreign keys y al menos una restricción <span class="etiq">@@unique</span> que refleje una regla real.</li>
+          <li>Migrar y sembrar:
+            <div class="caja-codigo">npx prisma migrate dev --name modelo-inicial   # Postgres
+npx prisma db push                             # MongoDB
+npm run db:seed
+npx prisma studio</div>
+          </li>
+          <li>Escribir el <strong>ADR 0002</strong>: qué base eligieron y por qué, más la decisión de modelado que más discutieron.</li>
+        </ol>
+        <p>Borrar el modelo <span class="etiq">Nota</span> de ejemplo del template: ya no sirve.</p>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Schema con al menos 3 entidades relacionadas y las relaciones correctas.</li>
+          <li>Índices en las foreign keys y al menos una restricción <span class="etiq">@@unique</span> con sentido de negocio.</li>
+          <li>Migración aplicada en la base cloud del equipo.</li>
+          <li><span class="etiq">seed.ts</span> con datos realistas del dominio (no "test 1", "test 2").</li>
+          <li>ADR 0002 documentando la decisión de modelado más discutida.</li>
+          <li>Los 4 integrantes corrieron la migración y ven los mismos datos.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>Lectura del eje metodológico + entrega del cuestionario.</li>
+          <li>Instalar Postman (o Thunder Client en VS Code).</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 03 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

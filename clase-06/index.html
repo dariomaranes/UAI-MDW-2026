@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 06 - Autenticación y autorización</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 06 — MDW 2026</h1>
+      <p class="fecha-clase">martes 15/09/2026</p>
+      <h2>Autenticación y autorización</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Saber quién entra al sistema y qué puede hacer. Es el tema donde el código
+          "que parece correcto" es más peligroso, y por eso es
+          <strong>la clase donde menos se acepta output de IA sin leer</strong>.
+        </p>
+        <ul class="agenda">
+          <li><span class="min">5 min</span> <span>Standup</span></li>
+          <li><span class="min min-meto">5 min</span> <span>Metodología: monolitos vs. arquitectura orientada a servicios</span></li>
+          <li><span class="min">25 min</span> <span>Autenticación vs. autorización · sesión · roles</span></li>
+          <li><span class="min">15 min</span> <span>Demo: romper mi propia app con Postman</span></li>
+          <li><span class="min min-taller">50 min</span> <span>Taller: login, roles y protección real</span></li>
+          <li><span class="min">15 min</span> <span>Code review del equipo</span></li>
+          <li><span class="min">5 min</span> <span>Cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>monolitos vs. servicios</strong>. La autenticación es la
+            primera decisión real de ese tipo que toma el equipo: ¿la resuelven <em>adentro</em>
+            de su aplicación con Auth.js, o la delegan a un servicio de identidad externo?
+            Las dos son válidas. Lo que se evalúa es que puedan justificar cuál eligieron —y eso
+            va a un ADR, junto con el riesgo de equivocarse.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-06.pdf">📄 Material de la clase 06 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. Dos preguntas distintas</h2>
+        <div class="grid-2">
+          <div class="tarjeta">
+            <h4>Autenticación — ¿quién son?</h4>
+            <p>Verificar identidad: login, contraseña, Google, magic link.</p>
+            <p>Se resuelve <strong>una vez</strong>, al entrar. Falla → <strong>401</strong>.</p>
+          </div>
+          <div class="tarjeta">
+            <h4>Autorización — ¿pueden hacer esto?</h4>
+            <p>Verificar permisos sobre una acción concreta.</p>
+            <p>Se resuelve <strong>en cada request</strong>. Falla → <strong>403</strong>.</p>
+          </div>
+        </div>
+        <p>
+          El 90% de los problemas de seguridad de sistemas como los suyos no están en la
+          autenticación —que suele venir resuelta por una librería— sino en la
+          <strong>autorización</strong>, que la escribe cada equipo a mano, endpoint por endpoint.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>2. Cómo funciona una sesión</h2>
+        <div class="esquema">1. El usuario manda email + contraseña
+                    ↓
+2. El servidor verifica y crea una SESIÓN
+                    ↓
+3. Devuelve una cookie firmada (httpOnly: el JS no la puede leer)
+                    ↓
+4. El navegador la manda sola en cada request siguiente
+                    ↓
+5. El servidor la verifica y sabe quién es el usuario
+
+   La cookie NO dice "soy admin". Dice "soy el usuario X",
+   y el servidor busca en SU base qué puede hacer X.</div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Por qué el rol no viaja en el cliente</span>
+          <p>
+            Si el rol viniera en el request, cualquiera lo cambia a <span class="etiq">ADMIN</span>.
+            El rol se lee siempre de la sesión, del lado del servidor. Lo mismo con el
+            <span class="etiq">userId</span>: nunca sale del body.
+          </p>
+        </div>
+
+        <h3>El contrato en este proyecto</h3>
+        <div class="caja-codigo">// lib/auth.ts
+const usuario = await requerirUsuario();          // 401 si no hay sesión
+const admin   = await requerirUsuario("ADMIN");   // 403 si el rol no alcanza
+
+// En TODO endpoint que necesite saber quién llama:
+export async function DELETE(request, { params }) {
+  const usuario = await requerirUsuario();
+
+  const turno = await obtenerTurno(params.id);
+  if (!turno) return NextResponse.json({ error: "No existe" }, { status: 404 });
+
+  // Autorización a nivel del RECURSO, no solo del rol:
+  // ser usuario no habilita a borrar el turno de otro.
+  if (turno.creadoPorId !== usuario.id &amp;&amp; usuario.rol !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+
+  await eliminarTurno(params.id);
+  return new Response(null, { status: 204 });
+}</div>
+        <p>
+          Ese chequeo del medio —<em>"¿este recurso es propio?"</em>— es el que más se olvida y el
+          que más se pregunta en la defensa.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>3. Demo: romper mi propia app</h2>
+        <p>
+          En vivo, sobre el proyecto de referencia: la UI esconde el botón "eliminar" a los
+          usuarios comunes. Parece seguro. Entonces abrimos Postman, copiamos la cookie de
+          sesión de un usuario común y mandamos el <span class="etiq">DELETE</span> a mano.
+        </p>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Esconder el botón no es seguridad</span>
+          <p>
+            La UI es una sugerencia. La seguridad está en el servidor o no está.
+            <strong>En el Parcial I se prueba exactamente esto con Postman.</strong>
+          </p>
+        </div>
+
+        <h3>Checklist de autorización (se usa en la revisión)</h3>
+        <ul class="checklist">
+          <li>Todo endpoint que modifica algo exige sesión.</li>
+          <li>El <span class="etiq">userId</span> sale de la sesión, nunca del body ni de la query.</li>
+          <li>Además del rol, se verifica la pertenencia del recurso.</li>
+          <li>Los listados filtran por lo que el usuario puede ver (no traen todo y ocultan en el cliente).</li>
+          <li>401 y 403 se distinguen correctamente.</li>
+          <li>Ningún secreto tiene el prefijo <span class="etiq">NEXT_PUBLIC_</span>.</li>
+        </ul>
+      </section>
+
+
+      <section>
+        <h2>4. Decisiones y trade-offs</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Decisión</th><th>A favor</th><th>En contra</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Auth.js</strong> (lo que usamos)</td>
+                <td>Gratis, en el repositorio, ven cómo funciona, aprenden el mecanismo</td>
+                <td>Más configuración inicial</td>
+              </tr>
+              <tr>
+                <td>Servicio externo (Clerk, Firebase, Auth0)</td>
+                <td>Funciona en 10 minutos, trae UI hecha</td>
+                <td>Caja negra, dependen de un tercero, cuesta plata al escalar</td>
+              </tr>
+              <tr>
+                <td>Contraseña propia</td>
+                <td>No dependen de nadie</td>
+                <td>Hashing, recupero, políticas: mucha superficie para equivocarse</td>
+              </tr>
+              <tr>
+                <td>OAuth (entrar con Google)</td>
+                <td>Sin contraseñas que proteger, menos fricción</td>
+                <td>Dependés del proveedor; hay que configurar credenciales</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>Recomendación:</strong> Auth.js con OAuth de Google. Sin contraseñas que
+          gestionar y el mecanismo queda a la vista. Si el equipo se traba más de 30 minutos
+          en la configuración, se cambia a un servicio externo y se documenta como ADR: el
+          proyecto no puede quedar frenado en el login.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>5. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">La regla de esta clase</span>
+          <p>
+            Todo lo que la IA escriba de auth <strong>se lee línea por línea</strong>. No porque
+            escriba mal, sino porque acá un error no se nota: la app funciona igual, y el agujero
+            aparece cuando alguien lo busca.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>La configuración inicial de Auth.js</li>
+              <li>El formulario de login y sus estados</li>
+              <li>Los tipos de la sesión</li>
+              <li>Auditar: "¿qué endpoint no verifica permisos?"</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Escriban y revisen ustedes</h4>
+            <ul>
+              <li>Quién puede hacer qué (la matriz de permisos)</li>
+              <li>Cada chequeo de pertenencia del recurso</li>
+              <li>Qué campos se exponen de cada usuario</li>
+              <li>Qué pasa cuando expira la sesión</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>6. Taller</h2>
+        <ol>
+          <li>Login funcionando: registro/ingreso, sesión persistente, logout.</li>
+          <li>Implementar <span class="etiq">obtenerUsuario</span> y <span class="etiq">requerirUsuario</span> en <span class="etiq">lib/auth.ts</span> (el template ya trae el contrato) y usarlas en todos los endpoints.</li>
+          <li>Escribir la <strong>matriz de permisos</strong> en <span class="etiq">docs/spec.md</span>: filas = acciones, columnas = roles, celdas = sí/no/solo propios.</li>
+          <li><strong>Atacar el proyecto de otro equipo</strong> con Postman: intentar hacer algo que no deberían poder. Quien encuentra un agujero lo reporta como issue en el repositorio del otro equipo.</li>
+        </ol>
+        <p>Escribir el ADR del riesgo de autorización antes de cerrar el PR.</p>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Login y logout funcionando en producción.</li>
+          <li>2 roles con permisos efectivamente distintos.</li>
+          <li>Todos los endpoints que modifican datos verifican sesión y permisos <em>en el servidor</em>.</li>
+          <li>Chequeo de pertenencia del recurso donde corresponde.</li>
+          <li>Matriz de permisos documentada en la spec.</li>
+          <li>ADR del riesgo de autorización.</li>
+          <li>Un intento de ataque documentado contra otro equipo (y el propio, corregido).</li>
+        </ul>
+
+        <div class="callout">
+          <span class="callout-titulo">Atención: la próxima es el Parcial I</span>
+          <p>
+            Repasen la <a href="../docs/rubricas.md">rúbrica</a> y preparen la demo. Se evalúa
+            sobre <strong>producción</strong>, no sobre localhost.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 06 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

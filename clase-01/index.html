@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 01 - Kickoff: cómo se cursa, equipos y primer deploy</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 01 — MDW 2026</h1>
+      <p class="fecha-clase">martes 11/08/2026</p>
+      <h2>Kickoff: cómo se cursa, conformación de equipos y primer deploy</h2>
+    </header>
+
+    <main>
+
+      <!-- ============================================================
+           OBJETIVO
+      ============================================================ -->
+      <section>
+        <h2>Objetivo de la clase</h2>
+        <p class="lead">
+          Que al salir del aula cada equipo esté <strong>armado, con la idea elegida, el repositorio
+          creado y una URL pública funcionando</strong>. Todo lo demás del cuatrimestre
+          se construye sobre eso.
+        </p>
+
+        <h3>Agenda</h3>
+        <ul class="agenda">
+          <li><span class="min">10 min</span> <span>Por qué esta materia cambió</span></li>
+          <li><span class="min">15 min</span> <span>Las reglas del juego: ejes, evaluación y política de IA</span></li>
+          <li><span class="min">15 min</span> <span>Anatomía de una app web moderna y el stack que vamos a usar</span></li>
+          <li><span class="min">20 min</span> <span>Conformación de equipos, roles y pitch de la idea</span></li>
+          <li><span class="min min-taller">60 min</span> <span>Taller: cuentas, repositorio y primer deploy</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">La lectura de esta clase, y por qué arrancamos por ahí</span>
+          <p>
+            El material habla de <strong>MIDAS, MDA y MDE</strong>: métodos que proponían escribir
+            un modelo abstracto del sistema y <em>generar el código automáticamente</em> a partir
+            de transformaciones. En los 2000 esa promesa chocó contra la realidad: las herramientas
+            eran rígidas, el código generado era ilegible y todo el mundo terminaba editándolo a mano.
+          </p>
+          <p>
+            Veinte años después la promesa volvió, con otra cara. Hoy escriben una especificación
+            en lenguaje natural y una IA la transforma en código. <strong>Es la misma idea, con un
+            motor de transformación distinto</strong> — y con los mismos riesgos: si el modelo de
+            entrada es ambiguo, lo que sale es basura prolija.
+          </p>
+          <p>
+            Por eso toda la materia empieza por la especificación y no por el código. Lean el
+            material pensando en eso.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-01.pdf">📄 Material de la clase 01 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <!-- ============================================================
+           1. POR QUÉ CAMBIÓ LA MATERIA
+      ============================================================ -->
+      <section>
+        <h2>1. Por qué esta materia cambió</h2>
+        <p>
+          Hasta hace poco, el cuello de botella de un desarrollador junior era
+          <strong>escribir el código</strong>: recordar la sintaxis, saber qué método usar,
+          pelearse con la configuración. Enseñar eso línea por línea tenía todo el sentido.
+        </p>
+        <p>
+          Hoy escribir código dejó de ser el cuello de botella. Una IA les escribe un CRUD
+          completo en treinta segundos. Lo que <em>no</em> les da la IA es lo que
+          efectivamente separa a alguien que puede trabajar en un equipo de desarrollo
+          de alguien que no:
+        </p>
+
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Lo que ya no evaluamos</h4>
+            <ul>
+              <li>Memorizar sintaxis</li>
+              <li>Escribir de cero un <span class="etiq">for</span> o un componente</li>
+              <li>Recordar el nombre exacto de una función</li>
+              <li>Repetir definiciones de manual</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Lo que sí evaluamos</h4>
+            <ul>
+              <li>Estructurar una app completa</li>
+              <li>Elegir tecnología y justificarlo</li>
+              <li>Leer un diff y detectar qué está mal</li>
+              <li>Modelar el dominio del problema</li>
+              <li>Entregar y sostener algo en producción</li>
+              <li>Trabajar en equipo con git de verdad</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El riesgo real de programar con IA</span>
+          <p>
+            No es que la IA escriba código malo: la mayoría de las veces escribe código
+            razonable. El riesgo es que escriba código <em>plausible pero incorrecto</em>
+            para su caso, y que el equipo no tenga cómo darse cuenta. Toda la materia está
+            diseñada para que desarrollen ese criterio.
+          </p>
+        </div>
+      </section>
+
+
+      <!-- ============================================================
+           2. REGLAS DEL JUEGO
+      ============================================================ -->
+      <section>
+        <h2>2. Las reglas del juego</h2>
+
+        <h3>Dos ejes en paralelo</h3>
+        <div class="grid-2">
+          <div class="tarjeta">
+            <h4>Eje práctico — el proyecto</h4>
+            <p>
+              El equipo construye un sistema real durante 16 clases. Se trabaja
+              <strong>en clase</strong>: el 70% del tiempo de cada encuentro es taller.
+            </p>
+          </div>
+          <div class="tarjeta">
+            <h4>Eje metodológico — las lecturas</h4>
+            <p>
+              Un PDF por clase con su cuestionario de entrega.
+              Se lee y se entrega <strong>fuera de clase</strong>; en el aula se cierra
+              en 5 minutos conectándolo con el taller del día.
+            </p>
+          </div>
+        </div>
+
+        <h3>Cómo se aprueba</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Instancia</th><th>Cuándo</th><th>Peso</th><th>Qué se mira</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Parcial I</strong> — defensa del proyecto</td><td>Clase 8</td><td>25%</td><td>Modelo de datos, API, auth, servicios externos y deploy funcionando</td></tr>
+              <tr><td><strong>Parcial II</strong> — defensa del proyecto</td><td>Clase 15</td><td>25%</td><td>Flujo completo usable, UI, testing, performance</td></tr>
+              <tr><td>Defensa final (Demo Day)</td><td>Clase 16</td><td>25%</td><td>El sistema en producción + preguntas individuales sobre el código</td></tr>
+              <tr><td>Eje metodológico</td><td>Todas</td><td>10%</td><td>Entregas de las lecturas teóricas (individual)</td></tr>
+              <tr><td>Proceso</td><td>Todas</td><td>15%</td><td>Commits, Pull Requests, reviews, documentación (individual)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Los parciales son la defensa del proyecto</span>
+          <p>
+            En las clases 8 y 15 no hay examen escrito: hay <strong>demo y defensa</strong>. Los
+            integrantes del equipo muestran el sistema funcionando en producción y responden
+            preguntas, y esas
+            preguntas incluyen el material teórico aplicado a lo que construyeron
+            (“¿por qué su app es un monolito y no una arquitectura de servicios?”). Estudiar la
+            teoría sirve para defender su propio código, no para completar un múltiple choice.
+          </p>
+        </div>
+
+        <h3>La escala</h3>
+        <p>
+          Se aprueba con el <strong>60% del trabajo bien realizado</strong>, que equivale a un
+          <strong>4</strong>. La nota máxima es <strong>10</strong>.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>% de cumplimiento</th><th>60–63</th><th>64–70</th><th>71–76</th><th>77–83</th><th>84–90</th><th>91–96</th><th>97–100</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Nota</strong></td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Cada instancia se puntúa con una rúbrica publicada de antemano, criterio por criterio.
+          Están en <span class="etiq">docs/rubricas.md</span>: no hay sorpresas sobre qué se mira.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Nota individual ≠ nota del grupo</span>
+          <p>
+            Las tres instancias grandes se le ponen <strong>al proyecto</strong>. Esa nota después
+            se ajusta persona por persona: todos arrancan en <strong>×1.0</strong>, y baja a
+            <strong>×0.7</strong> solo con evidencia — no aparecer en el historial del repositorio,
+            o no poder explicar nada en la defensa.
+          </p>
+          <p>
+            En números: si el proyecto saca 8, tres integrantes se llevan 8 y el que no tiene un
+            solo commit ni contestó en la defensa se lleva 5,6.
+          </p>
+        </div>
+
+        <h3>Política de IA: “Ship it, but own it”</h3>
+        <p>
+          La IA está <strong>permitida y fomentada</strong>. Usen la herramienta que prefieran:
+          no hay que declararla ni pedir permiso. Lo que se evalúa no es cómo escribieron el
+          código, sino si el equipo lo entiende y lo puede sostener.
+        </p>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">La única regla que no se negocia</span>
+          <p>
+            En cualquier defensa se le puede pedir a <em>cualquier</em> integrante del equipo
+            que explique <em>cualquier</em> línea del proyecto. Lo que nadie del equipo puede
+            explicar, no suma. La IA está permitida; no saber qué hace su propio código, no.
+          </p>
+        </div>
+      </section>
+
+
+      <!-- ============================================================
+           3. ANATOMÍA + STACK
+      ============================================================ -->
+      <section>
+        <h2>3. Anatomía de una app web moderna</h2>
+        <p>
+          Antes de elegir tecnologías, hay que entender qué piezas existen y qué problema
+          resuelve cada una. Toda aplicación web tiene las mismas partes, cambian los nombres:
+        </p>
+
+        <div class="esquema">   ┌─────────────┐        ┌──────────────────┐        ┌────────────┐
+   │  NAVEGADOR  │  HTTP  │     SERVIDOR     │  SQL   │    BASE     │
+   │  (cliente)  │ ─────► │  render + API    │ ─────► │  DE DATOS   │
+   │  UI, estado │ ◄───── │  auth, reglas    │ ◄───── │  Postgres   │
+   └─────────────┘  JSON  └──────────────────┘        └────────────┘
+                                   │
+                                   ▼
+                          servicios externos
+                    (email, storage, pagos, IA)</div>
+
+        <ul>
+          <li><strong>Cliente:</strong> lo que ve y toca el usuario. Nunca es confiable.</li>
+          <li><strong>Servidor:</strong> donde viven las reglas de negocio y la seguridad. Único lugar confiable.</li>
+          <li><strong>Base de datos:</strong> la verdad del sistema. Lo más caro de cambiar después.</li>
+          <li><strong>Servicios externos:</strong> lo que no tiene sentido construir ustedes.</li>
+        </ul>
+
+        <h3>El stack de la materia</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Pieza</th><th>Herramienta</th><th>Por qué esta y no otra</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Framework</td><td>Next.js (App Router)</td><td>Cliente y servidor en un solo repo y un solo deploy</td></tr>
+              <tr><td>Lenguaje</td><td>TypeScript</td><td>Los tipos son el contrato que evita la mitad de los errores</td></tr>
+              <tr><td>Base de datos</td><td>Postgres (Supabase) · <em>o</em> MongoDB Atlas</td><td>Relacional por defecto, para modelar relaciones de verdad. El equipo puede elegir documental si lo justifica (clase 3)</td></tr>
+              <tr><td>Acceso a datos</td><td>Prisma</td><td>Schema declarativo, migraciones versionadas y tipos automáticos. Funciona igual con Postgres o con MongoDB</td></tr>
+              <tr><td>Validación</td><td>Zod</td><td>Un solo schema: valida y además genera el tipo</td></tr>
+              <tr><td>Autenticación</td><td>Auth.js</td><td>Sesiones, roles y protección de rutas sin caja negra</td></tr>
+              <tr><td>Estilos y UI</td><td>Tailwind + shadcn/ui</td><td>Componentes accesibles que se editan, no se instalan</td></tr>
+              <tr><td>Deploy</td><td>Vercel</td><td>Preview por Pull Request y producción en minutos</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Lo importante no es el stack</span>
+          <p>
+            En dos años algunas de estas herramientas van a haber cambiado. Lo que no cambia
+            son los <strong>conceptos</strong>: cliente/servidor, modelo de datos, contrato de
+            API, validación, sesión, deploy. Fíjense siempre qué concepto está resolviendo
+            cada herramienta: eso es lo que se llevan.
+          </p>
+        </div>
+      </section>
+
+
+      <!-- ============================================================
+           4. EQUIPOS Y PROYECTO
+      ============================================================ -->
+      <section>
+        <h2>4. Equipos, roles y el proyecto</h2>
+
+        <h3>Equipos de 4</h3>
+        <p>
+          Se arman ahora, en clase, y no se cambian. Cada integrante toma un rol, y los roles
+          <strong>rotan cada 4 clases</strong>: al final del cuatrimestre todos pasaron por todo.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Rol</th><th>De qué se hace cargo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Tech Lead / Arquitectura</td><td>Decisiones técnicas, que queden documentadas y que el equipo no se disperse</td></tr>
+              <tr><td>Datos &amp; API</td><td>Schema, migraciones, endpoints, contratos</td></tr>
+              <tr><td>Frontend &amp; UX</td><td>Pantallas, componentes, flujo del usuario</td></tr>
+              <tr><td>DevOps &amp; QA</td><td>Deploy, variables de entorno, CI, que nada se rompa en producción</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Núcleo obligatorio del proyecto</h3>
+        <p>
+          El dominio lo elige cada equipo. Pero para que todos los proyectos sean comparables,
+          <strong>todos</strong> deben cumplir estos cinco requisitos:
+        </p>
+        <ul class="checklist">
+          <li>Autenticación con al menos <strong>2 roles</strong> que puedan hacer cosas distintas.</li>
+          <li>Al menos <strong>3 entidades relacionadas</strong>, con CRUD completo sobre una de ellas.</li>
+          <li>Un <strong>flujo de negocio real</strong> de punta a punta (reservar, aprobar, publicar, facturar…), no solo ABMs.</li>
+          <li>Una <strong>integración externa</strong>: storage, email, pagos, mapas o IA dentro del producto.</li>
+          <li><strong>Desplegado en producción</strong>, con una URL pública que no cambia en todo el cuatrimestre.</li>
+        </ul>
+
+        <h3>El pitch (2 minutos por equipo)</h3>
+        <p>Antes de escribir una línea, el equipo responde en voz alta:</p>
+        <ol>
+          <li>¿Qué problema resuelve y para quién?</li>
+          <li>¿Quiénes son los dos roles y qué puede hacer cada uno?</li>
+          <li>¿Cuál es el flujo principal, en una sola oración?</li>
+        </ol>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Ideas que conviene evitar</span>
+          <p>
+            Todo lo que sea “una red social”, “un Uber de X” o cualquier cosa cuyo valor
+            dependa de tener miles de usuarios. Elijan algo <strong>chico y real</strong>:
+            el sistema de turnos de una veterinaria, la gestión de pedidos de un
+            emprendimiento, el inventario de un club, la mesa de ayuda de una cátedra.
+          </p>
+        </div>
+      </section>
+
+
+      <!-- ============================================================
+           5. TALLER
+      ============================================================ -->
+      <section>
+        <h2>5. Taller: del repo vacío a producción</h2>
+        <p class="lead">
+          Meta: que antes de irse del aula, cada equipo tenga una URL pública que cualquiera
+          pueda abrir desde el celular.
+        </p>
+
+        <h3>Paso 0 — Cuentas</h3>
+        <p>
+          Todos los integrantes crean estas dos cuentas ahora, si no las tienen. Son gratuitas
+          y son las que se van a usar todo el cuatrimestre.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Plataforma</th><th>Para qué</th><th>Cómo</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>GitHub</strong><br /><span class="etiq">github.com</span></td>
+                <td><strong>Una por persona</strong></td>
+                <td>El repositorio, los Pull Requests y los reviews. Usar el mail de la facultad; el nombre de usuario queda en el historial del proyecto, elegirlo con criterio profesional</td>
+              </tr>
+              <tr>
+                <td><strong>Vercel</strong><br /><span class="etiq">vercel.com</span></td>
+                <td><strong>Una por equipo</strong></td>
+                <td>El deploy. Un integrante conecta el repositorio con su cuenta de GitHub; no hace falta tarjeta ni plan pago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <span class="callout-titulo">Dos cosas más, para hacer en casa esta semana</span>
+          <ul>
+            <li>
+              <strong>GitHub Student Pack</strong> (<span class="etiq">education.github.com/pack</span>):
+              se valida con el mail de la facultad y da acceso gratuito a herramientas pagas,
+              entre ellas asistentes de IA. Vale la media hora que lleva.
+            </li>
+            <li>
+              La cuenta del proveedor de <strong>base de datos</strong> (Supabase o MongoDB Atlas) se crea
+              en la clase 3, cuando haga falta. Hoy no se necesita.
+            </li>
+          </ul>
+        </div>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">En GitHub, una cuenta por persona</span>
+          <p>
+            La contribución de cada integrante se mide sobre el historial del repositorio. Si
+            todo el equipo commitea desde una sola cuenta, no hay forma de distinguir quién hizo
+            qué — y eso afecta la nota individual de los cuatro.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Por qué Vercel sí va con una sola cuenta</span>
+          <p>
+            El plan gratuito de Vercel no permite agregar miembros a un proyecto: eso es del plan
+            pago. Pero no hace falta — el deploy se dispara desde <strong>GitHub</strong>, así que
+            cuando cualquiera de los cuatro pushea o abre un Pull Request, se despliega igual.
+          </p>
+          <p>
+            Lo único que queda reservado a quien conectó el repositorio es el panel: variables de
+            entorno, logs y redeploys manuales. Por eso el equipo elige ahora un
+            <strong>dueño de la infraestructura</strong> y lo anota en el README. A diferencia de
+            los otros roles, <strong>este no rota</strong>: la cuenta no se puede transferir cada
+            cuatro clases.
+          </p>
+        </div>
+
+        <h3>Paso 1 — Repositorio</h3>
+        <ul>
+          <li>Un integrante crea el repositorio del equipo y agrega a los otros 3 como colaboradores.</li>
+          <li>Protegen la rama <span class="etiq">main</span>: nadie pushea directo y <strong>nadie aprueba su propio PR</strong>; todo entra revisado por un compañero.</li>
+          <li>Todos clonan y corren el proyecto en local.</li>
+        </ul>
+        <div class="caja-codigo">git clone &lt;url-del-repo&gt;
+cd &lt;proyecto&gt;
+npm install
+cp .env.example .env.local
+npm run dev            # → http://localhost:3000</div>
+
+        <h3>Paso 2 — Base de datos</h3>
+        <ul>
+          <li>Crean un proyecto de base de datos (Supabase o MongoDB Atlas) y copian la connection string a <span class="etiq">.env.local</span>.</li>
+          <li>Corran la migración inicial y verificá que la app levante contra la base real.</li>
+        </ul>
+        <div class="caja-codigo">npx prisma migrate dev --name init
+npx prisma studio   # inspeccionar los datos a mano</div>
+
+        <h3>Paso 3 — Reglas del proyecto para la IA</h3>
+        <p>
+          El archivo <span class="etiq">AGENTS.md</span> en la raíz del repo es lo que leen
+          Cursor, Copilot, Claude Code y compañía antes de escribir código. Es la diferencia
+          entre que la IA respete las convenciones del equipo o invente las suyas en cada archivo.
+        </p>
+        <p>
+          Va en la raíz, se escribe en Markdown y no necesita ser largo. Así de breve ya sirve:
+        </p>
+        <div class="caja-codigo"># AGENTS.md
+
+## Qué es este proyecto
+Sistema de turnos para una veterinaria. Dos roles: recepcionista y
+veterinario. El flujo principal es reservar y confirmar un turno.
+
+## Stack
+Next.js (App Router) + TypeScript + Postgres + Prisma + Zod + Tailwind.
+
+## Comandos
+npm run dev · npm run build · npm run typecheck · npm test
+
+## Dónde va cada cosa
+- Páginas             → app/
+- Endpoints           → app/api/&lt;recurso&gt;/route.ts
+- Componentes         → components/
+- Consultas a la base → lib/db/
+- Schemas de Zod      → lib/schemas/
+
+## Reglas
+- Prohibido importar Prisma fuera de lib/db/.
+- Toda entrada externa se valida con Zod. Prohibido `any`.
+- Los permisos se verifican en el servidor, nunca en el componente.
+- Un componente por archivo, en PascalCase.
+- Commits en español y en imperativo.
+
+## Cómo quiero que trabajes
+- Si la consigna es ambigua, preguntá antes de escribir código.
+- Cambios chicos. No refactorices archivos que no tienen que ver.
+- Antes de crear un helper nuevo, fijate si ya existe en lib/.</div>
+        <p>
+          Eso es todo. Se va completando a medida que el equipo toma decisiones: cada vez que
+          alguien diga "che, esto siempre lo hacemos así", va acá.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Reglas verificables, no intenciones</span>
+          <p>
+            La diferencia entre un <span class="etiq">AGENTS.md</span> que funciona y uno decorativo:
+          </p>
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Intención (inútil)</th><th>Regla (útil)</th></tr></thead>
+              <tbody>
+                <tr><td>"Escribir código limpio"</td><td>"Un componente por archivo, en PascalCase, en <span class="etiq">components/</span>"</td></tr>
+                <tr><td>"Validar bien"</td><td>"Toda entrada externa se valida con Zod. Prohibido <span class="etiq">any</span>"</td></tr>
+                <tr><td>"Cuidar la seguridad"</td><td>"Los permisos se verifican en el servidor, nunca en el componente"</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Pruébenlo antes de creerle</span>
+          <p>
+            Después de escribirlo, pídanle a su asistente que agregue algo trivial y fíjense si
+            respetó las reglas. Si no lo hizo, el problema está en su <span class="etiq">AGENTS.md</span>,
+            no en la IA: probablemente escribieron una intención en vez de una regla verificable.
+          </p>
+        </div>
+
+        <h3>Paso 4 — Deploy</h3>
+        <ul>
+          <li>Importan el repositorio en Vercel, cargan las variables de entorno y despliegan.</li>
+          <li>Abran la URL desde el celular. Si carga, terminaron.</li>
+        </ul>
+
+        <h3>Paso 5 — El README del equipo</h3>
+        <p>
+          Toda la información del equipo y del proyecto va en el <strong><span class="etiq">README.md</span>
+          de la raíz del repositorio</strong>. Es lo primero que se ve al entrar y lo primero que
+          mira el docente en cada corrección. El template ya trae la estructura: solo hay que
+          completarla.
+        </p>
+        <div class="caja-codigo"># Turnos Vet — sistema de turnos para veterinaria
+
+## Equipo
+| Integrante          | Rol (rota cada 4 clases)   |
+|---------------------|----------------------------|
+| Ana Pérez           | Tech Lead / Arquitectura   |
+| Bruno Gómez         | Datos &amp; API                |
+| Carla Díaz          | Frontend &amp; UX              |
+| Diego Ruiz          | DevOps &amp; QA (dueño de Vercel) |
+
+## Producción
+https://turnos-vet.vercel.app
+
+## De qué se trata
+Las veterinarias de barrio manejan los turnos por WhatsApp y se pierden.
+Este sistema permite reservarlos online y que el veterinario los confirme.
+
+Roles: recepcionista (crea y cancela turnos) y veterinario (confirma
+y deja observaciones).
+
+Flujo principal: el recepcionista reserva un turno y el veterinario lo
+confirma o lo reprograma.
+
+## Stack
+Next.js + TypeScript + Postgres (Supabase) + Prisma + Zod + Tailwind.
+Deploy en Vercel.
+
+## Cómo levantarlo
+npm install · copiar .env.example a .env.local · npm run dev</div>
+
+        <p>Y el resto de la información del proyecto tiene su lugar propio:</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Qué</th><th>Dónde</th><th>Desde cuándo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Equipo, roles, URL, de qué se trata, stack</td><td><span class="etiq">README.md</span></td><td>Hoy</td></tr>
+              <tr><td>Requisitos, historias de usuario, reglas de negocio</td><td><span class="etiq">docs/spec.md</span></td><td>Clase 2</td></tr>
+              <tr><td>Convenciones para que las respete la IA</td><td><span class="etiq">AGENTS.md</span></td><td>Hoy</td></tr>
+              <tr><td>Por qué eligieron cada tecnología</td><td><span class="etiq">docs/adr/</span></td><td>Clase 3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <span class="callout-titulo">La regla para no duplicar</span>
+          <p>
+            El README responde <em>qué es y quiénes son</em>; la spec responde <em>qué tiene que
+            hacer</em>; los ADRs responden <em>por qué está hecho así</em>. Si una información
+            aparece en dos lugares, tarde o temprano van a quedar distintas.
+          </p>
+        </div>
+
+        <h3>Paso 6 — Primer Pull Request</h3>
+        <p>
+          El primer PR del cuatrimestre es ese README. <strong>Lo revisa y lo aprueba un
+          integrante que no lo escribió</strong>: nadie mergea su propio Pull Request. Practicamos
+          el ritual con algo trivial para que después salga solo.
+        </p>
+      </section>
+
+
+      <!-- ============================================================
+           ENTREGABLE
+      ============================================================ -->
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Cuenta de GitHub creada por cada uno de los cuatro integrantes.</li>
+          <li>Cuenta de Vercel del equipo, con el dueño de la infraestructura anotado en el README.</li>
+          <li>Equipo de 4 conformado, con los roles asignados y escritos en el README.</li>
+          <li>Idea elegida y pitcheada, cumpliendo el núcleo obligatorio.</li>
+          <li>Repositorio creado, con los 4 integrantes y <span class="etiq">main</span> protegida.</li>
+          <li>Base de datos conectada y migración inicial aplicada.</li>
+          <li><span class="etiq">AGENTS.md</span> completado con las reglas del proyecto.</li>
+          <li><strong>URL pública de producción</strong> funcionando y pegada en el README.</li>
+          <li>README completo con equipo, roles, URL, descripción y stack.</li>
+          <li>Un Pull Request abierto, revisado por un integrante que no lo escribió, y mergeado.</li>
+        </ul>
+
+        <h3>Para la próxima clase</h3>
+        <ul>
+          <li>Lectura del eje metodológico + entrega del cuestionario (individual).</li>
+          <li>Pensar el dominio: ¿qué entidades tiene el sistema? Traelo escrito, aunque sea en papel.</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 01 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
