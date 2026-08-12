@@ -84,7 +84,10 @@ header a {
   font-size: 0.9em;
 }
 
-header a:hover { text-decoration: underline; }
+header a:hover {
+  color: #ffffff;          /* el hover global es bordó y sobre el header desaparecía */
+  text-decoration: underline;
+}
 
 header h1 {
   margin: 10px 0 4px;
@@ -387,7 +390,10 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   color: var(--uai-bordo-osc);
 }
 
-.lista-clases a:hover { text-decoration: underline; }
+.lista-clases a:hover {
+  color: var(--uai-bordo);
+  text-decoration: underline;
+}
 
 .lista-clases .desc {
   display: block;
