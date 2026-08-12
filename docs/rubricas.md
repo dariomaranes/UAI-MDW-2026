@@ -62,7 +62,7 @@ Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos de demo 
 
 | Criterio | Peso | Insuficiente (0–55%) | Aceptable (60–80%) | Destacado (85–100%) |
 |---|---|---|---|---|
-| **Modelo de datos** | 30% | Entidades sueltas, sin relaciones o mal tipadas | 4+ entidades del dominio con 1‑N y N‑N, tipos razonables | Relaciones correctas, índices y restricciones justificadas, elección de base y modelado documentados en un ADR. Si eligieron Mongo, la integridad la garantiza el código |
+| **Modelo de datos** | 30% | Entidades sueltas, sin relaciones o mal tipadas | 5+ entidades del dominio con 1‑N y N‑N, tipos razonables | Relaciones correctas, índices y restricciones justificadas, elección de base y modelado documentados en un ADR. Si eligieron Mongo, la integridad la garantiza el código |
 | **API** | 25% | Endpoints incompletos o incoherentes | CRUD funcionando, verbos y status codes correctos | Contrato claro, errores tipados, colección de Postman completa |
 | **Validación y errores** | 15% | Se confía en el input del cliente | Validación con Zod en el servidor | Validación compartida cliente/servidor, errores útiles para el usuario |
 | **Auth y roles** | 20% | No hay auth o los roles no cambian nada | Login funcionando con 2 roles diferenciados | Autorización verificada en el servidor en todos los caminos, incluidos los que no se ven en la UI |
