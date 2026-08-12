@@ -454,3 +454,11 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   margin-right: 8px;
   vertical-align: 1px;
 }
+
+.proximas {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--linea);
+  font-size: 0.93em;
+  color: var(--tinta-suave);
+}
