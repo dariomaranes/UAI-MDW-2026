@@ -10,7 +10,7 @@
 | **Parcial II** — defensa de la aplicación | Clase 15 | 25% | Del proyecto, ajustada por integrante |
 | Demo Day — cierre de la cursada | Clase 16 | 25% | Grupal + preguntas individuales |
 | Eje metodológico | Todas | 10% | Individual |
-| Proceso | Todas | 15% | Individual |
+| Proceso y concepto | Todas | 15% | Individual |
 
 **Nota final = Parcial I × 0,25 + Parcial II × 0,25 + Demo Day × 0,25 + Metodológico × 0,10 + Proceso × 0,15**
 
@@ -119,17 +119,16 @@ Se elige código del propio repo del equipo y se pregunta a un integrante al aza
 
 Las lecturas y sus cuestionarios se entregan fuera de clase, con deadline al inicio de la clase siguiente.
 
-- Cada entrega vale lo mismo. La nota del eje es el promedio de las entregas.
-- Se descartan las **2 peores** notas del cuatrimestre (cubre enfermedad, olvido, semana complicada).
-- Entregar menos del **70% de los cuestionarios** deja el eje desaprobado, y con él la cursada.
-- La nota del eje sale del promedio de las entregas, en la misma escala: 60% de respuestas correctas = 4.
+- **Se sigue clase a clase.** No es una entrega que se acumule para el final.
+- Cada entrega vale lo mismo. La nota del eje es el promedio, en la misma escala que todo lo demás: 60% de respuestas correctas = 4.
+- **Al 24/11 tienen que estar todas las entregas hechas.** Quien se atrase puede ponerse al día, pero llegar al Demo Day con entregas faltantes **incide en la nota de concepto**.
 - Las respuestas copiadas literalmente entre compañeros se anulan para ambos.
 
 ---
 
-## Proceso (15%) — individual
+## Proceso y concepto (15%) — individual
 
-Se mide sobre el repositorio, no sobre percepción.
+Se mide sobre evidencia —el repositorio y las entregas—, no sobre percepción.
 
 | Señal | Qué se mira |
 |---|---|
@@ -137,6 +136,7 @@ Se mide sobre el repositorio, no sobre percepción.
 | Pull Requests | PRs propios, con la línea de curaduría completada |
 | Reviews | Comentarios hechos a los PRs de sus compañeros de equipo |
 | Documentación | ADRs, `spec.md`, `AGENTS.md` mantenidos al día |
+| Entregas del eje | Que estén todas hechas al 24/11, y que se hayan seguido clase a clase |
 | Ritual | Participación en los standups y en los code reviews |
 
 ---
@@ -168,7 +168,7 @@ Se comunica en la clase 1 y se aplica sin excepciones. Ante la duda, el docente 
 - Se toman **después** de las presentaciones, no en paralelo: el docente no puede conducir el Demo Day y tomar una defensa al mismo tiempo. Y como cualquier parcial, el recuperatorio se defiende **solo con el docente**.
 - Se puede recuperar **uno o los dos** parciales en esa misma instancia.
 - Se evalúa con la **misma rúbrica** del parcial correspondiente, sobre el estado actual del proyecto: lo que se corrigió después de la devolución cuenta.
-- El eje metodológico no se recupera: para eso están las 2 entregas descartadas.
+- El eje metodológico no tiene recuperatorio: las entregas que falten se pueden completar hasta el 24/11, y las que sigan faltando inciden en la nota de concepto.
 
 ---
 
@@ -182,5 +182,5 @@ El Demo Day, entonces, no es el final: es el cierre de la cursada y un adelanto 
 
 - **Nota final ≥ 4** (equivalente al 60% del trabajo bien realizado).
 - Los **dos parciales aprobados**, propios o recuperados en la clase 16.
-- El **70% de los cuestionarios** del eje metodológico entregados.
+- Todas las entregas del eje metodológico hechas al 24/11.
 - El sistema **en producción** al momento del Demo Day.
