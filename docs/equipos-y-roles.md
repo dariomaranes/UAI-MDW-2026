@@ -26,7 +26,7 @@ Además de los cuatro roles rotativos, el equipo designa un **dueño de la infra
 
 El motivo es práctico: el plan gratuito de Vercel no permite agregar miembros a un proyecto, así que la cuenta no se puede pasar de mano cada cuatro clases. Los deploys se disparan igual desde GitHub cuando cualquiera pushea; lo que queda reservado a esa persona es el panel — variables de entorno, logs y redeploys manuales.
 
-Se anota en el README junto con los roles. Si esa persona abandona la materia, el equipo avisa al docente: hay que rehacer la conexión del repositorio con otra cuenta.
+Se anota en el README junto con los roles.
 
 ## Núcleo obligatorio del proyecto
 
