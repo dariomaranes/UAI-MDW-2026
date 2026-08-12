@@ -19,13 +19,14 @@
 | 13 | mar 03/11 | IA dentro del producto | Agentes de software | Cuestionario clase 12 |
 | 14 | mar 10/11 | El sistema bajo carga | Programación paralela | Cuestionario clase 13 |
 | 15 | **mar 17/11** | **PARCIAL II — defensa de la aplicación** | — | Cuestionario clase 14 |
-| 16 | **mar 24/11** | **DEMO DAY** — defensa final y recuperación | Programación paralela (2) | Cuestionario clase 16 |
+| 16 | **mar 24/11** | **DEMO DAY** — cierre de la cursada y recuperación | Programación paralela (2) | Cuestionario clase 16 |
 
 ## Reglas de fechas
 
 - **Cuestionarios:** se entregan al **inicio** de la clase siguiente a la lectura. Se descartan las 2 peores notas; entregar menos del 70% deja el eje desaprobado.
 - **Parciales (clases 8 y 15):** se evalúa sobre **producción**. Si la URL pública no responde, el parcial no se toma y pasa a la recuperación del 24/11.
 - **Recuperación:** única instancia, el 24/11, en paralelo al Demo Day. Nota máxima 7.
+- **El final:** se rinde en las mesas de diciembre, aparte de la cursada. El Demo Day del 24/11 cierra la cursada y sirve de adelanto.
 - **Rotación de roles del equipo:** clases 1 (11/08), 5 (08/09), 9 (06/10) y 13 (03/11).
 
 ## Hitos internos del proyecto

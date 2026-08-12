@@ -241,29 +241,23 @@ footer {
 }
 
 .agenda li {
-  display: flex;
-  gap: 16px;
-  align-items: baseline;
-  padding: 10px 0;
+  position: relative;
+  padding: 10px 0 10px 22px;
   border-bottom: 1px dashed var(--linea);
 }
 
 .agenda li:last-child { border-bottom: none; }
 
-.agenda .min {
-  flex: 0 0 68px;
-  font-family: "SF Mono", Consolas, monospace;
-  font-size: 0.85em;
-  font-weight: bold;
-  color: white;
+.agenda li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   background-color: var(--uai-bordo);
-  border-radius: 4px;
-  padding: 3px 0;
-  text-align: center;
 }
-
-.agenda .min.min-taller { background-color: var(--uai-navy); }
-.agenda .min.min-meto   { background-color: var(--uai-bordo-claro); }
 
 
 /* =============================================
@@ -453,12 +447,4 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   padding: 1px 7px;
   margin-right: 8px;
   vertical-align: 1px;
-}
-
-.proximas {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px dashed var(--linea);
-  font-size: 0.93em;
-  color: var(--tinta-suave);
 }

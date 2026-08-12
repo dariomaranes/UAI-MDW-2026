@@ -68,11 +68,8 @@ Si el equipo no puede responder la 3 en una oración, el alcance está mal defin
 
 ## Free-riders
 
-La nota grupal se multiplica por un **factor individual (0.6 – 1.1)** que sale de:
+La nota del proyecto se ajusta por integrante, y **quien no tenga contribución verificable en el repositorio o no pueda explicar lo entregado desaprueba esa instancia**, aunque el equipo haya sacado 10.
 
-- la contribución verificable en el repositorio (commits, PRs abiertos, reviews hechos);
-- el desempeño respondiendo en las defensas.
-
-Un equipo que entrega un 9 puede tener integrantes con 5.4 y con 9.9. Se avisa en la clase 1 y se aplica sin excepciones.
+Las dos señales que lo determinan son demostrables: el historial del repositorio (commits, PRs y reviews, con fecha y autor) y las respuestas en las defensas. Se avisa en la clase 1 y se aplica sin excepciones. El detalle está en `rubricas.md`.
 
 Si un equipo tiene un problema de convivencia o de reparto de trabajo, se plantea al docente **antes** del parcial, no después de la nota.

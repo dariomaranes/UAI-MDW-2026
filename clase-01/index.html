@@ -31,11 +31,11 @@
 
         <h3>Agenda</h3>
         <ul class="agenda">
-          <li><span class="min">10 min</span> <span>Por qué esta materia cambió</span></li>
-          <li><span class="min">15 min</span> <span>Las reglas del juego: ejes, evaluación y política de IA</span></li>
-          <li><span class="min">15 min</span> <span>Anatomía de una app web moderna y el stack que vamos a usar</span></li>
-          <li><span class="min">20 min</span> <span>Conformación de equipos, roles y pitch de la idea</span></li>
-          <li><span class="min min-taller">60 min</span> <span>Taller: cuentas, repositorio y primer deploy</span></li>
+          <li><span>Por qué esta materia cambió</span></li>
+          <li><span>Las reglas del juego: ejes, evaluación y política de IA</span></li>
+          <li><span>Anatomía de una app web moderna y el stack que vamos a usar</span></li>
+          <li><span>Conformación de equipos, roles y pitch de la idea</span></li>
+          <li><span>Taller: cuentas, repositorio y primer deploy</span></li>
         </ul>
 
         <div class="callout callout-puente">
@@ -74,10 +74,10 @@
           pelearse con la configuración. Enseñar eso línea por línea tenía todo el sentido.
         </p>
         <p>
-          Hoy escribir código dejó de ser el cuello de botella. Una IA les escribe un CRUD
-          completo en treinta segundos. Lo que <em>no</em> les da la IA es lo que
-          efectivamente separa a alguien que puede trabajar en un equipo de desarrollo
-          de alguien que no:
+          Hoy escribir código dejó de ser el cuello de botella: una IA escribe un CRUD completo
+          en treinta segundos. Eso no obliga a nadie a usarla, pero sí cambia qué tiene sentido
+          enseñar. Lo que <em>no</em> resuelve una IA es lo que separa a alguien que puede
+          trabajar en un equipo de desarrollo de alguien que no:
         </p>
 
         <div class="grid-2">
@@ -144,16 +144,29 @@
         <div class="tabla-scroll">
           <table>
             <thead>
-              <tr><th>Instancia</th><th>Cuándo</th><th>Peso</th><th>Qué se mira</th></tr>
+              <tr><th>Instancia</th><th>Cuándo</th><th>Qué se mira</th></tr>
             </thead>
             <tbody>
-              <tr><td><strong>Parcial I</strong> — defensa del proyecto</td><td>Clase 8</td><td>25%</td><td>Modelo de datos, API, auth, servicios externos y deploy funcionando</td></tr>
-              <tr><td><strong>Parcial II</strong> — defensa del proyecto</td><td>Clase 15</td><td>25%</td><td>Flujo completo usable, UI, testing, performance</td></tr>
-              <tr><td>Defensa final (Demo Day)</td><td>Clase 16</td><td>25%</td><td>El sistema en producción + preguntas individuales sobre el código</td></tr>
-              <tr><td>Eje metodológico</td><td>Todas</td><td>10%</td><td>Entregas de las lecturas teóricas (individual)</td></tr>
-              <tr><td>Proceso</td><td>Todas</td><td>15%</td><td>Commits, Pull Requests, reviews, documentación (individual)</td></tr>
+              <tr><td><strong>Parcial I</strong></td><td>Clase 8</td><td>Modelo de datos, API, autenticación, servicios externos y deploy funcionando</td></tr>
+              <tr><td><strong>Parcial II</strong></td><td>Clase 15</td><td>Flujo completo usable desde la interfaz, testing y performance</td></tr>
+              <tr><td><strong>Demo Day</strong> — presentación final</td><td>Clase 16</td><td>El sistema en producción + preguntas individuales sobre el código</td></tr>
+              <tr><td>Eje metodológico</td><td>Todas</td><td>Entregas de los cuestionarios de las lecturas</td></tr>
+              <tr><td>Proceso</td><td>Todas</td><td>Commits, Pull Requests, reviews y documentación</td></tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">La cursada y el final son dos cosas distintas</span>
+          <p>
+            Todo lo de la tabla de arriba es la <strong>cursada</strong>, y termina el 24/11 con
+            el Demo Day. El <strong>final</strong> se rinde aparte, en las mesas de diciembre.
+          </p>
+          <p>
+            El Demo Day no es el final: es el cierre de la cursada, donde cada equipo muestra el
+            sistema terminado ante todo el curso. Sirve además como <em>adelanto</em> de lo que
+            después presentan en la mesa.
+          </p>
         </div>
 
         <div class="callout callout-alerta">
@@ -170,8 +183,8 @@
 
         <h3>La escala</h3>
         <p>
-          Se aprueba con el <strong>60% del trabajo bien realizado</strong>, que equivale a un
-          <strong>4</strong>. La nota máxima es <strong>10</strong>.
+          Cada instancia se califica de <strong>1 a 10</strong>. Se aprueba con <strong>4</strong>,
+          que equivale al <strong>60% del trabajo bien realizado</strong>.
         </p>
         <div class="tabla-scroll">
           <table>
@@ -185,28 +198,41 @@
         </div>
         <p>
           Cada instancia se puntúa con una rúbrica publicada de antemano, criterio por criterio.
-          Están en <span class="etiq">docs/rubricas.md</span>: no hay sorpresas sobre qué se mira.
+          Están en <span class="etiq">docs/rubricas.md</span>, junto con cuánto pesa cada una en
+          la nota final: no hay sorpresas sobre qué se mira.
         </p>
 
         <div class="callout">
-          <span class="callout-titulo">Nota individual ≠ nota del grupo</span>
+          <span class="callout-titulo">El trabajo es grupal, la nota es individual</span>
           <p>
-            Las tres instancias grandes se le ponen <strong>al proyecto</strong>. Esa nota después
-            se ajusta persona por persona: todos arrancan en <strong>×1.0</strong>, y baja a
-            <strong>×0.7</strong> solo con evidencia — no aparecer en el historial del repositorio,
-            o no poder explicar nada en la defensa.
+            El proyecto lo construye el equipo y la nota se le pone <strong>al proyecto</strong>.
+            Pero la que va a la libreta es de cada uno: se parte de la nota del proyecto y se
+            ajusta por integrante.
           </p>
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Situación</th><th>Nota de esa instancia</th></tr></thead>
+              <tbody>
+                <tr><td>Contribuyó y puede explicar lo que entregó</td><td><strong>La del proyecto</strong></td></tr>
+                <tr><td>Contribuyó claramente menos que el resto, o respondió con dificultad</td><td>La del proyecto, hasta 2 puntos menos</td></tr>
+                <tr><td><strong>Sin contribución en el repositorio, o no puede explicar nada</strong></td><td><strong>Desaprueba la instancia</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
           <p>
-            En números: si el proyecto saca 8, tres integrantes se llevan 8 y el que no tiene un
-            solo commit ni contestó en la defensa se lleva 5,6.
+            La última fila no es un descuento, es una condición: <strong>quien no trabajó y no
+            puede defender el proyecto desaprueba, aunque el equipo haya sacado 10.</strong>
+            Las dos señales se pueden demostrar — el historial del repositorio tiene fecha y
+            autor, y la defensa la escucha todo el curso.
           </p>
         </div>
 
         <h3>Política de IA: “Ship it, but own it”</h3>
         <p>
-          La IA está <strong>permitida y fomentada</strong>. Usen la herramienta que prefieran:
-          no hay que declararla ni pedir permiso. Lo que se evalúa no es cómo escribieron el
-          código, sino si el equipo lo entiende y lo puede sostener.
+          La IA está <strong>permitida</strong> y usarla es decisión de cada equipo: no es
+          obligatoria, no hay que declararla y no hay que pedir permiso. Quien prefiera escribir
+          todo a mano, puede. Lo que se evalúa no es cómo escribieron el código, sino si el
+          equipo lo entiende y lo puede sostener.
         </p>
         <div class="callout callout-ia">
           <span class="callout-titulo">La única regla que no se negocia</span>

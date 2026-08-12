@@ -1,16 +1,20 @@
 # Rúbricas de evaluación
 
+> **El trabajo es grupal, la nota es individual.** El proyecto lo construye el equipo, pero la nota que se lleva cada uno se ajusta por su contribución y por cómo responde en las defensas. Cada instancia se califica de **1 a 10**; se aprueba con **4**, que equivale al 60% del trabajo bien realizado.
+
 ## Distribución
 
 | Instancia | Cuándo | Peso | Tipo |
 |---|---|---|---|
-| **Parcial I** — defensa del backend | Clase 8 | 25% | Grupal (ajustada por factor individual) |
-| **Parcial II** — defensa de la aplicación | Clase 15 | 25% | Grupal (ajustada por factor individual) |
-| Defensa final (Demo Day) | Clase 16 | 25% | Grupal + preguntas individuales |
+| **Parcial I** — defensa del backend | Clase 8 | 25% | Del proyecto, ajustada por integrante |
+| **Parcial II** — defensa de la aplicación | Clase 15 | 25% | Del proyecto, ajustada por integrante |
+| Demo Day — cierre de la cursada | Clase 16 | 25% | Grupal + preguntas individuales |
 | Eje metodológico | Todas | 10% | Individual |
 | Proceso | Todas | 15% | Individual |
 
-**Nota final individual = (Parcial I × 0.25 + Parcial II × 0.25 + Final × 0.25) × factor individual + Metodológico × 0.10 + Proceso × 0.15**
+**Nota final = Parcial I × 0,25 + Parcial II × 0,25 + Demo Day × 0,25 + Metodológico × 0,10 + Proceso × 0,15**
+
+Las tres primeras se calculan sobre la nota del proyecto, ajustada por integrante (ver *La nota individual*).
 
 Los parciales de las clases 8 y 15 **no son un examen escrito**: son la demo y la defensa del proyecto. La teoría se evalúa aplicada, dentro de esas preguntas (ver `eje-metodologico.md`).
 
@@ -83,7 +87,7 @@ El equipo presenta 10 minutos: recorrido completo del flujo principal desde la U
 
 ---
 
-## Defensa final — Clase 16 (25%)
+## Cierre de la cursada — Clase 16 (25%)
 
 Presentación de 10 minutos + 10 de preguntas. El sistema debe estar en producción y con datos reales (no de prueba).
 
@@ -137,26 +141,24 @@ Se mide sobre el repositorio, no sobre percepción.
 
 ---
 
-## Factor individual
+## La nota individual
 
-Las tres instancias grandes se le ponen **al proyecto**, no a cada persona. El factor ajusta esa nota individuo por individuo, para que no se lleven lo mismo quienes no hicieron lo mismo.
+El proyecto es del equipo; la nota es de cada uno. Se parte de la nota que sacó el proyecto y se ajusta por integrante:
 
-```
-nota de cada integrante = nota del proyecto × su factor
-```
-
-| Factor | Cuándo se aplica |
+| Situación | Nota de esa instancia |
 |---|---|
-| **1.0** | Por defecto. Todos arrancan acá |
-| **0.7** | Solo con evidencia: no aparece en el historial del repositorio, o no pudo explicar nada en la defensa |
+| Contribuyó al proyecto y puede explicar lo que entregó | **La del proyecto** |
+| Contribuyó claramente menos que el resto, o respondió con dificultad en la defensa | La del proyecto, **hasta 2 puntos menos** |
+| **Sin contribución verificable en el repositorio, o no puede explicar nada de lo entregado** | **Desaprueba la instancia** (máximo 3) |
 
-Ejemplo: el proyecto saca **8** en el Parcial I. Tres integrantes se llevan **8**; el que no tiene un solo commit y no contestó en la defensa se lleva **5,6**.
+La última fila es la que importa: **un integrante que no trabajó y no puede defender el proyecto desaprueba, aunque el equipo haya sacado 10.** No es un descuento, es una condición.
 
-Dos criterios y nada más, a propósito: son los dos que se pueden demostrar con datos (el historial de git tiene fecha y autor; la defensa la escuchó todo el curso). Ante una duda, el docente pregunta más en la defensa — la duda se resuelve con evidencia, no con impresión.
+Las dos señales que la determinan se pueden demostrar:
 
-Se comunica en la clase 1 y se aplica sin excepciones.
+1. **El historial del repositorio.** Commits, Pull Requests propios y reviews hechos, con fecha y autor. Es un dato objetivo que el alumno no puede discutir.
+2. **La defensa.** Se le pregunta sobre código del propio repositorio del equipo, delante de todos.
 
----
+Se comunica en la clase 1 y se aplica sin excepciones. Ante la duda, el docente pregunta más en la defensa: se resuelve con evidencia, no con impresión.
 
 ## Recuperación
 
@@ -165,6 +167,12 @@ Se comunica en la clase 1 y se aplica sin excepciones.
 - El eje metodológico no se recupera: para eso están las 2 entregas descartadas.
 
 ---
+
+## La cursada y el final
+
+Todo lo que está en este documento evalúa la **cursada**, que termina el 24/11 con el Demo Day. El **final** se rinde aparte, en las **mesas de diciembre**, y cada uno decide si se presenta según cómo haya cerrado la cursada.
+
+El Demo Day, entonces, no es el final: es el cierre de la cursada y un adelanto de lo que después se presenta en la mesa.
 
 ## Cómo se aprueba la cursada
 
