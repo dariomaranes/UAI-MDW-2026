@@ -344,6 +344,11 @@
           Meta: que antes de irse del aula, cada equipo tenga una URL pública que cualquiera
           pueda abrir desde el celular.
         </p>
+        <p>
+          El orden no es casual: primero lo que se <strong>escribe</strong> —quiénes son, qué van
+          a construir y con qué reglas—, después lo que se <strong>configura</strong>. Así, si algo
+          falla en la base de datos o en el deploy, el equipo igual se va con su proyecto definido.
+        </p>
 
         <h3>Paso 0 — Cuentas</h3>
         <p>
@@ -420,13 +425,65 @@ npm install
 cp .env.example .env.local
 npm run dev            # → http://localhost:3000</div>
 
-        <h3>Paso 2 — Base de datos</h3>
-        <ul>
-          <li>Crean un proyecto de base de datos (Supabase o MongoDB Atlas) y copian la connection string a <span class="etiq">.env.local</span>.</li>
-          <li>Corran la migración inicial y verificá que la app levante contra la base real.</li>
-        </ul>
-        <div class="caja-codigo">npx prisma migrate dev --name init
-npx prisma studio   # inspeccionar los datos a mano</div>
+        <h3>Paso 2 — El README del equipo</h3>
+        <p>
+          Toda la información del equipo y del proyecto va en el <strong><span class="etiq">README.md</span>
+          de la raíz del repositorio</strong>. Es lo primero que se ve al entrar y lo primero que
+          mira el docente en cada corrección. El template ya trae la estructura: solo hay que
+          completarla.
+        </p>
+        <div class="caja-codigo"># Turnos Vet — sistema de turnos para veterinaria
+
+## Equipo
+| Integrante          | Rol (rota cada 4 clases)   |
+|---------------------|----------------------------|
+| Ana Pérez           | Tech Lead / Arquitectura   |
+| Bruno Gómez         | Datos &amp; API                |
+| Carla Díaz          | Frontend &amp; UX              |
+| Diego Ruiz          | DevOps &amp; QA (dueño de Vercel) |
+
+## Producción
+https://turnos-vet.vercel.app
+
+## De qué se trata
+Las veterinarias de barrio manejan los turnos por WhatsApp y se pierden.
+Este sistema permite reservarlos online y que el veterinario los confirme.
+
+Roles: recepcionista (crea y cancela turnos) y veterinario (confirma
+y deja observaciones).
+
+Flujo principal: el recepcionista reserva un turno y el veterinario lo
+confirma o lo reprograma.
+
+## Stack
+Next.js + TypeScript + Postgres (Supabase) + Prisma + Zod + Tailwind.
+Deploy en Vercel.
+
+## Cómo levantarlo
+npm install · copiar .env.example a .env.local · npm run dev</div>
+
+        <p>Y el resto de la información del proyecto tiene su lugar propio:</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Qué</th><th>Dónde</th><th>Desde cuándo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Equipo, roles, URL, de qué se trata, stack</td><td><span class="etiq">README.md</span></td><td>Hoy</td></tr>
+              <tr><td>Requisitos, historias de usuario, reglas de negocio</td><td><span class="etiq">docs/spec.md</span></td><td>Clase 2</td></tr>
+              <tr><td>Convenciones para que las respete la IA</td><td><span class="etiq">AGENTS.md</span></td><td>Hoy</td></tr>
+              <tr><td>Por qué eligieron cada tecnología</td><td><span class="etiq">docs/adr/</span></td><td>Clase 3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <span class="callout-titulo">La regla para no duplicar</span>
+          <p>
+            El README responde <em>qué es y quiénes son</em>; la spec responde <em>qué tiene que
+            hacer</em>; los ADRs responden <em>por qué está hecho así</em>. Si una información
+            aparece en dos lugares, tarde o temprano van a quedar distintas.
+          </p>
+        </div>
 
         <h3>Paso 3 — Reglas del proyecto para la IA</h3>
         <p>
@@ -498,65 +555,13 @@ npm run dev · npm run build · npm run typecheck · npm test
           </p>
         </div>
 
-        <h3>Paso 4 — El README del equipo</h3>
-        <p>
-          Toda la información del equipo y del proyecto va en el <strong><span class="etiq">README.md</span>
-          de la raíz del repositorio</strong>. Es lo primero que se ve al entrar y lo primero que
-          mira el docente en cada corrección. El template ya trae la estructura: solo hay que
-          completarla.
-        </p>
-        <div class="caja-codigo"># Turnos Vet — sistema de turnos para veterinaria
-
-## Equipo
-| Integrante          | Rol (rota cada 4 clases)   |
-|---------------------|----------------------------|
-| Ana Pérez           | Tech Lead / Arquitectura   |
-| Bruno Gómez         | Datos &amp; API                |
-| Carla Díaz          | Frontend &amp; UX              |
-| Diego Ruiz          | DevOps &amp; QA (dueño de Vercel) |
-
-## Producción
-https://turnos-vet.vercel.app
-
-## De qué se trata
-Las veterinarias de barrio manejan los turnos por WhatsApp y se pierden.
-Este sistema permite reservarlos online y que el veterinario los confirme.
-
-Roles: recepcionista (crea y cancela turnos) y veterinario (confirma
-y deja observaciones).
-
-Flujo principal: el recepcionista reserva un turno y el veterinario lo
-confirma o lo reprograma.
-
-## Stack
-Next.js + TypeScript + Postgres (Supabase) + Prisma + Zod + Tailwind.
-Deploy en Vercel.
-
-## Cómo levantarlo
-npm install · copiar .env.example a .env.local · npm run dev</div>
-
-        <p>Y el resto de la información del proyecto tiene su lugar propio:</p>
-        <div class="tabla-scroll">
-          <table>
-            <thead>
-              <tr><th>Qué</th><th>Dónde</th><th>Desde cuándo</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Equipo, roles, URL, de qué se trata, stack</td><td><span class="etiq">README.md</span></td><td>Hoy</td></tr>
-              <tr><td>Requisitos, historias de usuario, reglas de negocio</td><td><span class="etiq">docs/spec.md</span></td><td>Clase 2</td></tr>
-              <tr><td>Convenciones para que las respete la IA</td><td><span class="etiq">AGENTS.md</span></td><td>Hoy</td></tr>
-              <tr><td>Por qué eligieron cada tecnología</td><td><span class="etiq">docs/adr/</span></td><td>Clase 3</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="callout">
-          <span class="callout-titulo">La regla para no duplicar</span>
-          <p>
-            El README responde <em>qué es y quiénes son</em>; la spec responde <em>qué tiene que
-            hacer</em>; los ADRs responden <em>por qué está hecho así</em>. Si una información
-            aparece en dos lugares, tarde o temprano van a quedar distintas.
-          </p>
-        </div>
+        <h3>Paso 4 — Base de datos</h3>
+        <ul>
+          <li>Crean un proyecto de base de datos (Supabase o MongoDB Atlas) y copian la connection string a <span class="etiq">.env.local</span>.</li>
+          <li>Corran la migración inicial y verifiquen que la app levante contra la base real.</li>
+        </ul>
+        <div class="caja-codigo">npx prisma migrate dev --name init
+npx prisma studio   # inspeccionar los datos a mano</div>
 
         <h3>Paso 5 — Deploy</h3>
         <ul>
@@ -571,6 +576,7 @@ npm install · copiar .env.example a .env.local · npm run dev</div>
           <strong>Lo revisa y lo aprueba un integrante que no lo escribió</strong>: nadie mergea
           su propio Pull Request. Practicamos el ritual con algo trivial para que después salga solo.
         </p>
+
       </section>
 
 
