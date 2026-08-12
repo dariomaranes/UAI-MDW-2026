@@ -24,9 +24,11 @@ La materia asume que los alumnos programan con IA. Por eso no se evalúa escribi
 | `docs/metodologias/` | Los 14 PDFs del eje teórico, uno por clase |
 | `template/` | Repo starter que clonan los equipos (Next.js + TypeScript + Prisma + Zod + Tailwind) |
 
-## Stack del proyecto
+## Stack sugerido
 
-Next.js (App Router) · TypeScript · Postgres · Prisma · Zod · Auth.js · Tailwind + shadcn/ui · Deploy en Vercel.
+Next.js (App Router) · TypeScript · Postgres o MongoDB · Prisma · Zod · Auth.js · Tailwind + shadcn/ui · Deploy en Vercel.
+
+Es el stack de las demos, del repositorio template y de las consignas de los talleres. **No es obligatorio:** cada equipo puede usar la tecnología con la que se sienta cómodo, siempre que cumpla el núcleo obligatorio del proyecto y justifique la decisión en un ADR.
 
 ## Evaluación
 

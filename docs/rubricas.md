@@ -20,6 +20,8 @@ Los parciales de las clases 8 y 15 **no son un examen escrito**: son la demo y l
 
 ---
 
+> **Sobre el stack.** Las rúbricas nombran las herramientas sugeridas (Prisma, Zod, Auth.js). Si el equipo eligió otra tecnología, cada criterio se lee en su equivalente: lo que se evalúa es que haya migraciones versionadas, validación en el servidor y autorización verificada, no la marca de la librería.
+
 ## Escala de calificación
 
 Se aprueba con el **60% del trabajo bien realizado**, que equivale a **4**. La nota máxima es **10**.

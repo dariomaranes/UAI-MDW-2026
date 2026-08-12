@@ -42,6 +42,12 @@ El dominio lo elige cada equipo, pero todos los proyectos deben cumplir estos ci
 4. **Una integración externa**: storage de archivos, envío de emails, pagos, mapas, o IA dentro del producto.
 5. **En producción desde la clase 1**, con una URL pública que no cambia durante todo el cuatrimestre.
 
+### El stack
+
+El stack de la materia (Next.js + TypeScript + Postgres/MongoDB + Prisma + Zod + Tailwind, deploy en Vercel) es **sugerido**, no obligatorio: es el de las demos, el del repositorio template y el de las consignas de los talleres.
+
+Un equipo puede usar otra tecnología si se siente más cómodo, con dos condiciones: que cumpla el núcleo obligatorio y que la decisión esté en un ADR. Lo que se resigna es el andamiaje —las demos, el template y las consignas van a estar en el stack sugerido, y traducirlas es trabajo del equipo—. Lo que no cambia son los criterios de evaluación: valen igual, leídos en la tecnología equivalente.
+
 ## Cómo elegir el dominio
 
 **Sirve:** algo chico, real y verificable. Turnos de una veterinaria. Pedidos de un emprendimiento de comida. Inventario y préstamos de un club. Mesa de ayuda de una cátedra. Gestión de socios de una biblioteca. Reserva de canchas.
