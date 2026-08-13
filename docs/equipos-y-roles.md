@@ -85,7 +85,7 @@ Si el equipo no puede responder la 3 en una oración, el alcance está mal defin
 | Antes de la clase | Cada uno leyó el material del eje metodológico y entregó su cuestionario |
 | Durante el taller | Se trabaja en ramas; nadie pushea a `main`. El docente pasa por la computadora del equipo: qué avanzaron y en qué están trabados |
 | Últimos 15 min | Code review: un integrante revisa el PR de otro |
-| Antes de irse | El entregable de la clase está mergeado y desplegado |
+| Al cerrar la clase | El entregable de la clase queda mergeado y desplegado; lo que falte se completa durante la semana |
 
 ## Free-riders
 
