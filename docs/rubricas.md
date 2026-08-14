@@ -119,7 +119,7 @@ Se mide sobre evidencia —el repositorio y las entregas—, no sobre percepció
 | Señal | Qué se mira |
 |---|---|
 | Commits | Distribución a lo largo del cuatrimestre, no todo la noche antes del parcial |
-| Pull Requests | PRs propios, con la línea de curaduría completada |
+| Pull Requests | PRs propios, que expliquen qué hacen |
 | Reviews | Comentarios hechos a los PRs de sus compañeros de equipo |
 | Documentación | ADRs, `spec.md`, `AGENTS.md` mantenidos al día |
 | Entregas del eje | Que estén todas hechas al 24/11, y que se hayan seguido clase a clase |

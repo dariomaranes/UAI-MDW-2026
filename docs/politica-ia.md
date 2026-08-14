@@ -12,23 +12,6 @@ Prohibir la IA sería enseñar para un mundo que ya no existe, y además es inve
 
 La condición de "poder explicarlo" es la única que resuelve las dos cosas: no limita la herramienta, pero obliga a leer, entender y curar lo que genera. Es exactamente lo que se espera en un equipo profesional cuando alguien abre un Pull Request.
 
-## Lo que se exige en cada Pull Request
-
-Una sola línea, ya está en la plantilla del repositorio:
-
-> **¿Qué revisó el equipo de lo que generó la IA?**
-
-Es una línea, no un informe. Lo que importa es que alguien haya *mirado* el código antes de mergearlo.
-
-| Respuesta pobre | Respuesta válida |
-|---|---|
-| "Nada" / "lo dejé como salió" | "Generó la validación de superposición en el cliente; la movimos al servidor porque el cliente no es confiable" |
-| "Anda" | "Sacamos un índice que no hacía falta y agregamos el caso de fecha pasada" |
-
-Si no se usó IA en ese PR, se pone "sin IA" y listo. No es un trámite de control: es la costumbre de leer el diff antes de aprobarlo, que es lo que se hace en cualquier equipo profesional.
-
-**Y tiene un uso concreto al final.** En la mesa de examen final se pide: *"abrime un Pull Request donde hayan corregido algo que generó la IA y contame qué cambiaron"*. Esa respuesta no se improvisa ni se recuerda: se lee del propio repositorio. El equipo que completó la línea durante todo el cuatrimestre llega con decenas de ejemplos para elegir; el que puso "nada" en todos los PRs se queda sin nada que mostrar, aunque haya trabajado.
-
 ## Qué se espera que la IA haga (y qué no)
 
 **Deleguen sin culpa:** boilerplate, configuración, componentes de UI a partir de una descripción, tests de casos obvios, migraciones a partir de un schema, refactors mecánicos, documentación, mensajes de commit.
