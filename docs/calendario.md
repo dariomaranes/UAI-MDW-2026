@@ -23,6 +23,8 @@
 
 ## Reglas de fechas
 
+- **Asistencia:** se requiere el **70%** de las clases para aprobar la cursada.
+
 - **Cuestionarios:** se entregan al **inicio** de la clase siguiente a la lectura y se siguen clase a clase. **Al 24/11 tienen que estar todos entregados**; los que falten inciden en la nota de concepto.
 - **Parciales (clases 8 y 15):** se evalúa sobre **producción**. Si la URL pública no responde, el parcial no se toma y pasa a la recuperación del 24/11.
 - **Recuperatorios:** única instancia, el 24/11, **al cierre del Demo Day** y solo con el docente. Se puede recuperar uno o los dos parciales.

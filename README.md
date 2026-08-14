@@ -38,7 +38,7 @@ Es el stack de las demos, del repositorio template y de las consignas de los tal
 | Parcial II — defensa de la aplicación | 15 |
 | Demo Day — cierre de la cursada | 16 |
 | Eje metodológico (individual) | todas |
-| Proceso y concepto (individual) | todas |
+| Nota de concepto (individual) | todas |
 
 
 Los parciales **no son un examen escrito**: son la demo y la defensa del proyecto en producción. La teoría se evalúa aplicada, en las preguntas de esas defensas.

@@ -10,7 +10,7 @@
 | **Parcial II** — defensa de la aplicación | Clase 15 | Del proyecto, ajustada por integrante |
 | Demo Day — cierre de la cursada | Clase 16 | Del proyecto. Presentación, sin preguntas individuales |
 | Eje metodológico | Todas | Individual |
-| Proceso y concepto | Todas | Individual |
+| Nota de concepto | Todas | Individual |
 
 Las tres primeras se califican sobre la nota del proyecto, ajustada por integrante (ver *La nota individual*).
 
@@ -112,9 +112,15 @@ Las lecturas y sus cuestionarios se entregan fuera de clase, con deadline al ini
 
 ---
 
-## Proceso y concepto — individual
+## Nota de concepto — individual
 
-Se mide sobre evidencia —el repositorio y las entregas—, no sobre percepción.
+Se construye con tres cosas:
+
+1. **La participación en clase.** Avance visible clase a clase en la recorrida del docente, aporte al equipo y participación en los code reviews.
+2. **Las entregas del eje metodológico en tiempo y forma.** No solo que estén, sino que se hayan entregado cuando correspondía.
+3. **La aprobación de los parciales**, propios o recuperados.
+
+Se mide sobre evidencia —el repositorio, las entregas y la asistencia—, no sobre percepción:
 
 | Señal | Qué se mira |
 |---|---|
@@ -122,8 +128,8 @@ Se mide sobre evidencia —el repositorio y las entregas—, no sobre percepció
 | Pull Requests | PRs propios, que expliquen qué hacen |
 | Reviews | Comentarios hechos a los PRs de sus compañeros de equipo |
 | Documentación | ADRs, `spec.md`, `AGENTS.md` mantenidos al día |
-| Entregas del eje | Que estén todas hechas al 24/11, y que se hayan seguido clase a clase |
-| Ritual | Avance visible clase a clase en la recorrida del docente, y participación en los code reviews |
+| Entregas del eje | Que estén todas y que se hayan hecho en tiempo y forma |
+| Presencia | Avance visible en la recorrida del docente, clase a clase |
 
 ---
 
@@ -166,7 +172,12 @@ El Demo Day, entonces, no es el final: es el cierre de la cursada y un adelanto 
 
 ## Cómo se aprueba la cursada
 
+- **70% de asistencia** a las clases.
 - **Nota final ≥ 4** (equivalente al 60% del trabajo bien realizado).
 - Los **dos parciales aprobados**, propios o recuperados en la clase 16.
 - Todas las entregas del eje metodológico hechas al 24/11.
 - El sistema **en producción** al momento del Demo Day.
+
+## Para rendir el examen final
+
+Además de tener la cursada aprobada, hay que llegar con **todas las instancias aprobadas con 4 o más**: los dos parciales, el Demo Day, el eje metodológico y la nota de concepto. Una instancia por debajo de 4 deja el final fuera de alcance hasta regularizarla.
