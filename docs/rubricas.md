@@ -164,12 +164,6 @@ Se comunica en la clase 1 y se aplica sin excepciones. Ante la duda, el docente 
 
 ---
 
-## La cursada y el final
-
-Todo lo que está en este documento evalúa la **cursada**, que termina el 24/11 con el Demo Day. El **final** se rinde aparte, en las **mesas de diciembre**, y cada uno decide si se presenta según cómo haya cerrado la cursada.
-
-El Demo Day, entonces, no es el final: es el cierre de la cursada y un adelanto de lo que después se presenta en la mesa.
-
 ## Cómo se aprueba la cursada
 
 - **70% de asistencia** a las clases.
