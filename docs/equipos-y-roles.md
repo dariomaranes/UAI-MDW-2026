@@ -45,9 +45,13 @@ Un equipo puede usar otra tecnología si se siente más cómodo, con dos condici
 
 ## Cómo elegir el dominio
 
-**Sirve:** algo chico, real y verificable. Turnos de una veterinaria. Pedidos de un emprendimiento de comida. Inventario y préstamos de un club. Mesa de ayuda de una cátedra. Gestión de socios de una biblioteca. Reserva de canchas.
+La idea puede ser tan ambiciosa como quieran. **Lo que se entrega es un MVP:** el recorte más chico de esa idea que ya sirve para algo y que cumple el núcleo obligatorio.
 
-**No sirve:** cualquier cosa cuyo valor dependa de tener miles de usuarios (redes sociales, marketplaces), clones genéricos ("un Uber de X"), o ideas tan grandes que en 16 clases solo se llegue a la pantalla de login.
+Recortar el alcance no es achicar la ambición, es la parte del oficio que decide si un proyecto llega a producción o queda a mitad de camino. Lo que quede afuera se escribe en la sección *Fuera de alcance* de `docs/spec.md`, para no volver a discutirlo en octubre.
+
+**Ejemplos de MVP bien recortado:** turnos de una veterinaria. Pedidos de un emprendimiento de comida. Inventario y préstamos de un club. Mesa de ayuda de una cátedra. Gestión de socios de una biblioteca. Reserva de canchas.
+
+**Lo único que no funciona** son las ideas cuyo valor depende de tener miles de usuarios —redes sociales, marketplaces—: ahí el MVP no demuestra nada, porque sin usuarios el sistema está vacío por diseño.
 
 **Criterio rápido:** si pueden nombrar a una persona real que lo usaría el mes que viene, la idea sirve.
 
