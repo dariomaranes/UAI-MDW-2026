@@ -371,23 +371,48 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
 }
 
 .lista-clases li {
-  border-bottom: 1px solid #f3eef0;
-  padding: 12px 4px 12px 14px;
-  border-left: 3px solid transparent;
-  transition: border-color 0.15s, background-color 0.15s;
+  position: relative;
+  background-color: var(--papel);
+  border: 1px solid var(--linea);
+  border-left: 4px solid var(--uai-bordo);
+  border-radius: 6px;
+  padding: 14px 38px 14px 16px;
+  margin-bottom: 12px;
+  transition: background-color 0.15s, box-shadow 0.15s;
 }
 
-.lista-clases li:last-child { border-bottom: none; }
+.lista-clases li:last-child { margin-bottom: 0; }
+
+/* Indicador de que la tarjeta lleva a algún lado, visible también sin hover */
+.lista-clases li::after {
+  content: "›";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--uai-bordo);
+  font-size: 1.6em;
+  line-height: 1;
+  opacity: 0.55;
+}
 
 .lista-clases li:hover {
-  border-left-color: var(--uai-bordo);
   background-color: var(--uai-bordo-wash);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
 }
 
 .lista-clases a {
   font-weight: bold;
   text-decoration: none;
   color: var(--uai-bordo-osc);
+}
+
+/* Toda la tarjeta es tocable, no solo el texto del título */
+.lista-clases a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
 }
 
 .lista-clases a:hover {
@@ -426,6 +451,7 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   main { margin: 24px auto; padding: 0 14px 40px; }
   section { padding: 20px 18px; }
   .grid-2 { grid-template-columns: 1fr; }
+  .lista-clases .fecha { display: block; margin-bottom: 6px; }
   .agenda li { flex-direction: column; gap: 4px; }
   .agenda .min { flex: none; display: inline-block; padding: 3px 10px; }
 }
