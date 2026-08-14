@@ -13,13 +13,11 @@
 
 Repartir roles fijos —arquitectura, datos, frontend, devops— no funciona con esta secuencia: el cuatrimestre es backend hasta la clase 8 y frontend después, así que quien fuera "el del frontend" se pasaría media cursada sin trabajo propio. Un rol que no mapea a trabajo real es papel.
 
-Lo único que se declara en el README es **una persona: el responsable del equipo**, que se hace cargo de tres cosas:
+Que el entregable de cada clase esté y que el equipo no se disperse es responsabilidad de **los cuatro**, y cualquiera puede hablar con el docente cuando haga falta.
 
-- Que el equipo no se disperse y que el entregable de cada clase esté.
-- Ser el contacto con el docente.
-- Conectar el repositorio a Vercel con su cuenta y administrar las variables de entorno.
+Lo único que se anota en el README es quién es el **responsable del repositorio**: la persona que creó el repo desde el template y conectó Vercel con su cuenta. No es un jefe ni decide nada — es un dato operativo.
 
-**Es la misma persona durante todo el cuatrimestre.** El plan gratuito de Vercel no permite agregar miembros a un proyecto, así que la cuenta no se puede pasar de mano. Los deploys se disparan igual desde GitHub cuando cualquiera pushea; lo que queda reservado al responsable es el panel — variables de entorno, logs y redeploys manuales.
+**No cambia durante el cuatrimestre.** El plan gratuito de Vercel no permite agregar miembros a un proyecto, así que la cuenta no se puede pasar de mano. Los deploys se disparan igual desde GitHub cuando cualquiera pushea; lo único reservado a esa persona es el panel — variables de entorno, logs y redeploys manuales.
 
 ### Repartirse el trabajo no es repartirse el conocimiento
 
