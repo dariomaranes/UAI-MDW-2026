@@ -485,7 +485,9 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
    RESPONSIVE de más arriba, la definición de .fecha la pisaría. */
 @media (max-width: 720px) {
   .lista-clases .fecha {
-    display: block;
+    /* `table` encoge al contenido y además fuerza su propia línea:
+       con `block` la etiqueta se estiraba a todo el ancho de la tarjeta. */
+    display: table;
     margin-bottom: 8px;
   }
 }
