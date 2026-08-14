@@ -8,7 +8,7 @@
 |---|---|---|
 | **Parcial I** — defensa del backend | Clase 8 | Del proyecto, ajustada por integrante |
 | **Parcial II** — defensa de la aplicación | Clase 15 | Del proyecto, ajustada por integrante |
-| Demo Day — cierre de la cursada | Clase 16 | Del proyecto + preguntas individuales |
+| Demo Day — cierre de la cursada | Clase 16 | Del proyecto. Presentación, sin preguntas individuales |
 | Eje metodológico | Todas | Individual |
 | Proceso y concepto | Todas | Individual |
 
@@ -89,31 +89,17 @@ Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos recorrie
 
 ## Demo Day — Clase 16
 
-Presentación de 10 minutos + 10 de preguntas. El sistema debe estar en producción y con datos reales (no de prueba).
+**Es una presentación, no un examen.** No hay preguntas individuales ni defensa de código: eso pasa en la mesa de examen final. Se puede presentar en cualquier clase anterior en la que el equipo ya tenga algo para mostrar; lo que se espera es que al 24/11 todos hayan presentado al menos una vez.
+
+Diez minutos por equipo, ante el curso.
 
 | Criterio | Peso | Qué se evalúa |
 |---|---|---|
-| **El producto funciona** | 25% | Se recorre completo, sin caerse, con datos reales |
-| **Defensa técnica individual** | 35% | Cada integrante responde sobre código que no escribió necesariamente él. Esta es la instancia donde se verifica "Ship it, but own it" |
-| **Decisiones y trade-offs** | 20% | Por qué eligieron lo que eligieron, qué descartaron, qué harían distinto |
-| **Producción y operación** | 10% | Envs, CI, logs, qué pasa cuando algo falla |
-| **Retrospectiva** | 10% | Qué estimaron vs. qué pasó realmente, qué aprendieron del proceso |
-
-### Banco de preguntas de la defensa individual
-
-Se elige código del propio repo del equipo y se pregunta a un integrante al azar:
-
-- "¿Por qué esto corre en el servidor y no en el cliente?"
-- "¿Qué pasa si dos usuarios hacen esta acción al mismo tiempo?"
-- "Borren esta línea mentalmente: ¿qué se rompe?"
-- "Un usuario del rol A llama a este endpoint directamente con Postman, sin pasar por la UI. ¿Qué pasa?"
-- "Esta validación está acá, ¿dónde más debería estar y por qué?"
-- "¿Por qué esta relación es 1‑N y no N‑N?"
-- "Si mañana tienen 100.000 registros, ¿qué se rompe primero?"
-
-**Regla de corte:** si ningún integrante del equipo puede explicar una funcionalidad, esa funcionalidad no se computa aunque funcione.
-
----
+| **El producto funciona** | 40% | Se recorre completo, sin caerse, con datos reales |
+| **Decisiones y trade-offs** | 25% | Por qué eligieron lo que eligieron, qué descartaron, qué harían distinto |
+| **Producción y operación** | 15% | Envs, CI, logs, qué pasa cuando algo falla |
+| **Retrospectiva** | 10% | Lo planificado vs. lo real, qué aprendieron del proceso |
+| **La presentación** | 10% | Que se entienda, que entre en el tiempo, que expongan los cuatro |
 
 ## Eje metodológico — individual
 

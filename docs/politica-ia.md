@@ -40,7 +40,7 @@ Si no se usó IA en ese PR, se pone "sin IA" y listo. No es un trámite de contr
 
 ## Cómo se detecta el código que nadie entendió
 
-No se detecta con un detector: se detecta preguntando. En las tres defensas (Parcial I en la clase 8, Parcial II en la clase 15 y Demo Day en la 16) el docente elige código del propio repo del equipo y pregunta a un integrante al azar:
+No se detecta con un detector: se detecta preguntando. En las defensas de los parciales (clases 8 y 15) y en la mesa de examen final, el docente elige código del propio repositorio del equipo y pregunta a un integrante al azar:
 
 - "¿Por qué esto está en el servidor y no en el cliente?"
 - "¿Qué pasa si dos usuarios hacen esto al mismo tiempo?"
