@@ -451,7 +451,6 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   main { margin: 24px auto; padding: 0 14px 40px; }
   section { padding: 20px 18px; }
   .grid-2 { grid-template-columns: 1fr; }
-  .lista-clases .fecha { display: block; margin-bottom: 6px; }
   .agenda li { flex-direction: column; gap: 4px; }
   .agenda .min { flex: none; display: inline-block; padding: 3px 10px; }
 }
@@ -479,4 +478,14 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   padding: 1px 7px;
   margin-right: 8px;
   vertical-align: 1px;
+}
+
+/* En pantallas chicas la fecha va arriba del título, no al lado.
+   Va al final del archivo a propósito: si estuviera en el bloque
+   RESPONSIVE de más arriba, la definición de .fecha la pisaría. */
+@media (max-width: 720px) {
+  .lista-clases .fecha {
+    display: block;
+    margin-bottom: 8px;
+  }
 }
