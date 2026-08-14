@@ -18,7 +18,7 @@ Los parciales de las clases 8 y 15 **no son un examen escrito**: son la demo y l
 
 ---
 
-> **Sobre el stack.** Las rúbricas nombran las herramientas sugeridas (Prisma, Zod, Auth.js). Si el equipo eligió otras —Yup o Joi para validar, otro ORM, otro sistema de sesiones— cada criterio se lee en su equivalente: lo que se evalúa es que haya migraciones versionadas, validación en el servidor y autorización verificada, no la marca de la librería.
+> **Sobre el stack.** Las rúbricas nombran las herramientas sugeridas (Prisma, Zod, Auth.js). Si el equipo eligió otras —Yup para validar, otro ORM, otro sistema de sesiones— cada criterio se lee en su equivalente: lo que se evalúa es que haya migraciones versionadas, validación en el servidor y autorización verificada, no la marca de la librería.
 
 ## Escala de calificación
 
