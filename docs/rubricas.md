@@ -107,6 +107,7 @@ Las lecturas y sus cuestionarios se entregan fuera de clase, con deadline al ini
 
 - **Se sigue clase a clase.** No es una entrega que se acumule para el final.
 - Cada entrega vale lo mismo. La nota del eje es el promedio, en la misma escala que todo lo demás: 60% de respuestas correctas = 4.
+- Se entregan en **UAI Online Ultra**.
 - **Al 24/11 tienen que estar todas las entregas hechas.** Quien se atrase puede ponerse al día, pero llegar al Demo Day con entregas faltantes **incide en la nota de concepto**.
 - Las respuestas copiadas literalmente entre compañeros se anulan para ambos.
 
@@ -169,7 +170,7 @@ Se comunica en la clase 1 y se aplica sin excepciones. Ante la duda, el docente 
 - **70% de asistencia** a las clases.
 - **Nota final ≥ 4** (equivalente al 60% del trabajo bien realizado).
 - Los **dos parciales aprobados**, propios o recuperados en la clase 16.
-- Todas las entregas del eje metodológico hechas al 24/11.
+- Todas las entregas del eje metodológico hechas al 24/11 en **UAI Online Ultra**.
 - El sistema **en producción** al momento del Demo Day.
 
 ## Para rendir el examen final
