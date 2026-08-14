@@ -714,13 +714,115 @@ npm run dev · npm run build · npm run typecheck · npm test
         </div>
 
         <h3>Paso 4 — Base de datos</h3>
-        <ul>
-          <li>Crean un proyecto de base de datos (Supabase o MongoDB Atlas) y copian la connection string a <span class="etiq">.env.local</span>.</li>
-          <li>Corran la migración inicial y verifiquen que la app levante contra la base real.</li>
-          <li>Si usan otro stack, el equivalente: la herramienta de migraciones que traiga su framework.</li>
-        </ul>
-        <div class="caja-codigo">npx prisma migrate dev --name init
-npx prisma studio   # inspeccionar los datos a mano</div>
+        <p>
+          Hasta acá el proyecto levanta pero no puede leer datos: la home les avisa que falta
+          este paso. Vamos a conectarlo a una base real, en la nube, para que los cuatro trabajen
+          contra los mismos datos y el deploy funcione.
+        </p>
+
+        <h4>1. Crear el proyecto en Supabase</h4>
+        <ol>
+          <li>Entran a <span class="etiq">supabase.com</span> y crean la cuenta con GitHub.</li>
+          <li><em>New project</em>. Le ponen el nombre del sistema.</li>
+          <li>
+            <strong>Guarden la contraseña de la base</strong> que les genera. No se puede volver
+            a ver: si la pierden hay que resetearla.
+          </li>
+          <li>Región: la más cercana (<em>South America — São Paulo</em>).</li>
+        </ol>
+
+        <h4>2. Copiar las dos connection strings</h4>
+        <p>
+          En el panel del proyecto, botón <strong>Connect</strong>. Van a necesitar
+          <strong>dos</strong> strings distintas, y esto es lo que más confusión genera:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Variable</th><th>Cuál copiar</th><th>Para qué</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">DATABASE_URL</span></td>
+                <td><strong>Transaction pooler</strong> (puerto 6543), con <span class="etiq">?pgbouncer=true</span> al final</td>
+                <td>La que usa la aplicación en cada request</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">DIRECT_URL</span></td>
+                <td><strong>Direct connection</strong> (puerto 5432)</td>
+                <td>Solo la usan las migraciones</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          En las dos hay que reemplazar <span class="etiq">[YOUR-PASSWORD]</span> por la
+          contraseña que guardaron. Las pegan en <span class="etiq">.env.local</span>, que ya
+          viene con los dos huecos.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Por qué dos y no una</span>
+          <p>
+            Vercel corre el código en funciones <em>serverless</em>: cada request puede levantar
+            una instancia nueva. Si todas abren su propia conexión a Postgres, la base se queda
+            sin conexiones disponibles. El <strong>pooler</strong> las multiplexa y evita eso.
+          </p>
+          <p>
+            Pero las migraciones necesitan una conexión <strong>directa</strong>, porque hacen
+            cosas que el pooler no soporta. De ahí las dos variables.
+            <strong>Con una sola funciona hoy en clase y se cae en producción</strong> cuando el
+            sistema tenga uso real — que es justo lo que no querés descubrir el día del parcial.
+          </p>
+        </div>
+
+        <h4>3. Crear las tablas y cargar datos</h4>
+        <div class="caja-codigo">npx prisma migrate dev --name init   # crea las tablas en la base
+npm run db:seed                      # carga los datos de ejemplo
+npx prisma studio                    # abre un panel para ver y editar los datos</div>
+        <p>
+          <span class="etiq">migrate dev</span> además deja un archivo en
+          <span class="etiq">prisma/migrations/</span>: ese archivo se commitea y es lo que
+          permite que los otros tres apliquen el mismo cambio con un comando.
+        </p>
+
+        <h4>4. Verificar</h4>
+        <p>
+          Levantan con <span class="etiq">npm run dev</span> y entran a
+          <span class="etiq">localhost:3000</span>. Si ven las notas de ejemplo en lugar del
+          cartel de “falta conectar la base de datos”, está funcionando.
+        </p>
+        <p>
+          <strong>Después, los otros tres integrantes</strong> copian las mismas dos strings a su
+          propio <span class="etiq">.env.local</span> —por mensaje privado, nunca commiteadas— y
+          corren <span class="etiq">npm install</span> y <span class="etiq">npx prisma generate</span>.
+          No vuelven a correr la migración: ya está aplicada en la base compartida.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Si algo falla</span>
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Error</th><th>Casi siempre es</th></tr></thead>
+              <tbody>
+                <tr><td><span class="etiq">Can't reach database server</span></td><td>La string está mal copiada, o quedó <span class="etiq">[YOUR-PASSWORD]</span> sin reemplazar</td></tr>
+                <tr><td><span class="etiq">Environment variable not found: DIRECT_URL</span></td><td>Falta la segunda variable en <span class="etiq">.env.local</span></td></tr>
+                <tr><td>Falla la autenticación con la contraseña correcta</td><td>La contraseña tiene caracteres especiales: hay que codificarlos para URL, o resetearla por una sin símbolos</td></tr>
+                <tr><td>El cartel de “falta conectar la base” sigue apareciendo</td><td>El servidor de desarrollo no releyó <span class="etiq">.env.local</span>: cortarlo y volver a levantarlo</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Si eligieron MongoDB u otro stack</span>
+          <p>
+            Con <strong>MongoDB Atlas</strong> es una sola connection string (no hay pooler) y en
+            lugar de <span class="etiq">migrate dev</span> se usa
+            <span class="etiq">npx prisma db push</span>. Con otro stack, la herramienta de
+            migraciones que traiga el framework.
+          </p>
+        </div>
 
         <h3>Paso 5 — Deploy</h3>
         <ul>
