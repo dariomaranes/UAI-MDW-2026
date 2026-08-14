@@ -83,7 +83,7 @@ Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos recorrie
 | **UI y experiencia** | 25% | Sin estilo, no se entiende qué hacer | Navegable, responsive, consistente | Estados de carga y error resueltos, accesible con teclado, consistente en todo el sistema |
 | **Manejo de estado y datos** | 20% | Datos desactualizados o recargas innecesarias | Datos que se refrescan correctamente | Caching e invalidación conscientes, sin waterfalls, sin estado duplicado |
 | **Testing** | 15% | Sin tests o triviales | E2E del flujo principal y test de autorización | Casos borde propios cubiertos, tests corriendo en CI |
-| **Calidad del código** | 10% | Copy-paste, componentes gigantes | Organizado según el `AGENTS.md` | Reutilización real, capas separadas, tests en lo que importa |
+| **Calidad del código** | 10% | Copy-paste, componentes gigantes | Organizado según las convenciones del equipo | Reutilización real, capas separadas, tests en lo que importa |
 
 ---
 
@@ -128,7 +128,7 @@ Se mide sobre evidencia —el repositorio, las entregas y la asistencia—, no s
 | Commits | Distribución a lo largo del cuatrimestre, no todo la noche antes del parcial |
 | Pull Requests | PRs propios, que expliquen qué hacen |
 | Reviews | Comentarios hechos a los PRs de sus compañeros de equipo |
-| Documentación | ADRs, `spec.md`, `AGENTS.md` mantenidos al día |
+| Documentación | ADRs y `spec.md` mantenidos al día (y `AGENTS.md`, si el equipo usa IA) |
 | Entregas del eje | Que estén todas y que se hayan hecho en tiempo y forma |
 | Presencia | Avance visible en la recorrida del docente, clase a clase |
 

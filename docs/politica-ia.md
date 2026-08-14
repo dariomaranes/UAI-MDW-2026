@@ -36,11 +36,15 @@ Si la respuesta no existe, esa funcionalidad no se computa para el parcial, aunq
 
 ## Herramienta: la que prefieran
 
-La materia es agnóstica. Cursor, Copilot, Claude Code, ChatGPT, Gemini o nada. Lo único que se exige es que el repositorio tenga un **`AGENTS.md`** en la raíz con las reglas del proyecto, porque:
+La materia es agnóstica. Cursor, Copilot, Claude Code, ChatGPT, Gemini o nada.
+
+Al equipo que la use le conviene tener un **`AGENTS.md`** en la raíz del repositorio con las reglas del proyecto, porque:
 
 - es el formato que leen la mayoría de los asistentes actuales;
 - obliga al equipo a explicitar sus convenciones, que es un ejercicio valioso aunque no hubiera IA;
 - hace que el código generado por los cuatro integrantes se parezca entre sí.
+
+**No es obligatorio.** Un equipo que escribe todo a mano puede no tenerlo, o poner sus convenciones en el README.
 
 ## Un buen `AGENTS.md`
 

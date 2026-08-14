@@ -624,7 +624,7 @@ npm install · copiar .env.example a .env.local · npm run dev</div>
             <tbody>
               <tr><td>Equipo, URL, de qué se trata, stack</td><td><span class="etiq">README.md</span></td><td>Hoy</td></tr>
               <tr><td>Requisitos, historias de usuario, reglas de negocio</td><td><span class="etiq">docs/spec.md</span></td><td>Clase 2</td></tr>
-              <tr><td>Convenciones para que las respete la IA</td><td><span class="etiq">AGENTS.md</span></td><td>Hoy</td></tr>
+              <tr><td>Convenciones para que las respete la IA</td><td><span class="etiq">AGENTS.md</span></td><td>Hoy, si usan IA</td></tr>
               <tr><td>Por qué eligieron cada tecnología</td><td><span class="etiq">docs/adr/</span></td><td>Clase 3</td></tr>
             </tbody>
           </table>
@@ -638,11 +638,16 @@ npm install · copiar .env.example a .env.local · npm run dev</div>
           </p>
         </div>
 
-        <h3>Paso 3 — Reglas del proyecto para la IA</h3>
+        <h3>Paso 3 — Reglas del proyecto para la IA <em>(solo si van a usar IA)</em></h3>
         <p>
           El archivo <span class="etiq">AGENTS.md</span> en la raíz del repo es lo que leen
           Cursor, Copilot, Claude Code y compañía antes de escribir código. Es la diferencia
           entre que la IA respete las convenciones del equipo o invente las suyas en cada archivo.
+        </p>
+        <p>
+          <strong>El equipo que no vaya a usar IA puede saltear este paso.</strong> Igual conviene
+          leerlo: escribir las convenciones del equipo sirve aunque no haya un asistente leyéndolas,
+          y evita que cada integrante nombre las cosas a su manera.
         </p>
         <p>
           Va en la raíz, se escribe en Markdown y no necesita ser largo. Así de breve ya sirve:
@@ -746,7 +751,7 @@ npx prisma studio   # inspeccionar los datos a mano</div>
           <li>Idea elegida y pitcheada, cumpliendo el núcleo obligatorio.</li>
           <li>Repositorio creado, con los 4 integrantes y <span class="etiq">main</span> protegida.</li>
           <li>Base de datos conectada y migración inicial aplicada.</li>
-          <li><span class="etiq">AGENTS.md</span> completado con las reglas del proyecto.</li>
+          <li><span class="etiq">AGENTS.md</span> completado, si el equipo va a usar IA.</li>
           <li><strong>URL pública de producción</strong> funcionando y pegada en el README.</li>
           <li>README completo con equipo, URL, descripción y stack.</li>
           <li>Un Pull Request abierto, revisado por un integrante que no lo escribió, y mergeado.</li>
