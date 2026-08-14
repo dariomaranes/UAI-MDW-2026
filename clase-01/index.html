@@ -351,18 +351,19 @@
           Se arman ahora, en clase, y no se cambian. <strong>Cómo se reparte el trabajo lo decide
           cada equipo</strong>: no hay roles asignados por la cátedra.
         </p>
-        <p>Lo único que se declara en el README son dos personas:</p>
-        <div class="tabla-scroll">
-          <table>
-            <thead>
-              <tr><th>Quién</th><th>De qué se hace cargo</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>Responsable general</strong></td><td>Que el equipo no se disperse y que el entregable de cada clase esté. Es el contacto con el docente</td></tr>
-              <tr><td><strong>Dueño de la infraestructura</strong></td><td>Conecta el repositorio a Vercel con su cuenta y administra las variables de entorno. No cambia durante el cuatrimestre, porque la cuenta no se puede transferir</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <p>
+          Lo único que se declara en el README es <strong>una persona: el responsable del
+          equipo</strong>. Se hace cargo de tres cosas:
+        </p>
+        <ul>
+          <li>Que el equipo no se disperse y que el entregable de cada clase esté.</li>
+          <li>Ser el contacto con el docente.</li>
+          <li>Conectar el repositorio a Vercel con su cuenta y administrar las variables de entorno.</li>
+        </ul>
+        <p>
+          Es la misma persona durante todo el cuatrimestre, porque la cuenta de Vercel no se
+          puede transferir.
+        </p>
 
         <div class="callout callout-alerta">
           <span class="callout-titulo">Nadie se especializa en una sola cosa</span>
@@ -502,10 +503,9 @@
           </p>
           <p>
             Lo único que queda reservado a quien conectó el repositorio es el panel: variables de
-            entorno, logs y redeploys manuales. Por eso el equipo elige ahora un
-            <strong>dueño de la infraestructura</strong> y lo anota en el README. A diferencia de
-            los otros roles, <strong>este no rota</strong>: la cuenta no se puede transferir cada
-            cuatro clases.
+            entorno, logs y redeploys manuales. Por eso lo hace el
+            <strong>responsable del equipo</strong>, que es quien queda anotado en el README y no
+            cambia durante el cuatrimestre.
           </p>
         </div>
 
@@ -579,8 +579,8 @@ npm run dev            # → http://localhost:3000</div>
         <div class="caja-codigo"># Turnos Vet — sistema de turnos para veterinaria
 
 ## Equipo
-- Ana Pérez — responsable general
-- Bruno Gómez — dueño de la infraestructura (cuenta de Vercel)
+- Ana Pérez — responsable del equipo (cuenta de Vercel)
+- Bruno Gómez
 - Carla Díaz
 - Diego Ruiz
 
@@ -730,14 +730,14 @@ npx prisma studio   # inspeccionar los datos a mano</div>
         <h2>Entregable de la clase</h2>
         <ul class="checklist">
           <li>Cuenta de GitHub creada por cada uno de los cuatro integrantes.</li>
-          <li>Cuenta de Vercel del equipo, con el dueño de la infraestructura anotado en el README.</li>
-          <li>Equipo de 4 conformado, con el responsable general y el dueño de la infraestructura escritos en el README.</li>
+          <li>Cuenta de Vercel del equipo, a nombre del responsable.</li>
+          <li>Equipo de 4 conformado, con el responsable del equipo anotado en el README.</li>
           <li>Idea elegida y pitcheada, cumpliendo el núcleo obligatorio.</li>
           <li>Repositorio creado, con los 4 integrantes y <span class="etiq">main</span> protegida.</li>
           <li>Base de datos conectada y migración inicial aplicada.</li>
           <li><span class="etiq">AGENTS.md</span> completado con las reglas del proyecto.</li>
           <li><strong>URL pública de producción</strong> funcionando y pegada en el README.</li>
-          <li>README completo con equipo, roles, URL, descripción y stack.</li>
+          <li>README completo con equipo, URL, descripción y stack.</li>
           <li>Un Pull Request abierto, revisado por un integrante que no lo escribió, y mergeado.</li>
         </ul>
 
