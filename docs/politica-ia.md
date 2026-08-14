@@ -27,6 +27,8 @@ Es una línea, no un informe. Lo que importa es que alguien haya *mirado* el có
 
 Si no se usó IA en ese PR, se pone "sin IA" y listo. No es un trámite de control: es la costumbre de leer el diff antes de aprobarlo, que es lo que se hace en cualquier equipo profesional.
 
+**Y tiene un uso concreto al final.** En la mesa de examen final se pide: *"abrime un Pull Request donde hayan corregido algo que generó la IA y contame qué cambiaron"*. Esa respuesta no se improvisa ni se recuerda: se lee del propio repositorio. El equipo que completó la línea durante todo el cuatrimestre llega con decenas de ejemplos para elegir; el que puso "nada" en todos los PRs se queda sin nada que mostrar, aunque haya trabajado.
+
 ## Qué se espera que la IA haga (y qué no)
 
 **Deleguen sin culpa:** boilerplate, configuración, componentes de UI a partir de una descripción, tests de casos obvios, migraciones a partir de un schema, refactors mecánicos, documentación, mensajes de commit.
