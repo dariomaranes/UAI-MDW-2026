@@ -30,7 +30,6 @@
 - **Recuperatorios:** única instancia, el 24/11, **al cierre del Demo Day** y solo con el docente. Se puede recuperar uno o los dos parciales.
 - **Demo Day:** es una presentación, no un examen. Se puede presentar en cualquier clase anterior; al 24/11 todos los equipos tienen que haber presentado al menos una vez.
 - **El final:** se rinde en las mesas de diciembre, aparte de la cursada. Ahí sí hay preguntas individuales sobre el código, con el equipo y el docente solos.
-- **Rotación de roles del equipo:** clases 1 (11/08), 5 (08/09), 9 (06/10) y 13 (03/11).
 
 ## Hitos internos del proyecto
 

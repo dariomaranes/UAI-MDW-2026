@@ -18,7 +18,7 @@ La materia asume que los alumnos programan con IA. Por eso no se evalúa escribi
 | `clase-01/` … `clase-16/` | Una página por clase: concepto, decisiones, consigna de taller y checklist |
 | [`docs/guia-docente.md`](./docs/guia-docente.md) | Plan minutado clase por clase y guion de las demos |
 | [`docs/politica-ia.md`](./docs/politica-ia.md) | Política de uso de IA y qué se exige en cada Pull Request |
-| [`docs/equipos-y-roles.md`](./docs/equipos-y-roles.md) | Conformación de equipos, roles rotativos y núcleo obligatorio del proyecto |
+| [`docs/equipos-y-roles.md`](./docs/equipos-y-roles.md) | Conformación de equipos y núcleo obligatorio del proyecto |
 | [`docs/rubricas.md`](./docs/rubricas.md) | Rúbricas de los parciales, el Demo Day y la nota individual |
 | [`docs/eje-metodologico.md`](./docs/eje-metodologico.md) | Lecturas teóricas y su puente con el taller de cada clase |
 | `docs/metodologias/` | Los 14 PDFs del eje teórico, uno por clase |

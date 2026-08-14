@@ -7,26 +7,24 @@
 - Se permite que se armen por afinidad, con una condición: **ningún equipo puede tener a los cuatro integrantes con el mismo nivel de experiencia declarado**. Se pregunta a mano alzada al inicio (quién programó fuera de la facultad, quién nunca desplegó algo) y se balancea.
 - **Plan B si a los 20 minutos no están cerrados:** el docente asigna por lista. Se avisa desde el minuto 1 para que no se dilate.
 
-## Roles
+## Cómo se reparte el trabajo
 
-Cada integrante toma un rol. **Los roles rotan cada 4 clases** (clases 1, 5, 9 y 13): al final del cuatrimestre todos pasaron por los cuatro. La rotación se registra en el README del proyecto.
+**Lo decide cada equipo.** No hay roles asignados por la cátedra.
 
-| Rol | De qué se hace cargo | Qué se le pregunta en la defensa |
-|---|---|---|
-| **Tech Lead / Arquitectura** | Decisiones técnicas, ADRs, que el equipo no se disperse, que el `AGENTS.md` esté al día | "¿Por qué eligieron esto y qué descartaron?" |
-| **Datos & API** | Schema, migraciones, endpoints, contratos, validaciones | "¿Por qué esta relación es 1‑N y no N‑N?" |
-| **Frontend & UX** | Pantallas, componentes, flujo del usuario, accesibilidad | "Muéstrenme qué ve un usuario sin permisos" |
-| **DevOps & QA** | Deploy, variables de entorno, CI, que producción no se caiga | "¿Qué pasa si se cae la base?" |
+Repartir roles fijos —arquitectura, datos, frontend, devops— no funciona con esta secuencia: el cuatrimestre es backend hasta la clase 8 y frontend después, así que quien fuera "el del frontend" se pasaría media cursada sin trabajo propio. Un rol que no mapea a trabajo real es papel.
 
-El rol **no** significa "el único que toca eso". Significa que esa persona responde por eso. Todos escriben código en todas las áreas.
+Lo único que se declara en el README son dos personas:
 
-### La excepción: el dueño de la infraestructura
+| Quién | De qué se hace cargo |
+|---|---|
+| **Responsable general** | Que el equipo no se disperse y que el entregable de cada clase esté. Es el contacto con el docente |
+| **Dueño de la infraestructura** | Conecta el repositorio a Vercel con su cuenta y administra las variables de entorno |
 
-Además de los cuatro roles rotativos, el equipo designa un **dueño de la infraestructura** que **no rota** en todo el cuatrimestre. Es quien conecta el repositorio a Vercel con su cuenta.
+El dueño de la infraestructura **no cambia** durante el cuatrimestre: el plan gratuito de Vercel no permite agregar miembros a un proyecto, así que la cuenta no se puede pasar de mano. Los deploys se disparan igual desde GitHub cuando cualquiera pushea; lo que queda reservado a esa persona es el panel — variables de entorno, logs y redeploys manuales.
 
-El motivo es práctico: el plan gratuito de Vercel no permite agregar miembros a un proyecto, así que la cuenta no se puede pasar de mano cada cuatro clases. Los deploys se disparan igual desde GitHub cuando cualquiera pushea; lo que queda reservado a esa persona es el panel — variables de entorno, logs y redeploys manuales.
+### Repartirse el trabajo no es repartirse el conocimiento
 
-Se anota en el README junto con los roles.
+En las defensas se le pregunta a **cualquier integrante** sobre **cualquier parte** del sistema. "Eso lo hizo otro" no es una respuesta, y la nota es individual. Esa es la garantía de que todos toquen todo — mucho más efectiva que una rotación de roles en un papel.
 
 ## Núcleo obligatorio del proyecto
 

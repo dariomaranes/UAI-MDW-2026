@@ -344,25 +344,37 @@
            4. EQUIPOS Y PROYECTO
       ============================================================ -->
       <section>
-        <h2>4. Equipos, roles y el proyecto</h2>
+        <h2>4. Equipos y proyecto</h2>
 
         <h3>Equipos de 4</h3>
         <p>
-          Se arman ahora, en clase, y no se cambian. Cada integrante toma un rol, y los roles
-          <strong>rotan cada 4 clases</strong>: al final del cuatrimestre todos pasaron por todo.
+          Se arman ahora, en clase, y no se cambian. <strong>Cómo se reparte el trabajo lo decide
+          cada equipo</strong>: no hay roles asignados por la cátedra.
         </p>
+        <p>Lo único que se declara en el README son dos personas:</p>
         <div class="tabla-scroll">
           <table>
             <thead>
-              <tr><th>Rol</th><th>De qué se hace cargo</th></tr>
+              <tr><th>Quién</th><th>De qué se hace cargo</th></tr>
             </thead>
             <tbody>
-              <tr><td>Tech Lead / Arquitectura</td><td>Decisiones técnicas, que queden documentadas y que el equipo no se disperse</td></tr>
-              <tr><td>Datos &amp; API</td><td>Schema, migraciones, endpoints, contratos</td></tr>
-              <tr><td>Frontend &amp; UX</td><td>Pantallas, componentes, flujo del usuario</td></tr>
-              <tr><td>DevOps &amp; QA</td><td>Deploy, variables de entorno, CI, que nada se rompa en producción</td></tr>
+              <tr><td><strong>Responsable general</strong></td><td>Que el equipo no se disperse y que el entregable de cada clase esté. Es el contacto con el docente</td></tr>
+              <tr><td><strong>Dueño de la infraestructura</strong></td><td>Conecta el repositorio a Vercel con su cuenta y administra las variables de entorno. No cambia durante el cuatrimestre, porque la cuenta no se puede transferir</td></tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Nadie se especializa en una sola cosa</span>
+          <p>
+            Repartirse el trabajo no es repartirse el conocimiento. En las defensas se le
+            pregunta a <strong>cualquier integrante</strong> sobre <strong>cualquier parte</strong>
+            del sistema, así que “eso lo hizo otro” no es una respuesta.
+          </p>
+          <p>
+            Además el cuatrimestre es <strong>backend primero y frontend después</strong>: quien
+            se declare “el del frontend” en agosto se pasa media cursada mirando.
+          </p>
         </div>
 
         <h3>Núcleo obligatorio del proyecto</h3>
@@ -567,12 +579,10 @@ npm run dev            # → http://localhost:3000</div>
         <div class="caja-codigo"># Turnos Vet — sistema de turnos para veterinaria
 
 ## Equipo
-| Integrante          | Rol (rota cada 4 clases)   |
-|---------------------|----------------------------|
-| Ana Pérez           | Tech Lead / Arquitectura   |
-| Bruno Gómez         | Datos &amp; API                |
-| Carla Díaz          | Frontend &amp; UX              |
-| Diego Ruiz          | DevOps &amp; QA (dueño de Vercel) |
+- Ana Pérez — responsable general
+- Bruno Gómez — dueño de la infraestructura (cuenta de Vercel)
+- Carla Díaz
+- Diego Ruiz
 
 ## Producción
 https://turnos-vet.vercel.app
@@ -601,7 +611,7 @@ npm install · copiar .env.example a .env.local · npm run dev</div>
               <tr><th>Qué</th><th>Dónde</th><th>Desde cuándo</th></tr>
             </thead>
             <tbody>
-              <tr><td>Equipo, roles, URL, de qué se trata, stack</td><td><span class="etiq">README.md</span></td><td>Hoy</td></tr>
+              <tr><td>Equipo, URL, de qué se trata, stack</td><td><span class="etiq">README.md</span></td><td>Hoy</td></tr>
               <tr><td>Requisitos, historias de usuario, reglas de negocio</td><td><span class="etiq">docs/spec.md</span></td><td>Clase 2</td></tr>
               <tr><td>Convenciones para que las respete la IA</td><td><span class="etiq">AGENTS.md</span></td><td>Hoy</td></tr>
               <tr><td>Por qué eligieron cada tecnología</td><td><span class="etiq">docs/adr/</span></td><td>Clase 3</td></tr>
@@ -721,7 +731,7 @@ npx prisma studio   # inspeccionar los datos a mano</div>
         <ul class="checklist">
           <li>Cuenta de GitHub creada por cada uno de los cuatro integrantes.</li>
           <li>Cuenta de Vercel del equipo, con el dueño de la infraestructura anotado en el README.</li>
-          <li>Equipo de 4 conformado, con los roles asignados y escritos en el README.</li>
+          <li>Equipo de 4 conformado, con el responsable general y el dueño de la infraestructura escritos en el README.</li>
           <li>Idea elegida y pitcheada, cumpliendo el núcleo obligatorio.</li>
           <li>Repositorio creado, con los 4 integrantes y <span class="etiq">main</span> protegida.</li>
           <li>Base de datos conectada y migración inicial aplicada.</li>
