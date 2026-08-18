@@ -791,14 +791,20 @@ export const registrarAplicacionSchema = z.object({
   mascotaId:     z.string().min(1, "Falta la mascota"),
   vacunaId:      z.string().min(1, "Falta la vacuna"),
 
-  // El caso de error de la historia H3, hecho código:
-  fecha:         z.coerce.date()
-                  .max(new Date(), "Una vacuna no se puede aplicar en el futuro"),
+  // El caso de error de la historia H3, hecho código.
+  // Va con .refine() y no con .max(new Date()) porque ese
+  // "new Date()" se evaluaría UNA sola vez, al arrancar el
+  // servidor, y quedaría congelado. Con refine se compara
+  // en cada validación.
+  fecha: z.coerce.date()
+    .refine((f) =&gt; f &lt;= new Date(),
+            "Una vacuna no se puede aplicar en el futuro"),
 
   // Y la regla opuesta, en el mismo formulario:
-  proximaDosis:  z.coerce.date()
-                  .min(new Date(), "El refuerzo tiene que ser posterior a hoy")
-                  .optional(),
+  proximaDosis: z.coerce.date()
+    .refine((f) =&gt; f &gt; new Date(),
+            "El refuerzo tiene que ser posterior a hoy")
+    .optional(),
 
   observaciones: z.string().max(500).optional(),
 });
