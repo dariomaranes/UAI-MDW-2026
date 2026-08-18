@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 02 - La especificación y TypeScript como contrato</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 02 — MDW 2026</h1>
+      <p class="fecha-clase">martes 18/08/2026</p>
+      <h2>La especificación y TypeScript como contrato</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Decidir <strong>qué va a hacer el sistema</strong> y escribirlo dos veces: una en
+          castellano, para las personas —la <em>spec</em>—, y otra en TypeScript, para la máquina
+          —los <em>tipos</em>—. Son el mismo contrato en dos idiomas, y hoy los escriben los dos.
+        </p>
+        <ul class="agenda">
+          <li><span>Dónde estamos parados: el mapa del cuatrimestre</span></li>
+          <li><span>Metodología: usabilidad y accesibilidad</span></li>
+          <li><span>La spec: historias, criterios de aceptación y reglas de negocio</span></li>
+          <li><span>Qué es TypeScript · el tipo como contrato · inferencia</span></li>
+          <li><span>Dónde termina TypeScript y por qué existe Zod</span></li>
+          <li><span>Demo: de la spec a los tipos, con y sin IA</span></li>
+          <li><span>Taller: escribir la spec del proyecto y derivar sus tipos</span></li>
+          <li><span>Code review del equipo</span></li>
+          <li><span>Cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>usabilidad y accesibilidad</strong>. Los dos suelen
+            aparecer al final del proyecto, cuando ya no se pueden arreglar: hoy entran como
+            <strong>criterios de aceptación medibles</strong> dentro de
+            <span class="etiq">docs/spec.md</span>. Está desarrollado en la sección 2.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-02.pdf">📄 Material de la clase 02 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. Dónde estamos parados</h2>
+        <p class="lead">
+          La clase pasada terminaron con un repositorio y una <strong>URL pública</strong>: una
+          aplicación que no hace nada, pero que ya está en producción. Hoy empieza lo otro:
+          decidir <strong>qué va a hacer</strong>. Y de acá hasta noviembre no se vuelve a empezar
+          de cero: cada clase agrega una capa al mismo sistema.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Esto no es una serie de trabajos prácticos</span>
+          <p>
+            No hay 16 ejercicios sueltos: hay <strong>un sistema</strong> que se construye 16
+            veces. El entregable de cada clase se mergea en <span class="etiq">main</span> y queda
+            adentro del proyecto. Lo que no hicieron en la clase 5 les va a faltar en la 9.
+          </p>
+        </div>
+
+        <h3>El orden: de adentro hacia afuera</h3>
+        <p>
+          Primero los datos, después la lógica, al final la pantalla. Es al revés de lo que dan
+          ganas de hacer —lo divertido es ver algo en el navegador— pero el orden no es un capricho:
+          <strong>se empieza por lo más caro de cambiar</strong>. Renombrar un botón cuesta un
+          minuto; cambiar el modelo de datos con la aplicación entera construida encima cuesta una
+          semana.
+        </p>
+
+        <div class="esquema">   QUÉ CAPA AGREGA CADA CLASE
+
+   ┌─────────────────────────────────────────────────────────┐
+   │  spec  ·  qué tiene que hacer el sistema        clase 2  │  ◄── HOY
+   ├─────────────────────────────────────────────────────────┤
+   │  modelo de datos  ·  entidades y relaciones     clase 3  │
+   ├─────────────────────────────────────────────────────────┤
+   │  API  ·  cómo se pide y se guarda               clase 4  │
+   │  validación y errores                           clase 5  │
+   │  autenticación y permisos                       clase 6  │
+   │  servicios externos                             clase 7  │
+   ├═════════════════════════════════════════════════════════┤
+   │            PARCIAL I — defensa del backend      clase 8  │
+   ├─────────────────────────────────────────────────────────┤
+   │  interfaz  ·  React, UI, formularios      clases 9 a 11  │
+   │  calidad   ·  tests, IA, carga           clases 12 a 14  │
+   ├═════════════════════════════════════════════════════════┤
+   │            PARCIAL II                          clase 15  │
+   │            DEMO DAY                            clase 16  │
+   └─────────────────────────────────────────────────────────┘
+
+   Cada capa se apoya en la de arriba. Por eso la de hoy es la que más pesa:
+   la spec de esta clase es lo que la clase 3 convierte en tablas.</div>
+
+        <h3>Los cuatro tramos</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Tramo</th><th>Clases</th><th>Qué se construye</th><th>Cómo saben que van bien</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cimientos</strong></td>
+                <td>1 – 3</td>
+                <td>Repo, deploy, spec, tipos y modelo de datos</td>
+                <td>La base de datos del equipo tiene las tablas de <em>su</em> dominio</td>
+              </tr>
+              <tr>
+                <td><strong>Backend</strong></td>
+                <td>4 – 7</td>
+                <td>API, validación, sesión con 2 roles, integración externa</td>
+                <td>El sistema funciona entero desde Postman, sin una sola pantalla</td>
+              </tr>
+              <tr>
+                <td><strong>Interfaz</strong></td>
+                <td>9 – 11</td>
+                <td>React, design system, formularios, mobile-first</td>
+                <td>El flujo principal se puede hacer desde el celular</td>
+              </tr>
+              <tr>
+                <td><strong>Calidad</strong></td>
+                <td>12 – 14</td>
+                <td>Testing, IA dentro del producto, performance</td>
+                <td>El sistema aguanta que lo use alguien que no es del equipo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Backend primero, y dura hasta la clase 8</span>
+          <p>
+            Entre agosto y septiembre casi no van a ver pantallas: el Parcial I se defiende
+            mostrando datos, endpoints y permisos, no interfaz. Es la parte que más incomoda de la
+            materia y es a propósito — <strong>quien se declare “el del frontend” hoy se pasa medio
+            cuatrimestre mirando</strong>, y llega al Parcial I sin poder explicar nada.
+          </p>
+        </div>
+
+        <h3>Cómo es cada clase</h3>
+        <p>
+          Todas las clases tienen la misma forma. Sabiendo qué viene, saben qué traer preparado:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Bloque</th><th>Qué pasa</th><th>Qué se espera de ustedes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Metodología</strong></td><td>Se cierra la lectura de la semana y se conecta con el taller del día</td><td>Haber leído el PDF y entregado el cuestionario</td></tr>
+              <tr><td><strong>Concepto</strong></td><td>El porqué del tema: qué se decide, y qué se gana y qué se resigna con cada opción</td><td>Seguir el razonamiento y preguntar cuando algo no cierra</td></tr>
+              <tr><td><strong>Demo</strong></td><td>El tema del día resuelto en vivo sobre el proyecto de referencia</td><td>Mirar cómo se decide, no solo qué se escribe</td></tr>
+              <tr><td><strong>Taller</strong></td><td>El equipo aplica el tema a su propio proyecto</td><td>Trabajar, y traer las consultas que aparezcan</td></tr>
+              <tr><td><strong>Code review</strong></td><td>Un integrante revisa el PR de otro</td><td>Que nada entre a <span class="etiq">main</span> sin la aprobación de otro integrante</td></tr>
+              <tr><td><strong>Cierre</strong></td><td>Entregable del día y lectura para la próxima</td><td>Saber qué queda pendiente y terminarlo durante la semana</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">La cuenta que conviene hacer ahora</span>
+          <p>
+            Son <strong>6 clases</strong> hasta el Parcial I. Lo que no salga en clase se termina
+            durante la semana — pero se termina: si cada entregable queda cerrado antes de la clase
+            siguiente, el parcial no requiere preparación, es mostrar lo que ya está. Si se
+            acumulan tres clases de deuda, en la 8 hay que construir un backend entero en una
+            semana. Las dos cosas se ven venir desde hoy.
+          </p>
+        </div>
+
+        <h3>Y el proyecto de referencia</h3>
+        <p>
+          Las demos se hacen sobre un proyecto propio de la materia, con un dominio distinto al de
+          ustedes. Está publicado y los commits están ordenados por clase, así que el historial
+          sirve para ver cómo fue creciendo el sistema decisión por decisión, y para consultarlo
+          cuando les toque resolver lo mismo en el suyo.
+        </p>
+        <div class="callout">
+          <span class="callout-titulo">📦 Proyecto de referencia</span>
+          <p>
+            <a href="https://github.com/dariomaranes/UAI-MDW-2026-referencia">github.com/dariomaranes/UAI-MDW-2026-referencia</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>2. La especificación</h2>
+        <p class="lead">
+          La spec es el documento que dice <strong>qué tiene que hacer el sistema</strong>. No cómo
+          está hecho —eso son los ADR— ni qué es —eso es el README. Se escribe hoy, se mantiene
+          todo el cuatrimestre, y la regla es una sola: <strong>si algo no está en la spec, no se
+          implementa</strong>.
+        </p>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Por qué es la clase 2 y no la 8</span>
+          <p>
+            La lectura de la clase pasada era sobre MDA y MDE: escribir un modelo y
+            <em>generar</em> el sistema a partir de él. Hoy ese motor de transformación es una IA y
+            el modelo de entrada es texto en castellano. Cambió la herramienta, no el problema:
+            <strong>una spec ambigua produce un sistema plausible y equivocado</strong>, más rápido
+            que nunca. Por eso empezamos por acá.
+          </p>
+        </div>
+
+        <h3>De las palabras a las entidades</h3>
+        <p>
+          La técnica es vieja y funciona: describan el sistema en un párrafo, en voz alta, y
+          después <strong>subrayen los sustantivos</strong>. Casi todos son entidades, y los verbos
+          que los unen son las relaciones.
+        </p>
+        <div class="caja-codigo">"El <u>veterinario</u> registra la <u>aplicación</u> de una <u>vacuna</u>
+ a una <u>mascota</u>, que tiene un <u>dueño</u>, y queda en el <u>historial</u>
+ con su <u>fecha de vencimiento</u>."
+
+ sustantivos  →  Veterinario · Aplicación · Vacuna · Mascota · Dueño
+ verbos       →  registra (1-N) · tiene (1-N) · queda en (1-N)
+
+ ¿"historial" es una entidad?  No: es la lista de aplicaciones de una mascota.
+ ¿"fecha de vencimiento"?      No: es un atributo de la aplicación.</div>
+        <p>
+          Ese último par de preguntas es el trabajo real. <strong>Distinguir qué es una entidad y
+          qué es un atributo no lo puede decidir la IA</strong>, porque depende de si el sistema
+          necesita guardar algo por separado o no.
+        </p>
+
+        <h3>Historias de usuario y criterios de aceptación</h3>
+        <p>
+          Una historia dice quién quiere qué y para qué. El criterio de aceptación dice
+          <strong>cómo se verifica que está terminada</strong> — y es la parte que casi todos se
+          saltean, que es justamente la que sirve.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Así no</h4>
+            <div class="caja-codigo">H3 — Registrar aplicación
+
+Como veterinario, quiero registrar
+una vacuna, para llevar el control.
+
+Criterio: que funcione bien.</div>
+            <p>
+              “Que funcione bien” no se puede verificar, no se puede testear y no le dice nada a la
+              IA. Es una intención, no un criterio.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Así sí</h4>
+            <div class="caja-codigo">H3 — Registrar aplicación
+
+Como veterinario, quiero registrar
+la aplicación de una vacuna a una
+mascota, para que el dueño vea el
+historial al día.
+
+Criterios:
+- Cuando el veterinario registra
+  una aplicación con fecha y
+  vacuna, entonces aparece en el
+  historial de esa mascota.
+- Dado que la vacuna tiene
+  refuerzo, cuando se registra la
+  aplicación, entonces el sistema
+  calcula la próxima dosis.
+- Error: si la fecha de aplicación
+  es posterior a hoy, no se guarda
+  y se muestra el motivo — una
+  vacuna no se puede aplicar en
+  el futuro.</div>
+          </div>
+        </div>
+        <p>
+          El formato <strong>Dado / Cuando / Entonces</strong> no es burocracia ágil: es lo que
+          después se copia casi literal en un test (clase 12) y lo que se le pega a la IA para que
+          escriba el endpoint sin inventar. <strong>Todo criterio tiene que tener su caso de
+          error</strong>: el camino feliz lo adivina cualquiera.
+        </p>
+        <p>Cada parte contesta una pregunta distinta:</p>
+        <div class="esquema">   Dado que...    ¿cómo está el mundo ANTES?      la precondición
+   cuando...      ¿qué hace el usuario?           la acción
+   entonces...    ¿qué tiene que pasar?           el resultado esperado</div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El error más común: un “Dado” que sobra</span>
+          <p>
+            Si la precondición <strong>es verdadera siempre</strong>, no es una precondición: es
+            ruido. Comparen:
+          </p>
+          <div class="caja-codigo">✗ Dado que el veterinario inició sesión, cuando registra
+  una aplicación, entonces queda en el historial.
+     ↑ obvio: sin sesión no puede hacer nada.
+
+✓ Dado que la vacuna tiene refuerzo, cuando se registra
+  la aplicación, entonces se calcula la próxima dosis.
+     ↑ acá sí: el resultado CAMBIA según esa condición.</div>
+          <p>
+            <strong>La regla:</strong> el <em>Dado</em> tiene que ser algo que, si fuera distinto,
+            daría otro resultado. Que el usuario esté logueado se aclara <strong>una sola vez</strong>
+            al principio de la sección, no en cada criterio.
+          </p>
+        </div>
+
+        <h3>La lectura de hoy, adentro de la spec</h3>
+        <p>
+          El material habla de <strong>usabilidad</strong> y de <strong>accesibilidad</strong>. Los
+          dos suelen aparecer al final del proyecto, cuando ya no se pueden arreglar. Hoy entran
+          donde sirven: <strong>como criterios de aceptación medibles</strong>.
+        </p>
+        <p>
+          La usabilidad, dice el material, se mide con <strong>cinco criterios</strong>: recuerdo,
+          eficiencia, errores, aprendizaje y satisfacción. El PDF los agrupa bajo la sigla
+          <strong>MEELS</strong>, que despista porque <strong>es un acrónimo en inglés con las
+          palabras traducidas</strong>: <em>Memorability, Efficiency, Errors, Learnability,
+          Satisfaction</em>. Son los cinco componentes de usabilidad de Jakob Nielsen, y lo que
+          importa no es la sigla sino qué pregunta hace cada uno:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Criterio</th><th>La pregunta</th><th>Cómo se escribe en la spec</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Eficiencia</strong></td><td>¿Cuánto cuesta hacer la tarea principal?</td><td>“Registrar una aplicación tiene que poder hacerse en menos de 4 interacciones”</td></tr>
+              <tr><td><strong>Errores</strong></td><td>¿Qué pasa cuando el usuario se equivoca?</td><td>“Si falta un campo obligatorio, se señala el campo y no se pierde lo ya cargado”</td></tr>
+              <tr><td><strong>Aprendizaje</strong></td><td>¿Puede usarlo alguien la primera vez?</td><td>“Un veterinario que nunca lo vio registra una aplicación sin que le expliquen”</td></tr>
+              <tr><td><strong>Recuerdo</strong></td><td>¿Y a la semana siguiente?</td><td>“El flujo principal está a un clic desde la home, siempre en el mismo lugar”</td></tr>
+              <tr><td><strong>Satisfacción</strong></td><td>¿Vuelve a usarlo?</td><td>Se mide probando con alguien de afuera del equipo, antes del Demo Day</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Accesibilidad: qué escriben hoy</span>
+          <p>
+            Va en la spec como <strong>requisito no funcional</strong>, en una lista corta y
+            verificable. Con esto alcanza por ahora:
+          </p>
+          <ul class="checklist">
+            <li>Todo se puede operar <strong>con el teclado</strong>, y se ve dónde está el foco.</li>
+            <li>Los campos de formulario tienen <span class="etiq">label</span> asociado, no solo <em>placeholder</em>.</li>
+            <li>Las imágenes que informan tienen texto alternativo; las decorativas, alternativo vacío.</li>
+            <li>El <strong>contraste</strong> entre el texto y el fondo llega a <strong>4,5:1</strong> (3:1 si la letra es grande).</li>
+            <li>El error nunca se comunica <strong>solo con color</strong>: siempre hay texto.</li>
+          </ul>
+          <p>
+            Ese <span class="etiq">4,5:1</span> no es un número inventado: sale de
+            <strong>WCAG</strong>, la norma de accesibilidad web del W3C —el mismo organismo del
+            HTML—, en su <strong>nivel AA</strong>. La norma tiene tres niveles: <em>A</em> es lo
+            mínimo, <em>AA</em> es el que se exige normalmente —el que adopta la Ley 26.653 para
+            los sitios del Estado argentino— y <em>AAA</em> es tan estricto que casi ningún sitio
+            lo cumple entero.
+          </p>
+          <p>
+            <strong>No hay que calcular nada a mano:</strong> el inspector de Chrome muestra la
+            relación de contraste al abrir el selector de color, y Lighthouse audita la página
+            completa y marca lo que no cumple.
+          </p>
+          <p>
+            En la <strong>clase 10</strong> vamos a auditar esta lista contra el sistema que hayan
+            construido. Escribirla hoy es barato; descubrir en octubre que ningún formulario tiene
+            <span class="etiq">label</span>, no.
+          </p>
+        </div>
+
+        <h3>Reglas de negocio: lo único que la IA no puede adivinar</h3>
+        <p>
+          Una IA sabe cómo se hace un CRUD. Lo que no sabe es que en <em>su</em> dominio una
+          aplicación no se puede registrar con fecha futura, que la antirrábica se da recién a los
+          tres meses, o que un turno se cancela hasta 24 horas antes. <strong>Esa lista es la parte
+          de la spec que vale.</strong>
+        </p>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Prueba de que la spec sirve</span>
+          <p>
+            Cuando la terminen, pásenle la spec a un asistente y pídanle que enumere las entidades,
+            sus relaciones y las reglas de negocio. Si lo que devuelve no coincide con lo que
+            tenían en la cabeza, <strong>la spec es ambigua</strong> — y la IA no adivinó, ustedes
+            no escribieron. Arreglarlo hoy es gratis; en la clase 5, con la API escrita encima, no.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Fuera de alcance: la sección que más discusiones ahorra</span>
+          <p>
+            Escriban explícitamente qué <strong>no</strong> van a hacer: pagos, notificaciones push,
+            app nativa, panel de estadísticas. No es renunciar a la idea — es dejar por escrito
+            dónde termina el MVP para no volver a discutirlo en octubre, cuando falten dos clases
+            para el Parcial II.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>3. Qué es TypeScript</h2>
+        <p class="lead">
+          TypeScript es <strong>JavaScript más un sistema de tipos que se verifica antes de
+          ejecutar el programa</strong>. No es un lenguaje nuevo: todo JavaScript válido es
+          TypeScript válido. Lo que agrega es una forma de <em>describir</em> qué forma tienen
+          los datos, y un compilador que avisa cuando el código no respeta esa descripción.
+        </p>
+
+        <div class="esquema">   mascota.ts                  tsc                  mascota.js
+  ┌──────────────┐        ┌─────────────┐        ┌──────────────┐
+  │ código con   │  ───►  │ verifica    │  ───►  │ código sin   │
+  │ tipos        │        │ los tipos   │        │ tipos        │
+  └──────────────┘        └─────────────┘        └──────────────┘
+                                 │                       │
+                                 ▼                       ▼
+                          errores al escribir      es lo que corre
+
+   Los tipos NO existen en tiempo de ejecución: se borran al compilar.
+   Esa es la idea más importante de toda la clase.</div>
+
+        <h3>El problema que resuelve</h3>
+        <p>
+          En JavaScript esto se escribe, se guarda y no pasa nada. El error aparece en
+          producción, cuando lo ve un usuario:
+        </p>
+        <div class="caja-codigo">// JavaScript
+function mostrarFicha(mascota) {
+  console.log(mascota.nomrbe);        // typo: nadie avisa
+  console.log(mascota.fechaNacimiento.getFullYear());
+}
+
+// undefined
+// TypeError: Cannot read properties of undefined (reading 'getFullYear')</div>
+
+        <p>Con TypeScript los dos errores aparecen <strong>mientras escriben</strong>, subrayados en el editor:</p>
+        <div class="caja-codigo">// TypeScript
+type Mascota = {
+  id: string;
+  nombre: string;
+  fechaNacimiento: Date;
+};
+
+function mostrarFicha(mascota: Mascota) {
+  console.log(mascota.nomrbe);
+  //                  ~~~~~~
+  //   Property 'nomrbe' does not exist on type 'Mascota'.
+  //   Did you mean 'nombre'?
+
+  console.log(mascota.fechaNacimiento.getFullYear());   // ✓ es un Date, tiene getFullYear
+}</div>
+
+        <div class="callout">
+          <span class="callout-titulo">Documentación oficial</span>
+          <ul>
+            <li><a href="https://www.typescriptlang.org/docs/handbook/2/everyday-types.html">Everyday Types</a> — los tipos que van a usar el 95% del tiempo. Es la página para leer si leen una sola.</li>
+            <li><a href="https://www.typescriptlang.org/play">TypeScript Playground</a> — editor en el navegador que muestra el JavaScript resultante al costado. Sirve para ver, literalmente, cómo desaparecen los tipos.</li>
+            <li><a href="https://www.typescriptlang.org/docs/handbook/intro.html">El Handbook completo</a>, para consultar.</li>
+          </ul>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>4. El tipo como contrato</h2>
+        <p>
+          El valor de TypeScript no es cazar errores de tipeo. Es que <strong>obliga a
+          decidir</strong>. Cuando escriben un tipo están contestando preguntas del dominio que
+          de otra forma quedarían implícitas y cada integrante asumiría una distinta.
+        </p>
+
+        <p>Este es el modelo de la libreta sanitaria que vamos a construir:</p>
+        <div class="caja-codigo">type Especie = "PERRO" | "GATO";
+
+type Mascota = {
+  id: string;
+  nombre: string;
+  especie: Especie;
+  fechaNacimiento: Date;
+  duenoId: string;
+  chip?: string;              // el "?" dice: puede no tener
+};
+
+type Aplicacion = {
+  id: string;
+  mascotaId: string;
+  vacunaId: string;
+  veterinarioId: string;
+  fecha: Date;
+  proximaDosis?: Date;        // hay vacunas que no se repiten
+  observaciones?: string;
+};</div>
+
+        <p>Esas veinte líneas contestan, sin decirlo:</p>
+        <ul>
+          <li>¿Puede existir una mascota sin dueño? <strong>No.</strong> <span class="etiq">duenoId</span> es obligatorio.</li>
+          <li>¿Puede existir una aplicación sin veterinario? <strong>No.</strong></li>
+          <li>¿Qué especies maneja el sistema? <strong>Exactamente dos.</strong> No cualquier texto.</li>
+          <li>¿Toda vacuna tiene refuerzo? <strong>No</strong>, por eso <span class="etiq">proximaDosis</span> es opcional.</li>
+          <li>¿El chip es obligatorio? <strong>No.</strong></li>
+        </ul>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Uniones literales: el detalle que más rinde</span>
+          <p>
+            Comparen <span class="etiq">especie: string</span> con
+            <span class="etiq">especie: "PERRO" | "GATO"</span>. El primero acepta
+            <span class="etiq">"perro"</span>, <span class="etiq">"Perro"</span>,
+            <span class="etiq">"pero"</span> y <span class="etiq">"asdf"</span>. El segundo
+            solo dos valores, y el editor los autocompleta.
+          </p>
+          <div class="caja-codigo">const mascota: Mascota = {
+  // ...
+  especie: "perro",
+  //       ~~~~~~~
+  //  Type '"perro"' is not assignable to type 'Especie'.
+};</div>
+          <p>
+            <strong>Regla del proyecto:</strong> todo campo que tenga un conjunto conocido de
+            valores —estados, roles, categorías— se escribe como unión literal, nunca como
+            <span class="etiq">string</span>.
+          </p>
+        </div>
+
+        <h3><span class="etiq">type</span> e <span class="etiq">interface</span></h3>
+        <p>
+          Son las dos formas de ponerle nombre a la forma de un objeto. Para el modelo de recién,
+          <strong>las dos dicen exactamente lo mismo</strong>:
+        </p>
+        <div class="caja-codigo">// Con type — con signo igual y punto y coma al final
+type Mascota = {
+  id: string;
+  nombre: string;
+};
+
+// Con interface — sin igual, como una clase
+interface Mascota {
+  id: string;
+  nombre: string;
+}</div>
+
+        <p>Se diferencian cuando hay que combinarlas o cuando el tipo no es un objeto:</p>
+        <div class="grid-2">
+          <div class="tarjeta">
+            <h4>Lo que <span class="etiq">interface</span> hace mejor</h4>
+            <div class="caja-codigo">interface MascotaConChip
+  extends Mascota {
+  chip: string;
+}</div>
+            <p>
+              La herencia con <span class="etiq">extends</span> se lee más natural, y en cadenas
+              largas de tipos que heredan de otros los mensajes de error salen más claros.
+            </p>
+          </div>
+          <div class="tarjeta">
+            <h4>Lo que solo <span class="etiq">type</span> puede</h4>
+            <div class="caja-codigo">// uniones
+type Especie =
+  "PERRO" | "GATO";
+
+// alias de un primitivo
+type MascotaId = string;
+
+// tipos derivados de otros
+type Resumen =
+  Pick&lt;Mascota, "id" | "nombre"&gt;;</div>
+            <p>
+              <span class="etiq">interface</span> solo puede describir objetos. Todo lo demás
+              —uniones, alias, tipos derivados— es territorio de <span class="etiq">type</span>.
+            </p>
+          </div>
+        </div>
+
+        <p>
+          Y hay una diferencia más, que conviene conocer porque explica errores raros: dos
+          <span class="etiq">interface</span> con el mismo nombre <strong>se fusionan en
+          silencio</strong>; dos <span class="etiq">type</span> con el mismo nombre son un error.
+        </p>
+        <div class="caja-codigo">interface Mascota { id: string; }
+interface Mascota { nombre: string; }
+// Mascota ahora tiene id Y nombre. Se fusionaron sin avisar.
+
+type Perro = { id: string };
+type Perro = { nombre: string };
+//   ~~~~~
+//   Duplicate identifier 'Perro'.</div>
+        <p>
+          Esa fusión es útil para agregarle campos a los tipos de una librería ajena, y es una
+          trampa dentro del código propio: si dos personas del equipo declaran
+          <span class="etiq">Mascota</span> en archivos distintos, con
+          <span class="etiq">interface</span> el problema aparece mucho después.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">La regla del proyecto</span>
+          <p>
+            <strong><span class="etiq">type</span> por defecto.</strong> Cubre el 95% de lo que
+            necesitamos y es lo único que sirve para uniones literales, que son el corazón del
+            modelo. <span class="etiq">interface</span> queda para cuando haya una jerarquía de
+            verdad o haya que extender tipos de una librería. Lo que no se hace es mezclar los dos
+            estilos al azar en el mismo proyecto.
+          </p>
+        </div>
+
+        <h3>Inferencia: cuándo escribir el tipo y cuándo no</h3>
+        <p>
+          <strong>Anotar un tipo</strong> es escribirlo a mano con dos puntos:
+          <span class="etiq">const nombre: string = "Fido"</span>. Y no siempre hace falta,
+          porque TypeScript deduce solo —<em>infiere</em>— el tipo de la mayoría de las cosas:
+        </p>
+        <div class="caja-codigo">// Sin anotar: TypeScript infiere el tipo
+const nombre = "Fido";                    // string
+const mascotas = await listarMascotas();  // Mascota[]
+const nombres = mascotas.map((m) => m.nombre);   // string[]
+
+// Anotado a mano: dice exactamente lo mismo, pero más largo
+const nombre: string = "Fido";
+const nombres: string[] = mascotas.map((m) => m.nombre);</div>
+        <p>
+          Las dos versiones son igual de seguras. Anotar de más solo agrega ruido, y encima hay
+          que mantenerlo: si mañana la función devuelve otra cosa, la anotación queda mintiendo.
+        </p>
+
+        <p><strong>La regla práctica del proyecto:</strong></p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Escriban el tipo a mano</h4>
+            <ul>
+              <li>En los <strong>parámetros</strong> de las funciones — ahí TypeScript no puede adivinar nada</li>
+              <li>En lo que <strong>devuelve</strong> una función que usa el resto del equipo</li>
+              <li>Al definir los <strong>tipos del dominio</strong>: <span class="etiq">Mascota</span>, <span class="etiq">Aplicacion</span></li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Déjenlo inferir</h4>
+            <ul>
+              <li>Variables locales con un valor obvio</li>
+              <li>Resultados de <span class="etiq">.map()</span>, <span class="etiq">.filter()</span>, <span class="etiq">await</span></li>
+              <li>Todo lo que el editor ya muestra bien al pasar el mouse por encima</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="caja-codigo">// Se anota SOLO el borde de la función: lo que entra y lo que sale.
+
+function vacunasVencidas(
+  aplicaciones: Aplicacion[],   // ← ENTRA: una lista de aplicaciones
+  hoy: Date,                    // ← ENTRA: una fecha
+): Aplicacion[] {               // ← SALE:  otra lista de aplicaciones
+
+  const vencidas = aplicaciones.filter(
+    (a) =&gt; a.proximaDosis !== undefined &amp;&amp; a.proximaDosis &lt; hoy
+  );
+  // ↑ nadie anotó "vencidas", y TypeScript ya sabe que es Aplicacion[]:
+  //   filtrar una lista de X siempre devuelve una lista de X.
+
+  return vencidas;
+}</div>
+        <p>
+          Los dos <span class="etiq">Aplicacion[]</span> no son lo mismo repetido: el de
+          <strong>adentro</strong> del paréntesis dice qué recibe la función, el de
+          <strong>después</strong> dice qué devuelve. Coinciden porque esta función filtra —entra
+          una lista y sale la misma lista, más corta—. Si devolviera los nombres de las mascotas
+          diría <span class="etiq">: string[]</span>. El <span class="etiq">[]</span> se lee
+          “lista de”.
+        </p>
+        <p>
+          Y el <span class="etiq">!== undefined</span> no está de adorno: en el modelo,
+          <span class="etiq">proximaDosis?: Date</span> lleva signo de pregunta porque puede no
+          existir. Si compararan la fecha sin chequear antes que exista, TypeScript no los deja
+          compilar —<span class="etiq">Object is possibly 'undefined'</span>—. Es el
+          <span class="etiq">?</span> del modelo obligándolos a contemplar el caso.
+        </p>
+        <p>
+          <strong>Truco:</strong> en VS Code, pasando el mouse por encima de una variable ven el
+          tipo que TypeScript infirió. Si es el correcto, no hace falta escribirlo.
+        </p>
+
+        <h3>El <span class="etiq">any</span> y por qué está prohibido</h3>
+        <p>
+          <span class="etiq">any</span> significa <em>“confiá en mí, no chequees nada”</em>.
+          Apaga TypeScript para esa variable — y para todo lo que se derive de ella. Eso es lo
+          que lo hace peligroso: no apaga una línea, apaga una rama entera del código.
+        </p>
+
+        <p>Supongamos que traemos una mascota desde otro sistema:</p>
+        <div class="caja-codigo">const datos: any = await respuesta.json();
+
+const mascota = datos.mascota;          // any  ← se contagió
+const nombre = mascota.nombre;          // any  ← se contagió
+console.log(nombre.toUpperCase());      // any  ← y acá nadie chequeó nada</div>
+
+        <p>
+          Eso <strong>compila sin una sola advertencia</strong>. Pero si el otro sistema devuelve
+          la mascota sin nombre —porque todavía no se lo pusieron— lo que llega es esto:
+        </p>
+        <div class="caja-codigo">{ "mascota": { "id": "abc", "nombre": null } }
+
+// y en producción:
+// TypeError: Cannot read properties of null (reading 'toUpperCase')</div>
+        <p>
+          TypeScript tenía toda la información para avisar, y no dijo nada porque le pidieron que
+          no mirara.
+        </p>
+
+        <h4>La alternativa: <span class="etiq">unknown</span></h4>
+        <p>
+          <span class="etiq">unknown</span> también significa “no sé qué es”, pero con la
+          diferencia que importa: <strong>no deja hacer nada con el valor hasta que se
+          verifique</strong>.
+        </p>
+        <div class="caja-codigo">const datos: unknown = await respuesta.json();
+
+console.log(datos.mascota);
+//                ~~~~~~~
+//   'datos' is of type 'unknown'.
+//   ← el error aparece ACÁ, mientras escriben, no en producción</div>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Y esto es exactamente lo que resuelve Zod</span>
+          <p>
+            <span class="etiq">unknown</span> los obliga a verificar, pero no les dice
+            <em>cómo</em>. Escribir esa verificación a mano —chequear que exista, que sea un
+            objeto, que tenga nombre, que el nombre sea un string— es tedioso y nadie lo hace
+            bien. Zod lo resuelve en una línea, y es el tema de la sección que sigue.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">En este proyecto, <span class="etiq">any</span> está prohibido</span>
+          <p>
+            Lo bloquea el linter. Si aparece un <span class="etiq">any</span> el CI se pone en
+            rojo y el Pull Request no se mergea.
+          </p>
+          <p>
+            <strong>El antipatrón a evitar:</strong> cuando un error de tipos no se entiende, la
+            salida fácil es poner <span class="etiq">any</span> y seguir. Eso apaga la alarma sin
+            apagar el incendio — el error sigue ahí, solo que ahora aparece en producción.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>5. Dónde termina TypeScript y por qué existe Zod</h2>
+        <p>
+          Vuelvan al diagrama del principio: <strong>los tipos se borran al compilar</strong>. En
+          tiempo de ejecución no queda nada de ellos. Entonces esto compila perfecto y explota
+          igual:
+        </p>
+        <div class="caja-codigo">const mascota: Mascota = await respuesta.json();
+// TypeScript confía en lo que le dijeron.
+// Pero el servidor puede haber devuelto un error, un HTML,
+// o un objeto con otra forma. Nadie lo chequeó.
+
+mascota.fechaNacimiento.getFullYear();
+// TypeError en producción</div>
+
+        <p>
+          <strong>Regla:</strong> lo que entra desde afuera del sistema no tiene tipo, tiene una
+          <em>promesa</em> de tipo. Y las promesas de afuera se verifican.
+        </p>
+
+        <div class="esquema">   FRONTERAS DEL SISTEMA — acá se valida siempre
+
+   formulario ────┐
+   body HTTP ─────┤
+   query params ──┼──►  [ schema de Zod ]  ──►  dato tipado y confiable
+   API externa ───┤
+   variables env ─┘
+
+   Adentro de esas fronteras se confía en el tipo y no se valida de nuevo.</div>
+
+        <h3>Qué es Zod</h3>
+        <p>
+          Zod es una librería para <strong>describir la forma de un dato y verificarla en tiempo
+          de ejecución</strong>. Su particularidad —y la razón por la que se volvió el estándar
+          en proyectos TypeScript— es que <strong>del mismo schema sale el tipo</strong>: se
+          escribe una sola definición en lugar de dos que se pueden desincronizar.
+        </p>
+
+        <div class="caja-codigo">// lib/schemas/aplicacion.ts
+import { z } from "zod";
+
+export const registrarAplicacionSchema = z.object({
+  mascotaId:     z.string().min(1, "Falta la mascota"),
+  vacunaId:      z.string().min(1, "Falta la vacuna"),
+
+  // El caso de error de la historia H3, hecho código:
+  fecha:         z.coerce.date()
+                  .max(new Date(), "Una vacuna no se puede aplicar en el futuro"),
+
+  // Y la regla opuesta, en el mismo formulario:
+  proximaDosis:  z.coerce.date()
+                  .min(new Date(), "El refuerzo tiene que ser posterior a hoy")
+                  .optional(),
+
+  observaciones: z.string().max(500).optional(),
+});
+
+// El tipo se DERIVA del schema: no pueden quedar desincronizados.
+export type RegistrarAplicacionInput = z.infer&lt;typeof registrarAplicacionSchema&gt;;</div>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Miren de dónde salieron esas dos líneas</span>
+          <p>
+            No las inventamos acá: son los <strong>criterios de aceptación de la historia H3</strong>
+            de la sección 2, escritos en código. Una fecha de aplicación no puede ser futura porque
+            la vacuna ya se dio; el refuerzo sí tiene que serlo porque todavía no llegó. Dos reglas
+            opuestas en el mismo formulario, y ninguna IA las adivina — salen de la spec.
+          </p>
+          <p>
+            Ese criterio va a aparecer <strong>tres veces más</strong> en el cuatrimestre: en la
+            clase 5 como el error que devuelve el endpoint, en la clase 11 como el mensaje que ve
+            el usuario en el formulario, y en la clase 12 como un test. Siempre el mismo, escrito
+            una sola vez.
+          </p>
+        </div>
+
+        <p>Y así se usa en el servidor:</p>
+        <div class="caja-codigo">const body: unknown = await request.json();          // no confiamos
+const resultado = registrarAplicacionSchema.safeParse(body);
+
+if (!resultado.success) {
+  return NextResponse.json(
+    { error: "Datos inválidos", detalles: resultado.error.flatten() },
+    { status: 400 }
+  );
+}
+
+// A partir de acá, resultado.data es RegistrarAplicacionInput.
+// Está tipado Y verificado.
+await registrarAplicacion(resultado.data);</div>
+
+        <div class="callout">
+          <span class="callout-titulo">Dos detalles que van a usar mucho</span>
+          <ul>
+            <li>
+              <span class="etiq">z.coerce.date()</span> convierte el texto que llega del
+              formulario o del JSON en un <span class="etiq">Date</span> de verdad. Sin eso, lo
+              que reciben es un string con forma de fecha.
+            </li>
+            <li>
+              <span class="etiq">safeParse</span> devuelve un resultado con
+              <span class="etiq">success</span> en lugar de lanzar una excepción. Existe también
+              <span class="etiq">parse</span>, que sí lanza — pero en un endpoint es más limpio
+              decidir qué responder.
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Documentación oficial</span>
+          <ul>
+            <li><a href="https://zod.dev">zod.dev</a> — la documentación completa. La sección de <em>Basic usage</em> alcanza para todo lo de esta clase.</li>
+            <li><a href="https://zod.dev/api">Referencia de la API</a> — todos los validadores: <span class="etiq">min</span>, <span class="etiq">max</span>, <span class="etiq">email</span>, <span class="etiq">uuid</span>, <span class="etiq">enum</span>, <span class="etiq">array</span>, <span class="etiq">refine</span>.</li>
+          </ul>
+        </div>
+
+        <p>
+          Ese mismo schema se va a usar en el formulario (clase 11) y en el endpoint (clase 4).
+          Una sola definición de "qué es una aplicación válida" en todo el sistema.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Si prefieren Yup</span>
+          <p>
+            Es una alternativa válida y hace lo mismo: describe la forma de un dato, la valida y
+            deriva el tipo con <span class="etiq">yup.InferType</span>
+            (<a href="https://github.com/jquense/yup">documentación</a>). Lo que se exige es que
+            la validación y el tipo salgan del <strong>mismo schema</strong>, no la marca de la
+            librería.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>6. Decisiones: qué se gana y qué se resigna</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>A favor</th><th>En contra</th><th>Qué hacemos</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">type</span> vs <span class="etiq">interface</span></td>
+                <td>interface se extiende mejor en jerarquías</td>
+                <td>type es más flexible (uniones, utilitarios)</td>
+                <td><strong>type</strong> por defecto; es lo que necesitamos el 95% del tiempo</td>
+              </tr>
+              <tr>
+                <td>Validar en todos lados vs. solo en las fronteras</td>
+                <td>Validar todo parece más seguro</td>
+                <td>Duplica reglas y ensucia el código interno</td>
+                <td><strong>Solo en las fronteras.</strong> Adentro se confía en el tipo</td>
+              </tr>
+              <tr>
+                <td>Tipos del dominio compartidos vs. por capa</td>
+                <td>Compartidos: una sola verdad</td>
+                <td>Acoplan el front al modelo de la base</td>
+                <td><strong>Compartidos al principio</strong>; se separan si empiezan a estorbar</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>7. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">El descubrimiento de esta clase</span>
+          <p>
+            Los tipos son <strong>la mejor especificación que le pueden dar a una IA</strong>.
+            Un asistente al que le pasan <span class="etiq">RegistrarAplicacionInput</span> y el schema
+            de Zod escribe código correcto. El mismo asistente, sin tipos, inventa nombres de
+            campos y devuelve algo plausible que no encaja con nada.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>Escribir el schema de Zod a partir de la descripción del dominio</li>
+              <li>Convertir un JSON de ejemplo en un tipo</li>
+              <li>Refactors mecánicos de tipos</li>
+              <li>Explicarte un error de tipos incomprensible</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Decidan ustedes</h4>
+            <ul>
+              <li>Qué campos son obligatorios y cuáles no</li>
+              <li>Qué estados existen en su dominio</li>
+              <li>Los límites (¿el título puede tener 500 caracteres?)</li>
+              <li>Qué es una entidad y qué es un atributo</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          <strong>Antipatrón frecuente:</strong> pedirle a la IA "arreglá este error de tipos".
+          Suele "arreglarlo" con un <span class="etiq">any</span>, que apaga la alarma sin apagar
+          el incendio. Pídanle que explique el error primero.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>8. Taller</h2>
+
+        <h3>Parte 1 — La spec</h3>
+        <p>
+          Si el equipo consiguió un <strong>Product Owner</strong> —alguien real que vaya a usar
+          el sistema—, esta parte se hace con lo que esa persona dijo, no con lo que el equipo
+          supone. Si no, se escribe igual, pero conviene validarlo con alguien antes del Parcial I.
+        </p>
+        <p>Completar <span class="etiq">docs/spec.md</span> del repositorio del equipo:</p>
+        <ol>
+          <li>Problema, para quién y qué mejora.</li>
+          <li>Los <strong>2 roles</strong> y qué puede hacer cada uno que el otro no.</li>
+          <li>Las <strong>entidades</strong>: los sustantivos que aparecen cuando describen el sistema. Mínimo 5, sin contar la de usuarios.</li>
+          <li>Al menos <strong>4 historias de usuario</strong>, cada una con sus criterios en formato <strong>Dado / Cuando / Entonces</strong> y <strong>su caso de error</strong>.</li>
+          <li>El <strong>flujo principal</strong> paso a paso: el recorrido que da valor al sistema, que no es un ABM.</li>
+          <li>Las <strong>reglas de negocio</strong> que la IA no puede adivinar.</li>
+          <li>Los <strong>requisitos no funcionales</strong>: la lista de accesibilidad y los criterios de usabilidad medibles.</li>
+          <li>Qué queda <strong>fuera de alcance</strong>.</li>
+        </ol>
+        <p>
+          Antes de cerrar el PR, hagan la <strong>prueba de la sección 2</strong>: pásenle la spec a
+          un asistente y pídanle que enumere entidades, relaciones y reglas. Si no coincide con lo
+          que tenían en la cabeza, todavía están a tiempo.
+        </p>
+
+        <h3>Parte 2 — Los tipos</h3>
+        <ul>
+          <li>Crear un schema de Zod por entidad en <span class="etiq">lib/schemas/</span>.</li>
+          <li>Derivar los tipos con <span class="etiq">z.infer</span>. No escribir el tipo a mano.</li>
+          <li>Usar uniones literales para los estados (<span class="etiq">"pendiente" | "confirmado"</span>), nunca <span class="etiq">string</span> pelado.</li>
+          <li>Poner límites explícitos en los strings: mínimos, máximos, formato.</li>
+          <li>Abrir el PR y que lo revise un integrante que no lo escribió.</li>
+        </ul>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li><span class="etiq">docs/spec.md</span> completo y mergeado en <span class="etiq">main</span>.</li>
+          <li>Un schema de Zod por entidad, con sus tipos derivados.</li>
+          <li>Cero <span class="etiq">any</span> en el proyecto (<span class="etiq">npm run typecheck</span> y <span class="etiq">npm run lint</span> en verde).</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>Lectura del eje metodológico (<strong>Programación Extrema</strong>) + entrega del cuestionario en UAI Online Ultra.</li>
+          <li>
+            Traer <strong>dibujadas las entidades y sus relaciones</strong>, marcando cuál es 1‑N y
+            cuál es N‑N. En papel sirve. En la clase 3 ese dibujo se convierte en tablas: cuanto
+            más discutido venga, menos se rehace después.
+          </li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 02 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

@@ -308,6 +308,51 @@
           </table>
         </div>
 
+        <div class="callout">
+          <span class="callout-titulo">Estas piezas no compiten entre sí: se apilan</span>
+          <p>
+            La tabla las lista una debajo de la otra y da la impresión de que son alternativas.
+            No lo son: cada una resuelve algo que las otras no, y conviven en el mismo proyecto.
+          </p>
+          <div class="esquema">   EL CÓDIGO DEL EQUIPO                         DÓNDE SE PUBLICA
+
+   ┌─────────────────────────────────┐
+   │ shadcn/ui   componentes ya      │
+   │             hechos, copiados    │
+   │             adentro del repo    │
+   ├─────────────────────────────────┤
+   │ Tailwind    cómo se ven         │
+   ├─────────────────────────────────┤
+   │ React       qué es un           │        ┌──────────────┐
+   │             componente          │  ───►  │    VERCEL    │
+   ├─────────────────────────────────┤        │  la URL      │
+   │ Next.js     rutas y servidor    │        │  pública     │
+   ├─────────────────────────────────┤        └──────────────┘
+   │ TypeScript  el lenguaje         │
+   └─────────────────────────────────┘
+
+   No se elige "React o Next.js": se usan las dos, una encima de la otra.</div>
+          <p>
+            <strong>React no está en la tabla</strong> y sin embargo es lo que más van a escribir
+            entre las clases 9 y 11: viene adentro de Next.js. Next.js no reemplaza a React, está
+            construido <em>encima</em> — ustedes escriben componentes de React y Next.js les pone
+            las rutas, el servidor y el build.
+          </p>
+          <p>
+            <strong>Vercel no es una tecnología del código:</strong> es el lugar donde se publica.
+            Que sea de la misma empresa que hace Next.js explica que los dos nombres aparezcan
+            siempre juntos, pero son cosas distintas — la misma aplicación se podría desplegar en
+            otro lado.
+          </p>
+          <p>
+            <strong>shadcn/ui no es “la librería para escribir componentes”:</strong> son
+            componentes <em>ya escritos</em> en React —un botón, un diálogo, una tabla— que su CLI
+            copia adentro de <span class="etiq">components/ui/</span>. Quedan en el repositorio del
+            equipo y se pueden abrir y modificar. Los componentes propios del proyecto los escriben
+            ustedes, en React.
+          </p>
+        </div>
+
         <div class="callout callout-alerta">
           <span class="callout-titulo">Si el equipo elige otro stack</span>
           <p>
@@ -834,8 +879,9 @@ npx prisma studio                    # abre un panel para ver y editar los datos
         <h3>Paso 6 — Primer Pull Request</h3>
         <p>
           El primer PR del cuatrimestre lleva el README completo, ya con la URL de producción.
-          <strong>Lo revisa y lo aprueba un integrante que no lo escribió</strong>: nadie mergea
-          su propio Pull Request. Practicamos el ritual con algo trivial para que después salga solo.
+          <strong>Lo revisa y lo aprueba un integrante que no lo escribió</strong>: nada entra a
+          <span class="etiq">main</span> sin la aprobación de otra persona. Practicamos el ritual
+          con algo trivial para que después salga solo.
         </p>
 
       </section>

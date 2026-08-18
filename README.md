@@ -23,6 +23,7 @@ La materia asume que los alumnos programan con IA. Por eso no se evalúa escribi
 | [`docs/eje-metodologico.md`](./docs/eje-metodologico.md) | Lecturas teóricas y su puente con el taller de cada clase |
 | `docs/metodologias/` | Los 14 PDFs del eje teórico, uno por clase |
 | [Repositorio template](https://github.com/dariomaranes/UAI-MDW-2026-template) | Repo aparte, marcado como *template* en GitHub: el punto de partida de cada equipo |
+| [Proyecto de referencia](https://github.com/dariomaranes/UAI-MDW-2026-referencia) | La libreta sanitaria de mascotas, construida clase a clase en las demos |
 
 ## Stack sugerido
 

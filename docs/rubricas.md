@@ -96,7 +96,7 @@ Diez minutos por equipo, ante el curso.
 | Criterio | Peso | Qué se evalúa |
 |---|---|---|
 | **El producto funciona** | 40% | Se recorre completo, sin caerse, con datos reales |
-| **Decisiones y trade-offs** | 25% | Por qué eligieron lo que eligieron, qué descartaron, qué harían distinto |
+| **Decisiones: qué ganaron y qué resignaron** | 25% | Por qué eligieron lo que eligieron, qué descartaron, qué harían distinto |
 | **Producción y operación** | 15% | Envs, CI, logs, qué pasa cuando algo falla |
 | **Retrospectiva** | 10% | Lo planificado vs. lo real, qué aprendieron del proceso |
 | **La presentación** | 10% | Que se entienda, que entre en el tiempo, que expongan los cuatro |
