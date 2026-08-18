@@ -978,13 +978,49 @@ await registrarAplicacion(resultado.data);</div>
         </p>
 
         <h3>Parte 2 — Los tipos</h3>
+
+        <div class="callout">
+          <span class="callout-titulo">No arrancan de cero: ya tienen el ejemplo en su repo</span>
+          <p>
+            El template trae <span class="etiq">lib/schemas/nota.ts</span> resuelto y comentado. Es
+            <strong>el patrón que hay que copiar</strong>: un schema por entidad, con sus límites y
+            sus mensajes, y el tipo derivado abajo con <span class="etiq">z.infer</span>. Abranlo
+            antes de escribir el suyo — y al lado está <span class="etiq">nota.test.ts</span>, que
+            muestra cómo se verifica.
+          </p>
+        </div>
+
         <ul>
-          <li>Crear un schema de Zod por entidad en <span class="etiq">lib/schemas/</span>.</li>
-          <li>Derivar los tipos con <span class="etiq">z.infer</span>. No escribir el tipo a mano.</li>
+          <li>Crear un schema de Zod <strong>por entidad</strong> en <span class="etiq">lib/schemas/</span>, siguiendo el patrón de <span class="etiq">nota.ts</span>.</li>
+          <li>
+            El tipo <strong>no se escribe aparte</strong>: se deriva del schema con
+            <span class="etiq">z.infer</span>, así el tipo y la validación no pueden quedar
+            desincronizados.
+          </li>
           <li>Usar uniones literales para los estados (<span class="etiq">"pendiente" | "confirmado"</span>), nunca <span class="etiq">string</span> pelado.</li>
           <li>Poner límites explícitos en los strings: mínimos, máximos, formato.</li>
           <li>Abrir el PR y que lo revise un integrante que no lo escribió.</li>
         </ul>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Si le piden los schemas a la IA</span>
+          <p>
+            Se puede, y con la spec escrita los va a hacer bien. Pero <strong>revísenlos contra su
+            spec antes de mergear</strong>, porque hay cuatro cosas que la IA no puede decidir y
+            que son justamente las que se evalúan:
+          </p>
+          <ul>
+            <li>Qué campos son <strong>obligatorios</strong> y cuáles llevan <span class="etiq">?</span>.</li>
+            <li>Cuáles son <strong>unión literal</strong> y cuáles texto libre.</li>
+            <li>Los <strong>límites</strong>: ¿por qué 120 caracteres y no 500?</li>
+            <li>Qué es una <strong>entidad</strong> y qué es un atributo.</li>
+          </ul>
+          <p>
+            El error típico: la spec dice que hay dos especies y el schema vuelve con
+            <span class="etiq">especie: z.string()</span>. <strong>Encontrar eso es el ejercicio
+            de hoy</strong>, y es lo que se les va a preguntar en el Parcial I.
+          </p>
+        </div>
       </section>
 
 
