@@ -6,3 +6,6 @@ node_modules/
 .next/
 .vercel
 *.tsbuildinfo
+
+# Guía docente: material interno de cátedra, no se publica.
+docs/guia-docente.md
