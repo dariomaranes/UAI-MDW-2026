@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 03 - Modelado de datos y persistencia</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 03 — MDW 2026</h1>
+      <p class="fecha-clase">martes 25/08/2026</p>
+      <h2>Modelado de datos y persistencia</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Convertir la spec en <strong>tablas reales, en una base de datos real</strong>. Al
+          final de la clase el modelo de cada equipo no está dibujado ni escrito: está
+          <strong>migrado y corriendo en la nube</strong>, con datos adentro que permiten recorrer
+          el flujo principal.
+        </p>
+        <ul class="agenda">
+          <li><span>De la spec al modelo: qué pieza de la spec se convierte en qué</span></li>
+          <li><span>Metodología: Programación Extrema</span></li>
+          <li><span>Entidades, atributos y relaciones: 1‑N, N‑N y cardinalidades</span></li>
+          <li><span>Cada dato en un solo lugar · qué se guarda y qué se calcula</span></li>
+          <li><span>El modelo en Prisma</span></li>
+          <li><span>Migraciones: el historial de la base</span></li>
+          <li><span>Índices y el problema N+1</span></li>
+          <li><span>Demo: el modelo de la libreta sanitaria, de cero a migrado</span></li>
+          <li><span>Taller: modelar y migrar el proyecto del equipo</span></li>
+          <li><span>Code review y cierre</span></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>Programación Extrema</strong>. Tres de sus principios
+            —<strong>simplicidad</strong>, <strong>cambio incremental</strong> y
+            <strong>aceptar el cambio</strong>— parecen incompatibles con lo que dijimos la clase
+            pasada: que el modelo de datos es lo más caro de cambiar. No lo son, y lo que resuelve
+            la aparente contradicción es justamente el tema de hoy: <strong>las migraciones</strong>.
+            Está desarrollado en la sección 2.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-03.pdf">📄 Material de la clase 03 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>1. De la spec al modelo</h2>
+        <p class="lead">
+          La clase pasada terminó con dos cosas: <span class="etiq">docs/spec.md</span> y un schema
+          de Zod por entidad. Las dos describen el dominio, pero las dos
+          <strong>se olvidan todo cuando se apaga el servidor</strong>. Hoy eso se convierte en
+          tablas: la capa que persiste.
+        </p>
+        <p>
+          Hoy cierra el tramo de <strong>cimientos</strong>. Con el modelo migrado, las cinco clases
+          que siguen —API, validación, permisos, servicios externos— son capas que se apoyan encima.
+          Por eso el hito del calendario para hoy no es "el modelo diseñado" sino
+          <strong>el modelo migrado en la base cloud</strong>: mientras viva solo en un archivo del
+          repositorio, no existe.
+        </p>
+
+        <h3>La traducción, pieza por pieza</h3>
+        <p>
+          No hay que inventar nada: cada parte del modelo sale de una parte de la spec. Si algo del
+          modelo no sale de ningún lado de la spec, <strong>o sobra en el modelo o falta en la
+          spec</strong>, y las dos cosas hay que resolverlas hoy.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>En la spec</th><th>Se convierte en</th><th>En la libreta sanitaria</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Un sustantivo de la sección "Entidades"</td>
+                <td>Una <strong>tabla</strong></td>
+                <td><span class="etiq">Mascota</span></td>
+              </tr>
+              <tr>
+                <td>Un dato que describe a ese sustantivo</td>
+                <td>Una <strong>columna</strong></td>
+                <td><span class="etiq">Mascota.fechaNacimiento</span></td>
+              </tr>
+              <tr>
+                <td>Un "se relaciona con"</td>
+                <td>Una <strong>foreign key</strong></td>
+                <td><span class="etiq">Aplicacion.mascotaId</span></td>
+              </tr>
+              <tr>
+                <td>Una lista cerrada de valores</td>
+                <td>Un <strong>enum</strong></td>
+                <td><span class="etiq">Especie: PERRO | GATO</span></td>
+              </tr>
+              <tr>
+                <td>Una regla de negocio</td>
+                <td>Una <strong>restricción</strong> de la base, o código si no entra</td>
+                <td><span class="etiq">codigoVerificacion</span> es <span class="etiq">@unique</span></td>
+              </tr>
+              <tr>
+                <td>Un <strong>criterio de aceptación</strong></td>
+                <td>Una <strong>consulta que tiene que ser posible</strong></td>
+                <td>"ve solo las suyas" → filtrar mascotas por <span class="etiq">duenoId</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">La última fila es la que hay que usar para verificar</span>
+          <p>
+            Un modelo no se revisa mirándolo: se revisa <strong>intentando contestar con él las
+            preguntas del flujo principal</strong>. Agarren los criterios de aceptación de su spec
+            y, para cada uno, pregúntense qué consulta haría falta. Si alguna no se puede escribir
+            —porque el dato no está, o está en otra tabla sin forma de llegar—
+            <strong>el modelo está incompleto y todavía es barato arreglarlo</strong>.
+          </p>
+        </div>
+
+        <h3>Por qué se hace ahora y no cuando haga falta</h3>
+        <p>
+          Porque es lo más caro de cambiar. Renombrar un botón cuesta un minuto. Cambiar el modelo
+          cuando ya hay una API, permisos y pantallas encima cuesta tocar todas esas capas
+          <strong>y además migrar los datos que ya están cargados</strong>, que es la parte que no
+          se puede deshacer con un <span class="etiq">git revert</span>.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>2. Metodología: Programación Extrema</h2>
+        <p class="lead">
+          XP nació en 1996, en un proyecto de nómina de Chrysler que venía de mal en peor, cuando
+          Kent Beck lo reestructuró en incrementos de tres semanas. De ahí salieron TDD, la
+          programación en pares y las revisiones de código, que hoy son el estándar de la industria
+          y que <strong>ustedes ya vienen practicando desde la clase 1</strong> sin que nadie les
+          dijera que se llamaban así.
+        </p>
+        <p>
+          El material lo resume bien: XP no es más que <strong>un conjunto de valores, principios y
+          prácticas</strong>. Lo que nos importa hoy son tres principios que chocan de frente con la
+          clase pasada.
+        </p>
+
+        <h3>La contradicción aparente</h3>
+        <div class="grid-2">
+          <div class="tarjeta">
+            <h4>Lo que dijimos la clase 2</h4>
+            <p>
+              El modelo de datos es <strong>lo más caro de cambiar</strong>. Por eso se empieza por
+              ahí, y por eso hay que discutirlo antes de escribirlo.
+            </p>
+          </div>
+          <div class="tarjeta">
+            <h4>Lo que dice XP</h4>
+            <p>
+              <strong>Diseño simple</strong>, <strong>cambio incremental</strong> y
+              <strong>aceptar el cambio</strong>. Nada de diseñar todo por adelantado: hacer lo
+              mínimo que funcione y modificarlo cuando haga falta.
+            </p>
+          </div>
+        </div>
+        <p>
+          ¿En qué quedamos: se diseña con cuidado o se cambia sobre la marcha? La respuesta está en
+          la frase del material, que conviene leer despacio:
+        </p>
+        <div class="caja-codigo">"Es mejor hacer algo simple hoy y pagar un poco más
+ mañana para cambiarlo", que "hacer algo más complicado
+ hoy que quizás nunca se use de todos modos".</div>
+        <p>
+          Fíjense qué está asumiendo: que <strong>cambiarlo mañana es posible y tiene un precio
+          conocido</strong>. Esa es toda la cuestión. En una base de datos con información adentro,
+          cambiar algo mañana <em>no</em> es barato por defecto: es una cirugía a mano, de noche, con
+          los datos de producción de rehén.
+        </p>
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Lo que hace posible el diseño incremental en la base</span>
+          <p>
+            Las <strong>migraciones versionadas</strong>. Son el mecanismo que convierte "cambiar el
+            modelo" de una cirugía en un commit: cada cambio queda escrito, ordenado, revisado en un
+            PR y aplicable a cualquier copia de la base. Sin ellas, XP no se puede aplicar a la capa
+            de datos; con ellas, sí.
+          </p>
+          <p>
+            Por eso las dos afirmaciones conviven: <strong>se diseña con cuidado porque es caro</strong>,
+            y <strong>se acepta que va a cambiar porque tenemos con qué</strong>. La sección 6 es
+            íntegramente sobre eso.
+          </p>
+        </div>
+
+        <h3>Las prácticas de XP, en la clase de hoy</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Principio o práctica</th><th>Cómo se ve hoy, concretamente</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Simplicidad · YAGNI</strong></td>
+                <td>Ni una columna "por las dudas". Si ninguna historia de usuario la necesita, no va</td>
+              </tr>
+              <tr>
+                <td><strong>Cambio incremental</strong></td>
+                <td>Una migración por cambio, con un nombre que dice qué hace. No una migración gigante que hace ocho cosas</td>
+              </tr>
+              <tr>
+                <td><strong>Aceptar el cambio</strong></td>
+                <td>El modelo de hoy no es el de noviembre, y está bien. Lo que no está bien es no poder cambiarlo</td>
+              </tr>
+              <tr>
+                <td><strong>Propiedad colectiva</strong></td>
+                <td>El schema no tiene dueño. Los cuatro integrantes lo tienen que poder explicar en el Parcial I</td>
+              </tr>
+              <tr>
+                <td><strong>Revisiones de código</strong></td>
+                <td>La migración entra por PR y la aprueba alguien que no la escribió, igual que el resto</td>
+              </tr>
+              <tr>
+                <td><strong>Cliente en el sitio</strong></td>
+                <td>Es la práctica que peor se aproxima acá, porque la mayoría de los equipos no tiene
+                  Product Owner. El que lo tiene, le pregunta las cardinalidades dudosas en vez de votarlas;
+                  el que no, las anota como supuesto en la spec y las valida antes del Parcial I. Lo que no
+                  vale es resolverlas por mayoría y olvidarse de que se decidieron a ciegas</td>
+              </tr>
+              <tr>
+                <td><strong>Integración continua · pequeñas liberaciones</strong></td>
+                <td>Migrar contra la base de la nube <em>hoy</em>. Una migración que nunca se aplicó en producción no está terminada</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Simplicidad aplicada: la tabla que se les va a ir de las manos</h3>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Así no</h4>
+            <div class="caja-codigo">model Mascota {
+  id              String
+  nombre          String
+  apodo           String?
+  especie         String
+  raza            String?
+  color           String?
+  peso            Float?
+  altura          Float?
+  fechaNacimiento DateTime
+  chip            String?
+  foto            String?
+  observaciones   String?
+  activo          Boolean
+  archivado       Boolean
+  eliminado       Boolean
+}</div>
+            <p>
+              Trece columnas y ninguna historia de usuario que las pida. Peor: tres banderas que
+              significan casi lo mismo y que en la clase 6 nadie va a saber cuál mirar.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Así sí</h4>
+            <div class="caja-codigo">model Mascota {
+  id              String
+  nombre          String
+  especie         Especie
+  fechaNacimiento DateTime
+  chip            String?
+}</div>
+            <p>
+              Cinco columnas, cada una nombrada en la H1 de la spec. Agregar
+              <span class="etiq">peso</span> el día que una historia lo necesite es
+              <strong>una migración de tres líneas</strong>. Sacar una columna que ya tiene datos y
+              que media aplicación lee, no.
+            </p>
+          </div>
+        </div>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Sobre el PDF: dos advertencias de lectura</span>
+          <p>
+            Donde el material dice <strong>"Comentarios"</strong> como valor de XP, el original dice
+            <em>Feedback</em>: es <strong>retroalimentación</strong>, no comentarios en el código.
+            Y hay dos prácticas —<strong>semana de 40 horas</strong> y <strong>cliente en el
+            sitio</strong>— que son de un contexto de empresa con equipo full‑time. En la materia la
+            segunda la aproximamos con el Product Owner; la primera, ténganla como criterio para
+            repartir el trabajo del equipo, no como algo a implementar.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>3. Entidades, atributos y relaciones</h2>
+        <p class="lead">
+          Una tabla es una entidad. Una fila es una instancia de esa entidad. Una columna es un dato
+          de esa instancia. Lo único que hace falta agregar es <strong>cómo se apunta una tabla a
+          otra</strong>, que es donde se juega todo.
+        </p>
+
+        <h3>La clave primaria</h3>
+        <p>
+          Cada fila necesita algo que la identifique de manera única y que no cambie nunca. Usamos
+          <span class="etiq">cuid()</span>, que genera un identificador tipo
+          <span class="etiq">clx3f8a9k0000...</span>. Las alternativas y por qué no, en la tabla de
+          decisiones de la sección 8.
+        </p>
+        <p>
+          Lo importante hoy: <strong>la clave primaria no se elige entre los datos del dominio</strong>.
+          El chip de la mascota parece un buen id —es único— hasta que aparece una mascota sin chip,
+          o hasta que a alguien le cargaron mal el número y hay que corregirlo. El id es un dato
+          técnico, sin significado, que nadie lee y que nadie cambia.
+        </p>
+
+        <h3>Relación 1‑N: la foreign key va del lado N</h3>
+        <p>
+          Un dueño tiene muchas mascotas; una mascota tiene un solo dueño. La columna que apunta
+          <strong>va en la tabla que está del lado "muchos"</strong>, y la razón es sencilla: si
+          fuera al revés, <span class="etiq">Usuario</span> necesitaría una cantidad indefinida de
+          columnas para guardar a cuáles mascotas apunta, y eso no existe.
+        </p>
+        <div class="esquema">   1 dueño ──────────────► N mascotas
+
+   ┌──────────────────┐          ┌────────────────────────┐
+   │ Usuario          │          │ Mascota                │
+   ├──────────────────┤          ├────────────────────────┤
+   │ id      ◄────────┼──────────┼─ duenoId    (la FK)    │
+   │ email            │          │  id                    │
+   │ nombre           │          │  nombre                │
+   │ rol              │          │  especie               │
+   └──────────────────┘          └────────────────────────┘
+
+   La flecha SIEMPRE nace del lado N y apunta al id del lado 1.</div>
+
+        <div class="callout">
+          <span class="callout-titulo">Cómo se decide una cardinalidad sin discutir media hora</span>
+          <p>
+            Se pregunta en <strong>las dos direcciones</strong>, y las dos respuestas juntas dan el
+            resultado. No hay atajo ni intuición: son dos preguntas.
+          </p>
+          <div class="caja-codigo">¿Una mascota puede tener muchas aplicaciones?  → SÍ
+¿Una aplicación puede ser de muchas mascotas?  → NO
+                                        ⇒ 1-N
+
+¿Un veterinario atiende en varias veterinarias? → SÍ
+¿Una veterinaria tiene varios veterinarios?     → SÍ
+                                        ⇒ N-N</div>
+        </div>
+
+        <h3>Relación N‑N: y por qué casi siempre deja de serlo</h3>
+        <p>
+          Cuando las dos respuestas dan que sí, la base no puede resolverlo con una columna: hace
+          falta <strong>una tabla en el medio</strong>, con una FK a cada lado. Un veterinario que
+          atiende en tres veterinarias son tres filas en esa tabla.
+        </p>
+        <p>
+          Ahora el punto que importa, y que es la trampa más común del modelado:
+          <strong>en cuanto esa tabla del medio necesita un dato propio, deja de ser una tabla
+          técnica y pasa a ser una entidad del dominio</strong> — con su nombre, su lugar en la spec
+          y su vida propia.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Leerlo como N‑N</h4>
+            <div class="caja-codigo">Mascota  ──N──N──  Vacuna
+
+"una mascota recibe muchas
+ vacunas y una vacuna se le
+ da a muchas mascotas"</div>
+            <p>
+              Es cierto, y es inútil. Así planteado no hay dónde guardar
+              <strong>cuándo</strong> se aplicó, <strong>quién</strong> la aplicó ni
+              <strong>cuándo toca la próxima</strong>, que es literalmente todo el sistema.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Verlo como entidad</h4>
+            <div class="caja-codigo">Mascota ──1─N── Aplicacion
+                     │
+Vacuna  ──1─N────────┤
+                     │
+Usuario ──1─N────────┘
+
+Aplicacion:
+  fecha
+  proximaDosis
+  (+ las 3 FKs)</div>
+            <p>
+              <span class="etiq">Aplicacion</span> es un hecho que ocurrió: <em>esta</em> vacuna,
+              a <em>esta</em> mascota, <em>este</em> día, aplicada por <em>este</em> veterinario.
+              Ya estaba en la spec como entidad, no como relación.
+            </p>
+          </div>
+        </div>
+
+        <h3>Relación 1‑1: casi siempre no hace falta</h3>
+        <p>
+          Si una mascota tiene exactamente una ficha de datos y una ficha pertenece a exactamente una
+          mascota, <strong>son columnas de la misma tabla</strong>. La 1‑1 se justifica en dos casos
+          puntuales: cuando la mitad de los datos casi nunca se consulta y ocupa mucho, o cuando una
+          parte tiene reglas de acceso distintas. Ninguno de los dos es su caso hoy.
+        </p>
+
+        <h3>Opcional u obligatorio: otra vez, una decisión de dominio</h3>
+        <p>
+          En Prisma, <span class="etiq">String</span> es obligatorio y
+          <span class="etiq">String?</span> admite nulo. Es la misma decisión que tomaron la clase
+          pasada con <span class="etiq">.optional()</span> en Zod, y tiene que dar
+          <strong>el mismo resultado</strong>: si el chip es opcional en el schema de Zod y
+          obligatorio en la base, la aplicación va a explotar en la primera mascota sin chipear.
+        </p>
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">La pregunta que hay que hacerse en cada columna</span>
+          <p>
+            No es "¿puede faltar este dato?" sino <strong>"¿existe una fila válida de esta tabla
+            donde este dato no exista todavía?"</strong>. La fecha de nacimiento de una mascota nunca
+            falta —siempre nació algún día, aunque haya que estimarlo—; el chip sí. Poner todo
+            opcional "por si acaso" hace que después <em>todo</em> el código tenga que chequear
+            nulos, y ese es exactamente el problema que la clase pasada resolvimos con los tipos.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>4. Cada dato en un solo lugar</h2>
+        <p class="lead">
+          Se puede dar la teoría de la normalización con sus formas normales, y no la vamos a dar.
+          Para lo que ustedes van a modelar alcanza con una regla:
+          <strong>cada dato se guarda en un solo lugar</strong>. Si el mismo dato está en dos tablas,
+          algún día van a decir cosas distintas, y no va a haber forma de saber cuál tiene razón.
+        </p>
+
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Así no</h4>
+            <div class="caja-codigo">model Aplicacion {
+  id            String
+  fecha         DateTime
+  nombreVacuna  String
+  edadMinima    Int
+  esObligatoria Boolean
+  mascotaId     String
+}</div>
+            <p>
+              Los datos de la vacuna copiados en cada aplicación. El día que corrijan la edad mínima
+              de la antirrábica, quedan <strong>las 400 aplicaciones viejas con el valor
+              anterior</strong>, y ninguna consulta puede decir cuál es el bueno.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Así sí</h4>
+            <div class="caja-codigo">model Aplicacion {
+  id         String
+  fecha      DateTime
+  vacunaId   String   // ← apunta
+  mascotaId  String
+}
+
+model Vacuna {
+  id            String
+  nombre        String
+  edadMinima    Int
+  esObligatoria Boolean
+}</div>
+            <p>
+              La vacuna se define <strong>una vez</strong>. Corregir la edad mínima es cambiar una
+              fila, y todas las aplicaciones quedan bien automáticamente porque nunca tuvieron una
+              copia.
+            </p>
+          </div>
+        </div>
+
+        <h3>Lo que se calcula no se guarda</h3>
+        <p>
+          Antes del dominio, el ejemplo que se entiende sin saber nada: <strong>la edad de una
+          persona</strong>. Nadie la guarda en una base de datos. Se guarda la
+          <strong>fecha de nacimiento</strong>, y la edad se calcula.
+        </p>
+        <p>
+          ¿Por qué? Porque la edad <strong>cambia sola</strong>: el día del cumpleaños, a la
+          medianoche, sin que nadie abra la aplicación. Si hubiera una columna
+          <span class="etiq">edad</span> con un 34 adentro, ese día pasaría a estar mintiendo — y
+          <strong>nadie se entera</strong>, porque no hay error ni pantalla roja: es un número viejo
+          que se ve perfectamente normal. La fecha de nacimiento, en cambio, ocurrió una vez y no se
+          mueve nunca más.
+        </p>
+        <div class="esquema">   fechaNacimiento  →  un hecho      →  se guarda
+   edad             →  una conclusión →  se calcula</div>
+        <p>
+          Esta es la decisión que más se equivoca en la clase 3, y la que más caro se paga. Y en la
+          libreta es exactamente el mismo caso. Miren la
+          H3 de la spec: cada vacuna del plan aparece como
+          <strong>al día</strong>, <strong>pendiente</strong> o <strong>vencida</strong>. La
+          tentación es obvia: agregar una columna <span class="etiq">estado</span> en
+          <span class="etiq">Aplicacion</span> y listo.
+        </p>
+        <p>
+          Es un error, y la razón es una sola pregunta:
+        </p>
+        <div class="esquema">   ¿Este dato puede cambiar sin que NADIE toque el sistema?
+
+        SÍ  ──►  se calcula.  Guardarlo es guardar una mentira
+                              con fecha de vencimiento.
+
+        NO  ──►  se guarda.   Es un hecho que ocurrió y que
+                              solo cambia si alguien lo cambia.</div>
+        <p>
+          Una vacuna se vence <strong>sola</strong>, el martes a la medianoche, sin que nadie abra la
+          aplicación. Si el estado está guardado en una columna, esa columna queda mintiendo hasta
+          que a alguien se le ocurra pasar un proceso a corregirla — y ese proceso nunca existe, o
+          existe y falla en silencio. El estado sanitario se calcula al leerlo, comparando
+          <span class="etiq">proximaDosis</span> con la fecha de hoy.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">El contraejemplo, que es igual de importante</span>
+          <p>
+            <span class="etiq">Certificado.estado</span> —solicitado, emitido, anulado—
+            <strong>sí se guarda</strong>. Y no es incoherente: emitir y anular
+            <strong>son actos que alguien realizó</strong>, con un responsable y un momento. Ninguno
+            ocurre solo por el paso del tiempo. Del mismo modo,
+            <span class="etiq">Certificado.vencimiento</span> se guarda porque es
+            <strong>la foto del momento en que se emitió</strong>: es parte de lo que el certificado
+            afirma, y no puede cambiar retroactivamente porque después se aplique otra vacuna.
+          </p>
+          <p>
+            <strong>La diferencia:</strong> el estado de la vacuna es una conclusión que se saca de
+            los datos; el estado del certificado es un dato en sí mismo.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>5. El modelo en Prisma</h2>
+        <p class="lead">
+          El modelo se escribe una sola vez, en <span class="etiq">prisma/schema.prisma</span>, y de
+          ahí salen dos cosas: <strong>el SQL</strong> que crea las tablas y <strong>los tipos de
+          TypeScript</strong> del cliente que las consulta. Es la misma idea de la clase pasada
+          —una definición, todo lo demás derivado— aplicada a la base.
+        </p>
+
+        <h3>Anatomía de un model</h3>
+        <div class="caja-codigo">enum Especie {
+  PERRO
+  GATO
+}
+
+model Mascota {
+  id              String   @id @default(cuid())
+  nombre          String
+  especie         Especie
+  fechaNacimiento DateTime
+  chip            String?  @unique
+
+  // El lado N de la relación: la FK y el objeto que Prisma arma con ella.
+  dueno           Usuario  @relation(fields: [duenoId], references: [id])
+  duenoId         String
+
+  // El lado 1 hacia sus hijos. No crea ninguna columna: es cómo Prisma
+  // sabe que existe la vuelta de la relación.
+  aplicaciones    Aplicacion[]
+
+  creadaEn        DateTime @default(now())
+
+  @@index([duenoId])
+}</div>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Pieza</th><th>Qué hace</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="etiq">@id</span></td><td>Marca la clave primaria</td></tr>
+              <tr><td><span class="etiq">@default(cuid())</span></td><td>Lo genera Prisma al insertar; no lo manda quien llama</td></tr>
+              <tr><td><span class="etiq">@unique</span></td><td>La base rechaza un segundo registro con ese valor. Es una regla de negocio hecha cumplir por la base, no por el código</td></tr>
+              <tr><td><span class="etiq">String?</span></td><td>Admite nulo</td></tr>
+              <tr><td><span class="etiq">@relation</span></td><td>Declara la foreign key: qué columna de acá apunta a qué columna de allá</td></tr>
+              <tr><td><span class="etiq">Aplicacion[]</span></td><td>El lado 1 de una 1‑N. <strong>No es una columna</strong>: no existe en la tabla</td></tr>
+              <tr><td><span class="etiq">@@index</span></td><td>Índice de la tabla. La sección 7 explica por qué está ahí</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Los tipos de columna que importan</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Para guardar</th><th>Usen</th><th>Por qué</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Texto corto o largo</td>
+                <td><span class="etiq">String</span></td>
+                <td>En Postgres no hace falta declarar el largo. El límite real lo pone Zod, que además puede dar un mensaje de error</td>
+              </tr>
+              <tr>
+                <td>Una fecha</td>
+                <td><span class="etiq">DateTime</span></td>
+                <td>Se guarda en UTC. Fecha y hora aunque solo les importe la fecha</td>
+                </tr>
+              <tr>
+                <td><strong>Dinero</strong></td>
+                <td><span class="etiq">Decimal</span></td>
+                <td><strong>Nunca <span class="etiq">Float</span>.</strong> Los decimales binarios no representan exacto valores como 0,10, y los errores se acumulan sumando</td>
+              </tr>
+              <tr>
+                <td>Una lista cerrada de valores</td>
+                <td><span class="etiq">enum</span></td>
+                <td>La base rechaza cualquier valor fuera de la lista. Con <span class="etiq">String</span>, un día entra <span class="etiq">"perro"</span> en minúscula y rompe todas las consultas</td>
+              </tr>
+              <tr>
+                <td>Sí o no</td>
+                <td><span class="etiq">Boolean</span></td>
+                <td>Ojo: si algún día va a haber un tercer valor, ya es un <span class="etiq">enum</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>6. Migraciones: el historial de la base</h2>
+        <p class="lead">
+          Una migración es <strong>un archivo de SQL, versionado y commiteado</strong>, que describe
+          un cambio en la estructura de la base. Todas juntas, en orden, son la receta completa para
+          construir la base desde cero. Es el <span class="etiq">git log</span> del modelo de datos.
+        </p>
+        <p>
+          Ustedes no las escriben: cambian <span class="etiq">schema.prisma</span> y Prisma calcula
+          la diferencia contra el estado anterior y genera el SQL. Pero
+          <strong>sí las leen antes de mergear</strong>, porque ahí es donde se ve si el cambio que
+          pidieron es el cambio que va a ocurrir.
+        </p>
+
+        <h3>Los dos comandos, y cuándo va cada uno</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Comando</th><th>Dónde</th><th>Qué hace</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">prisma migrate dev</span></td>
+                <td>Desarrollo</td>
+                <td><strong>Crea</strong> el archivo de migración y lo aplica. Es el que usan mientras modelan</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">prisma migrate deploy</span></td>
+                <td>Producción / CI</td>
+                <td><strong>Aplica</strong> las migraciones que ya existen. No crea ni inventa nada</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="esquema">   EL CICLO DE HOY
+
+   1. editar prisma/schema.prisma
+   2. npx prisma migrate dev --name agrega-mascota-y-vacuna
+        └─► genera prisma/migrations/2026.../migration.sql
+        └─► la aplica en la base
+   3. LEER el .sql generado          ◄── el paso que todos saltean
+   4. commit del schema Y de la migración, juntos
+   5. PR, revisión, merge
+   6. la CI corre migrate deploy contra la base de la nube</div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">La regla de oro: una migración aplicada no se edita</span>
+          <p>
+            Si ya se aplicó —en la base de un compañero, en la de la nube, en cualquier lado—
+            <strong>editarla no sirve</strong>: esa base ya la ejecutó y la tiene anotada como hecha.
+            Nadie la va a volver a correr. Lo único que se consigue editando es que el archivo diga
+            una cosa y la base tenga otra, que es la peor situación posible porque no se nota hasta
+            que algo falla en producción.
+          </p>
+          <p>
+            ¿Se equivocaron? <strong>Se corrige con una migración nueva.</strong> El historial
+            muestra el error y la corrección, y está perfecto: es lo mismo que hacen con
+            <span class="etiq">git</span>, donde tampoco reescriben un commit que ya pushearon.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo"><span class="etiq">prisma migrate reset</span> borra la base entera</span>
+          <p>
+            Tira todo y vuelve a aplicar las migraciones desde cero. Es una herramienta legítima
+            <strong>de desarrollo</strong> y hoy la van a usar sin drama. Lo que no puede pasar nunca
+            es correrla con la <span class="etiq">DATABASE_URL</span> de la nube apuntada: no hay
+            deshacer. Miren qué base tienen en el <span class="etiq">.env.local</span> antes de ejecutarla.
+          </p>
+        </div>
+
+        <h3>El seed: datos para poder probar</h3>
+        <p>
+          <span class="etiq">prisma/seed.ts</span> carga datos de ejemplo con un comando. Sirve para
+          que cualquier integrante levante el proyecto y tenga algo con qué trabajar, y para que la
+          demo del Parcial I no dependa de cargar veinte formularios a mano.
+        </p>
+        <p>
+          El criterio para saber si el seed está bien: <strong>tiene que alcanzar para recorrer el
+          flujo principal completo de la spec</strong>. En la libreta sanitaria eso significa un
+          dueño con mascotas, un veterinario, el catálogo de vacunas, y aplicaciones cargadas de tal
+          forma que haya <strong>una mascota al día y otra con una vacuna vencida</strong> — porque
+          si todas las mascotas están al día, la mitad de las reglas de negocio no se puede probar.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Las dos URLs de la base, que hoy se usan de verdad</span>
+          <p>
+            El <span class="etiq">.env.example</span> del template ya trae las dos, y las copiaron a su
+            <span class="etiq">.env.local</span> en la clase 1:
+            <span class="etiq">DATABASE_URL</span> es el <em>pooler</em>, que usa la aplicación en
+            cada request, y <span class="etiq">DIRECT_URL</span> es la conexión directa, que usan las
+            migraciones. Con una sola anda en clase y se cae en producción al agotar las conexiones
+            de Postgres. Si <span class="etiq">migrate dev</span> les tira un error raro de conexión,
+            empiecen por acá.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>7. Índices y el problema N+1</h2>
+        <p class="lead">
+          Con las diez filas que van a tener hoy, todo va a andar instantáneo, hasta lo que está
+          mal. Estas dos cosas se deciden ahora porque en la clase 14 —"el sistema bajo carga"— ya
+          va a haber datos y código encima, y arreglarlas ahí cuesta diez veces más.
+        </p>
+
+        <h3>La foreign key sin índice</h3>
+        <p>
+          "Mostrame las mascotas del dueño X" obliga a Postgres a <strong>recorrer la tabla
+          entera</strong> comparando <span class="etiq">duenoId</span> fila por fila, salvo que haya
+          un índice. Con 10 mascotas no se nota; con 50.000 es una consulta de varios segundos que
+          se repite en cada pantalla.
+        </p>
+        <div class="caja-codigo">model Mascota {
+  // ...
+  duenoId  String
+
+  @@index([duenoId])   // ← sin esto, cada listado recorre todo
+}</div>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Indexen</th><th>No indexen</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Toda foreign key por la que filtren</td>
+                <td>Todo "por las dudas": cada índice hace más lenta cada escritura y ocupa espacio</td>
+              </tr>
+              <tr>
+                <td>Columnas por las que ordenan seguido (una fecha, casi siempre)</td>
+                <td>Columnas con dos valores posibles: a la base no le sirve</td>
+              </tr>
+              <tr>
+                <td>Lo que se busca por valor exacto y es único (el código de verificación) → <span class="etiq">@unique</span>, que ya crea el índice</td>
+                <td>Tablas de catálogo con veinte filas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>El N+1</h3>
+        <p>
+          La situación es la más común que existe: quieren mostrar la lista de mascotas y, al lado
+          de cada una, sus vacunas aplicadas.
+        </p>
+        <p>
+          El código que sale solo hace esto: primero le pregunta a la base <em>"dame todas las
+          mascotas"</em> y vuelve con 200. Después, <strong>para cada una</strong>, vuelve a
+          preguntar <em>"¿y las aplicaciones de ésta?"</em>. Doscientas veces. Una consulta al
+          principio, más una por cada fila que trajo esa primera: de ahí el nombre.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>1 + N consultas</h4>
+            <div class="caja-codigo">const mascotas =
+  await db.mascota.findMany();
+
+for (const m of mascotas) {
+  // ⚠ una consulta por vuelta
+  const apps =
+    await db.aplicacion.findMany({
+      where: { mascotaId: m.id },
+    });
+}</div>
+            <p>
+              200 mascotas son <strong>201 consultas</strong>, y con 2.000 son 2.001: el costo
+              <strong>crece con los datos</strong>.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Un número fijo de consultas</h4>
+            <div class="caja-codigo">const mascotas =
+  await db.mascota.findMany({
+    include: {
+      aplicaciones: true,
+    },
+  });</div>
+            <p>
+              <span class="etiq">include</span> le dice a Prisma "traeme las mascotas y, ya que
+              estás, sus aplicaciones". Son <strong>dos consultas</strong> —una por cada tabla— haya
+              200 mascotas o 20.000. Con <span class="etiq">select</span> en lugar de
+              <span class="etiq">include</span> se piden además solo las columnas que se van a usar.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Lo que duele no es el trabajo: son los viajes</span>
+          <p>
+            La intuición dice que el problema es que la base trabaja mucho. <strong>No es eso.</strong>
+            Cada una de esas 201 consultas es trivial y Postgres la resuelve en menos de un
+            milisegundo.
+          </p>
+          <p>
+            Lo que se paga es el <strong>ida y vuelta</strong>. Cada consulta sale del servidor de la
+            app, cruza la red, llega a Postgres y vuelve. Ese viaje tarda unos 20 milisegundos entre
+            Vercel y Supabase, y como el código espera cada respuesta antes de pedir la siguiente,
+            los viajes se suman:
+          </p>
+          <div class="esquema">   201 consultas × 20 ms  =  4 segundos de pantalla en blanco</div>
+          <p>
+            Es como pedir doscientas cosas por delivery haciendo doscientos pedidos de un ítem cada
+            uno. El repartidor es rapidísimo; el problema es que va doscientas veces. Y por eso
+            <strong>no se arregla con una base más grande</strong>: están pagando tiempo de viaje,
+            no de trabajo.
+          </p>
+        </div>
+
+        <h3>Por qué es tan fácil de cometer</h3>
+        <p>
+          Por dos razones, y las dos importan. La primera es que <strong>el código no se ve
+          mal</strong>: si escribieran SQL a mano, poner un <span class="etiq">SELECT</span> adentro
+          de un <span class="etiq">for</span> les daría cosa, pero
+          <span class="etiq">await db.aplicacion.findMany(...)</span> adentro de un
+          <span class="etiq">for</span> parece código normal. Nada aparece subrayado, el linter no
+          dice nada.
+        </p>
+        <p>
+          La segunda es que <strong>en desarrollo anda perfecto</strong>. Con las tres mascotas del
+          seed son cuatro consultas y responde al instante. El problema aparece recién cuando hay
+          datos de verdad — o sea, en producción o en la defensa.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Índice y N+1 no son lo mismo</span>
+          <p>
+            Están pegados en esta sección y se confunden todo el tiempo. El
+            <strong>índice hace que cada consulta sea rápida</strong>; evitar el
+            <strong>N+1 hace que haya menos consultas</strong>. Son dos problemas distintos, y las
+            dos cosas juntas son la diferencia entre una página que responde y una que se cuelga.
+          </p>
+        </div>
+
+        <p>
+          Hoy no hay que optimizar nada. Lo que hay que hacer es <strong>dejar los índices de las
+          FKs puestos desde la primera migración</strong>, que es gratis, y reconocer la forma del
+          N+1 cuando aparezca en la clase 4, cuando escriban las consultas de verdad.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>8. Decisiones: qué se gana y qué se resigna</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>A favor</th><th>En contra</th><th>Qué hacemos</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Postgres vs. MongoDB</td>
+                <td>Mongo no exige definir el esquema por adelantado</td>
+                <td>Sin esquema, la integridad queda en el código y nada impide una aplicación huérfana</td>
+                <td><strong>Postgres</strong>, porque este dominio son relaciones. Mongo es válido si lo justifican en un ADR</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">cuid()</span> vs. autoincremental</td>
+                <td>El número es corto y legible</td>
+                <td>Revela cuántos registros hay y deja adivinar la URL del vecino</td>
+                <td><strong><span class="etiq">cuid()</span></strong>: se puede generar sin consultar la base y no filtra información</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">enum</span> vs. <span class="etiq">String</span></td>
+                <td>String no obliga a migrar para agregar un valor</td>
+                <td>Y por eso mismo acepta cualquier basura, incluidos errores de tipeo</td>
+                <td><strong><span class="etiq">enum</span></strong> siempre que la lista sea cerrada. Que agregar un valor cueste una migración es la característica, no el defecto</td>
+              </tr>
+              <tr>
+                <td>Borrado físico vs. lógico</td>
+                <td>Borrar de verdad deja la base limpia</td>
+                <td>Un borrado se lleva puesto el historial, y no hay deshacer</td>
+                <td><strong>Depende del dato.</strong> Lo que es historia —aplicaciones, certificados— no se borra nunca. Lo demás, borrado físico hasta que haga falta otra cosa</td>
+              </tr>
+              <tr>
+                <td>Estado calculado vs. guardado</td>
+                <td>Guardarlo es más rápido de leer</td>
+                <td>Queda desactualizado solo, sin que nadie se entere</td>
+                <td><strong>Calculado</strong>, salvo que sea un hecho ocurrido. La regla está en la sección 4</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">Decimal</span> vs. <span class="etiq">Float</span> para dinero</td>
+                <td>Float es más rápido</td>
+                <td>No representa exacto 0,10 ni 0,20; los errores se acumulan al sumar</td>
+                <td><strong><span class="etiq">Decimal</span></strong>, sin excepción. Es el clásico que aparece en la defensa</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">onDelete: Cascade</span> vs. <span class="etiq">Restrict</span></td>
+                <td>Cascade evita errores al borrar</td>
+                <td>Los evita <em>borrando en silencio</em> todo lo que colgaba</td>
+                <td><strong>Se decide relación por relación.</strong> Nunca es un default; ver la sección 9</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>9. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Hoy la IA parte con ventaja, y ese es el riesgo</span>
+          <p>
+            Con la spec de la clase 2 y los schemas de Zod, cualquier asistente escribe un
+            <span class="etiq">schema.prisma</span> completo y plausible en treinta segundos. Va a
+            estar <strong>casi bien</strong>, y ese "casi" son cuatro decisiones que no puede tomar
+            porque no están escritas en ningún lado: <strong>son las cuatro que se evalúan</strong>.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>Traducir el modelo ya discutido a sintaxis de Prisma</li>
+              <li>Escribir el <span class="etiq">seed.ts</span> con datos coherentes</li>
+              <li>Explicarles qué hace un SQL de migración que no entienden</li>
+              <li>Encontrar las FKs a las que les falta el índice</li>
+              <li>Convertir un diagrama fotografiado en un primer borrador del schema</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Decidan ustedes</h4>
+            <ul>
+              <li>Las <strong>cardinalidades</strong>: 1‑N o N‑N lo define el dominio</li>
+              <li>Qué pasa <strong>al borrar</strong> cada relación</li>
+              <li>Qué se <strong>guarda</strong> y qué se <strong>calcula</strong></li>
+              <li>Qué es entidad y qué es atributo</li>
+              <li>Qué columnas son obligatorias</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El antipatrón de esta clase: el <span class="etiq">Cascade</span> que llegó solo</span>
+          <p>
+            Los asistentes ponen <span class="etiq">onDelete: Cascade</span> por costumbre, porque
+            resuelve el error de integridad más molesto. Miren qué significa acá:
+          </p>
+          <div class="caja-codigo">Usuario ──Cascade──► Mascota ──Cascade──► Aplicacion
+
+Borrar UN usuario borra sus mascotas,
+y con ellas TODO su historial sanitario.
+Sin preguntar. Sin recuperación.</div>
+          <p>
+            En este dominio la aplicación de una vacuna es un <strong>registro sanitario</strong>: no
+            se borra porque el veterinario se dio de baja del sistema. Lo correcto acá es
+            <span class="etiq">Restrict</span> —la base impide el borrado— o dar de baja al usuario
+            sin borrarlo. <strong>La pregunta para cada relación es: "si borro esto, ¿qué otra cosa
+            tiene sentido que desaparezca?"</strong>, y casi siempre la respuesta es "ninguna".
+          </p>
+        </div>
+
+        <p>
+          <strong>El otro antipatrón, más peligroso:</strong> una migración falla y le piden a la IA
+          que "lo arregle". Sin contexto, la solución más probable que va a proponer es
+          <strong>editar la migración anterior o resetear la base</strong>. Lo primero deja el
+          archivo mintiendo sobre lo que la base tiene; lo segundo borra todo. Cuando algo de
+          migraciones falle, digan siempre <em>qué migraciones ya se aplicaron y en qué base</em>
+          antes de aceptar una solución.
+        </p>
+      </section>
+
+
+      <section>
+        <h2>10. Taller</h2>
+        <p class="lead">
+          El recorrido de hoy son tres fases y van en este orden. La primera es en papel y es la que
+          no se puede recuperar después: <strong>el editor se abre recién en la fase B</strong>. Un
+          schema se reescribe en veinte minutos; la discusión del dominio, no.
+        </p>
+
+        <div class="esquema">   A. EL DIBUJO    papel, editor cerrado
+   B. EL SCHEMA    un solo archivo: prisma/schema.prisma
+   C. LA BASE      migrar, sembrar, verificar y PR</div>
+
+        <h3>Fase A — El dibujo, con el editor cerrado</h3>
+        <p>
+          Arranquen con el <strong>dibujo que trajeron</strong> sobre la mesa. Todo esto se contesta
+          en voz alta y entre los cuatro: si alguien no está de acuerdo, el momento es ahora.
+        </p>
+        <ol>
+          <li>
+            <strong>Listen las entidades.</strong> Salen de la sección 3 de su spec, no de la
+            memoria. Mínimo 5 sin contar <span class="etiq">Usuario</span>.
+          </li>
+          <li>
+            <strong>La cardinalidad de cada relación, preguntada en las dos direcciones.</strong>
+            Una por una, con las dos preguntas de la sección 3. Las dos respuestas juntas dan el
+            resultado: no hay intuición que reemplace eso.
+          </li>
+          <li>
+            <strong>Revisen las N‑N.</strong> Por cada una: ¿hay una fecha, un responsable o un
+            estado que decir sobre esa relación? Si lo hay, no es una relación: es una entidad y
+            necesita nombre propio.
+          </li>
+          <li>
+            <strong>Los atributos de cada entidad</strong>, y en cada uno la pregunta de obligatorio
+            u opcional: no es "¿puede faltar este dato?" sino "¿existe una fila válida de esta tabla
+            donde este dato no exista todavía?".
+          </li>
+          <li>
+            <strong>La prueba de fuego:</strong> tomen tres criterios de aceptación de su spec y
+            escriban, aunque sea en castellano, la consulta que haría falta para cumplir cada uno.
+            Si alguna no se puede, vuelvan al punto 1 <em>ahora</em>, que es cuando sale gratis.
+          </li>
+        </ol>
+
+        <h3>Fase B — El schema</h3>
+        <p>
+          Todo pasa en un solo archivo: <span class="etiq">prisma/schema.prisma</span>. No se toca
+          nada más del proyecto.
+        </p>
+        <ol start="6">
+          <li>
+            <strong>Borren la entidad de ejemplo.</strong> El template trae
+            <span class="etiq">Nota</span>: se va entera. Mírenla antes de borrarla, porque muestra
+            el patrón de una 1‑N completa con su índice.
+            <br />
+            <strong>Y se lleva puestos seis archivos más.</strong> En cuanto la migración regenere
+            el cliente, <span class="etiq">prisma.nota</span> deja de existir y todo lo que lo
+            nombre —o lo que importe algo que lo nombre— deja de compilar. Son dos grupos
+            distintos:
+            <div class="caja-codigo">SE BORRAN ENTEROS
+  lib/schemas/nota.ts
+  lib/schemas/nota.test.ts
+  lib/db/notas.ts
+  app/api/notas/route.ts        (y la carpeta app/api/notas/)
+
+SE EDITAN
+  prisma/schema.prisma  → el model Nota + la línea `notas Nota[]`
+                          que está adentro de model Usuario
+  app/page.tsx          → todo el bloque que lee y muestra notas
+  prisma/seed.ts        → el deleteMany y el createMany de notas</div>
+            Tres avisos sobre esa lista, que son los tres lugares donde se traban:
+            <ul>
+              <li>
+                <strong>La línea <span class="etiq">notas Nota[]</span> de
+                <span class="etiq">Usuario</span> es la que más se olvida.</strong> Si borran el
+                model y la dejan, <span class="etiq">prisma validate</span> falla antes de poder
+                migrar: <span class="etiq">Usuario</span> queda apuntando a una tabla que ya no
+                existe.
+              </li>
+              <li>
+                <strong>En <span class="etiq">app/page.tsx</span> no alcanza con sacar el
+                <span class="etiq">import</span>.</strong> La home usa
+                <span class="etiq">listarNotas</span> en cuatro lugares: el import, la anotación de
+                tipo, el <span class="etiq">await</span> y el <span class="etiq">.map()</span> que
+                dibuja los títulos. Se va todo el bloque, y la home queda con el nombre del proyecto
+                y nada más <strong>hasta la clase 9</strong>, cuando se hace la portada de verdad.
+              </li>
+              <li>
+                <strong>El seed también rompe.</strong> En la práctica se resuelve solo, porque en
+                el paso 15 lo reescriben entero con sus propios datos — pero es parte de la
+                limpieza, no un archivo aparte.
+              </li>
+            </ul>
+            <strong>El orden que menos duele</strong>, si lo hacen a mano: primero borrar los
+            cuatro archivos, después editar <span class="etiq">page.tsx</span> y
+            <span class="etiq">seed.ts</span>, y recién entonces tocar el schema. Al revés, pasan un
+            rato largo con el proyecto entero en rojo — que no rompe nada, pero desconcierta.
+            <br />
+            Y esto <strong>sí conviene delegarlo</strong>: es cien por ciento mecánico y no hay
+            ninguna decisión de dominio adentro. No hace falta enumerarle los archivos, los
+            encuentra buscando "Nota":
+            <div class="caja-codigo">Sacá del proyecto la entidad de ejemplo `Nota` que viene del template: el
+model, sus schemas, su acceso a datos, su endpoint, sus datos del seed y lo
+que la usa en la home. No la reemplaces por nada ni agregues entidades
+nuevas. No toques nada dentro de prisma/migrations/. Al terminar corré
+`npm run typecheck`.</div>
+          </li>
+          <li>
+            <strong>Los <span class="etiq">enum</span> primero</strong>, uno por cada lista cerrada
+            de valores. Son las mismas listas que ya tienen como unión literal en Zod.
+          </li>
+          <li>
+            <strong>Un <span class="etiq">model</span> por entidad</strong>, y adentro de cada uno,
+            este orden:
+            <div class="caja-codigo">id            → String @id @default(cuid())
+campos propios
+relaciones    → el objeto + su campo de FK
+timestamps    → creadaEn / actualizadaEn
+@@index       → al final</div>
+          </li>
+          <li>
+            <strong>El <span class="etiq">onDelete</span> de cada <span class="etiq">@relation</span>,
+            decidido explícitamente.</strong> La pregunta es siempre la misma: <em>si borro esto,
+            ¿qué más se lleva puesto, y está bien que se lo lleve?</em>
+          </li>
+          <li>
+            <span class="etiq">@@index</span> en toda foreign key por la que vayan a filtrar. Si una
+            historia dice "cada dueño ve solo sus mascotas", esa FK se filtra en cada pantalla.
+          </li>
+          <li>
+            <strong>Chequeen antes de migrar.</strong> Dos comandos que no tocan la base:
+            <div class="caja-codigo">npx prisma format     # ordena y completa relaciones que falten
+npx prisma validate   # avisa si el schema tiene errores</div>
+            <span class="etiq">format</span> es más útil de lo que parece: si escribieron un lado de
+            una relación y les falta el otro, se lo completa solo.
+          </li>
+          <li>
+            <strong>Vuelquen a la spec lo que decidieron.</strong> La columna
+            <em>"Se relaciona con"</em> de la sección 3 de <span class="etiq">docs/spec.md</span>
+            seguramente está vacía o puesta a ojo: <strong>hoy es el día en que se puede
+            completar</strong>, porque hoy es la primera vez que las cardinalidades están decididas.
+            Y sumen a las reglas de negocio las que aparecieron recién al modelar:
+            <strong>qué pasa al borrar cada cosa</strong> y <strong>qué se calcula en lugar de
+            guardarse</strong>. Nadie escribe "no se puede dar de baja un dueño con mascotas
+            cargadas" en la clase 2; esa regla nace cuando alguien se pregunta qué poner en el
+            <span class="etiq">onDelete</span>.
+            <br />
+            No es prolijidad: en la clase 4 <strong>la API sale de la spec, no del schema</strong>.
+          </li>
+        </ol>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">¿El schema se lo piden a la IA?</span>
+          <p>
+            <strong>La primera vez, escríbanlo a mano.</strong> Son seis models, no es tanto, y es la
+            única vez en el cuatrimestre que van a pensar el modelo sin tres capas encima.
+          </p>
+          <p>
+            Delegar la <em>traducción</em> sí es legítimo, y toda la diferencia está en el pedido:
+          </p>
+          <div class="caja-codigo">✗ "Acá está mi spec, hacéme el schema.prisma"
+
+✓ "Traducí a sintaxis de Prisma este modelo que ya decidí:
+   Mascota tiene muchas Aplicaciones, la FK va en Aplicacion,
+   onDelete Restrict porque el historial no se borra..."</div>
+          <p>
+            En el segundo caso las decisiones ya las tomaron ustedes y la IA hace tipeo. En el
+            primero las toma ella y ustedes ni se enteran de que hubo decisiones.
+          </p>
+          <p>
+            <strong>En qué se basa:</strong> en su spec y en sus schemas de Zod. Todo lo que esté
+            escrito ahí lo respeta. Todo lo que <em>no</em> esté escrito lo completa con el default
+            más frecuente de internet: <span class="etiq">Cascade</span> en los borrados,
+            <span class="etiq">String</span> donde iba un <span class="etiq">enum</span>, y su propia
+            intuición sobre qué es obligatorio. Por eso un schema generado sale "casi bien": ese casi
+            son exactamente las decisiones de la sección 9.
+          </p>
+        </div>
+
+        <h3>Fase C — La base</h3>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Una sola base para los cuatro: la migración la corre uno solo</span>
+          <p>
+            No hay base local. Las dos URLs de su <span class="etiq">.env.local</span> apuntan al
+            mismo proyecto de Supabase, y es <strong>el mismo para los cuatro integrantes</strong>:
+            todo lo que corran contra ella la cambia para todos.
+          </p>
+          <p>
+            Por eso <strong>la migración la corre una sola persona del equipo</strong>. Si los cuatro
+            corren <span class="etiq">migrate dev</span> contra la misma base van a chocar entre
+            ellos y a terminar con migraciones duplicadas. Esa misma persona es la que commitea el
+            schema y el <span class="etiq">.sql</span> juntos y abre el PR.
+          </p>
+        </div>
+
+        <ol start="13">
+          <li>
+            <strong>Una sola persona corre la migración:</strong>
+            <div class="caja-codigo">npx prisma migrate dev --name modelo-inicial</div>
+          </li>
+          <li>
+            <strong>Abran el <span class="etiq">.sql</span> generado y léanlo.</strong> ¿Están las
+            tablas que esperaban? ¿Los <span class="etiq">NOT NULL</span> donde iban? ¿Aparece algún
+            <span class="etiq">ON DELETE CASCADE</span> que nadie decidió? Es el único momento en que
+            se ve qué le pidieron realmente a la base.
+          </li>
+          <li>
+            <strong>Completen <span class="etiq">prisma/seed.ts</span> y córranlo</strong> con
+            <span class="etiq">npm run db:seed</span>. El criterio: tiene que alcanzar para recorrer
+            el flujo principal completo, <strong>con al menos un caso que viole una regla de
+            negocio</strong> para poder probarla.
+            <br />
+            El proceso corre en su máquina, pero <strong>los datos van a la nube</strong>: el script
+            se conecta con la misma <span class="etiq">DATABASE_URL</span> de siempre. Por eso el
+            seed se escribe con <span class="etiq">upsert</span> y no con
+            <span class="etiq">create</span> — tiene que poder correrse muchas veces sin duplicar
+            nada.
+          </li>
+          <li>
+            <strong>Verifiquen en el panel de Supabase.</strong> Table editor, y que se vean las
+            tablas con las filas adentro. <strong>Ese es el entregable del día</strong>: no el
+            archivo, la base.
+            <br />
+            Durante el taller, para no estar abriendo el panel a cada rato, hay un chequeo de dos
+            segundos que lee la base y contesta lo mismo:
+            <div class="caja-codigo">npx prisma migrate status</div>
+            Si contesta <span class="etiq">Database schema is up to date!</span>, la base tiene lo
+            que el repo dice. Si contesta <span class="etiq">not yet been applied</span>, el
+            <span class="etiq">.sql</span> está en el repo pero la base nunca se enteró — que es
+            exactamente el error más fácil de cometer hoy: <strong>el archivo existe, todo
+            parece hecho, y no hay una sola tabla nueva</strong>.
+          </li>
+          <li>
+            <strong>PR</strong> con el schema y la migración <strong>en el mismo commit</strong>,
+            aprobado por un integrante que no lo escribió, con
+            <span class="etiq">npm run typecheck</span> y <span class="etiq">npm run lint</span> en
+            verde.
+          </li>
+          <li>
+            <strong>Los otros tres, después del merge:</strong>
+            <div class="caja-codigo">git pull
+npx prisma generate</div>
+            No vuelven a migrar: la base ya está migrada. Lo único que les falta es regenerar el
+            cliente de Prisma para que TypeScript conozca las tablas nuevas. Si a alguien le aparece
+            un error de tipos raro después de un <span class="etiq">pull</span>, la respuesta casi
+            siempre es esa.
+          </li>
+        </ol>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">El seed sí: deléguenlo, pero pídanle el caso que rompe</span>
+          <p>
+            Es el caso opuesto al schema, y el contraste muestra dónde está la línea. El seed
+            <strong>no tiene decisiones de dominio irreversibles</strong>: son objetos con datos de
+            ejemplo. Escribirlo a mano es trabajo repetitivo sin nada que aprender.
+          </p>
+          <p>
+            <strong>En qué se basa:</strong> en <span class="etiq">schema.prisma</span>. Y sale bien,
+            casi siempre correcto a la primera, por la razón que ya vieron la clase pasada: el schema
+            es <strong>una especificación completa y sin ambigüedad</strong>. Dice qué tablas hay, qué
+            campos, de qué tipo, cuáles son obligatorios y cómo se relacionan. No queda nada por
+            adivinar. Es la misma idea de la clase 2 —<em>el tipo es la mejor especificación que se
+            le puede dar a una IA</em>— ahora con el schema en lugar del tipo.
+          </p>
+          <p>
+            Por eso el seed va <strong>después</strong> de la migración y no antes: recién ahí el
+            schema está terminado y hay de dónde leer.
+          </p>
+          <p>
+            <strong>Lo que no va a hacer sola:</strong> datos que rompan. Librada a su suerte genera
+            todo al día, todo válido, todo bien — el "camino feliz" de la clase 2, ahora en los
+            datos. Y con las vacunas todas al día, la mitad de sus reglas de negocio no se puede
+            probar. Pídanle el caso que viola la regla, explícitamente.
+          </p>
+        </div>
+
+        <h3>Qué se genera solo y qué escriben ustedes</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Archivo</th><th>Quién lo hace</th><th>¿Se commitea?</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">prisma/schema.prisma</span></td>
+                <td>Ustedes</td>
+                <td>Sí</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">prisma/migrations/2026…/migration.sql</span></td>
+                <td>Lo genera <span class="etiq">migrate dev</span></td>
+                <td><strong>Sí</strong>, en el mismo commit que el schema</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">prisma/migrations/migration_lock.toml</span></td>
+                <td>Se generó solo en la clase 1</td>
+                <td>Sí, ya está</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">prisma/seed.ts</span></td>
+                <td>Ustedes, con ayuda</td>
+                <td>Sí</td>
+              </tr>
+              <tr>
+                <td>El cliente de Prisma y sus tipos</td>
+                <td><span class="etiq">prisma generate</span>, que corre solo dentro de <span class="etiq">migrate dev</span> y en cada <span class="etiq">npm install</span></td>
+                <td><strong>No</strong>: vive en <span class="etiq">node_modules</span></td>
+              </tr>
+              <tr>
+                <td><span class="etiq">.env.local</span></td>
+                <td>Ustedes, en la clase 1</td>
+                <td><strong>Nunca</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Los dos que más confusión generan: <strong>el <span class="etiq">.sql</span> se commitea</strong>
+          —no es un archivo temporal, es el historial de la base, y por eso va junto al schema: si van
+          separados, alguien puede terminar con un schema que su base no tiene—; y
+          <strong>el cliente de Prisma no se commitea pero sin él nada compila</strong>, porque se
+          regenera solo en cada máquina.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Si el equipo eligió MongoDB</span>
+          <p>
+            Cambian el <span class="etiq">provider</span> a <span class="etiq">"mongodb"</span> y
+            sincronizan con <span class="etiq">prisma db push</span>, que no genera migraciones. A
+            cambio, <strong>la integridad referencial pasa a ser responsabilidad del código</strong>:
+            nada impide que quede una aplicación apuntando a una mascota que ya no existe. Escriban
+            en el PR cómo lo van a evitar — eso es lo que se les va a preguntar en el Parcial I.
+          </p>
+        </div>
+      </section>
+
+
+      <section>
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li><span class="etiq">prisma/schema.prisma</span> con el modelo del dominio propio, sin la entidad de ejemplo.</li>
+          <li>La migración generada y commiteada junto con el schema.</li>
+          <li><strong>El modelo aplicado en la base de la nube</strong> — es el hito del calendario para hoy.</li>
+          <li>Seed que permite recorrer el flujo principal completo.</li>
+          <li>Índice en cada foreign key por la que se filtra, y <span class="etiq">onDelete</span> decidido en cada relación.</li>
+          <li><span class="etiq">docs/spec.md</span> con las cardinalidades completas y las reglas de borrado que salieron del modelado.</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>
+            Lectura del eje metodológico (<strong>Scrum</strong>) + entrega del cuestionario en UAI
+            Online Ultra. El PDF de hoy cierra con una comparación entre Scrum y XP: guárdenla, es
+            el puente con la clase que viene.
+          </li>
+          <li>
+            Traer identificadas, de su spec, <strong>las operaciones que el sistema tiene que
+            ofrecer</strong>: qué se crea, qué se lee, qué se modifica y qué se borra, y quién puede
+            hacer cada cosa. En la clase 4 eso se convierte en la API.
+          </li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 03 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
