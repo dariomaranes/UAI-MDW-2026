@@ -26,15 +26,15 @@
           —los <em>tipos</em>—. Son el mismo contrato en dos idiomas, y hoy los escriben los dos.
         </p>
         <ul class="agenda">
-          <li><span>Dónde estamos parados: el mapa del cuatrimestre</span></li>
-          <li><span>Metodología: usabilidad y accesibilidad</span></li>
-          <li><span>La spec: historias, criterios de aceptación y reglas de negocio</span></li>
-          <li><span>Qué es TypeScript · el tipo como contrato · inferencia</span></li>
-          <li><span>Dónde termina TypeScript y por qué existe Zod</span></li>
-          <li><span>Demo: de la spec a los tipos, con y sin IA</span></li>
-          <li><span>Taller: escribir la spec del proyecto y derivar sus tipos</span></li>
-          <li><span>Code review del equipo</span></li>
-          <li><span>Cierre</span></li>
+          <li><a href="#mapa">Dónde estamos parados: el mapa del cuatrimestre</a></li>
+          <li><a href="#metodologia">Metodología: usabilidad y accesibilidad</a></li>
+          <li><a href="#spec">La spec: historias, criterios de aceptación y reglas de negocio</a></li>
+          <li><a href="#typescript">Qué es TypeScript · el tipo como contrato · inferencia</a></li>
+          <li><a href="#zod">Dónde termina TypeScript y por qué existe Zod</a></li>
+          <li><a href="#contrato">Demo: de la spec a los tipos, con y sin IA</a></li>
+          <li><a href="#taller">Taller: escribir la spec del proyecto y derivar sus tipos</a></li>
+          <li><a href="#entregable">Code review del equipo</a></li>
+          <li><a href="#entregable">Cierre</a></li>
         </ul>
 
         <div class="callout callout-puente">
@@ -52,7 +52,7 @@
       </section>
 
 
-      <section>
+      <section id="mapa">
         <h2>1. Dónde estamos parados</h2>
         <p class="lead">
           La clase pasada terminaron con un repositorio y una <strong>URL pública</strong>: una
@@ -195,7 +195,7 @@
       </section>
 
 
-      <section>
+      <section id="spec">
         <h2>2. La especificación</h2>
         <p class="lead">
           La spec es el documento que dice <strong>qué tiene que hacer el sistema</strong>. No cómo
@@ -312,7 +312,7 @@ Criterios:
           </p>
         </div>
 
-        <h3>La lectura de hoy, adentro de la spec</h3>
+        <h3 id="metodologia">La lectura de hoy, adentro de la spec</h3>
         <p>
           El material habla de <strong>usabilidad</strong> y de <strong>accesibilidad</strong>. Los
           dos suelen aparecer al final del proyecto, cuando ya no se pueden arreglar. Hoy entran
@@ -403,7 +403,7 @@ Criterios:
       </section>
 
 
-      <section>
+      <section id="typescript">
         <h2>3. Qué es TypeScript</h2>
         <p class="lead">
           TypeScript es <strong>JavaScript más un sistema de tipos que se verifica antes de
@@ -466,7 +466,7 @@ function mostrarFicha(mascota: Mascota) {
       </section>
 
 
-      <section>
+      <section id="contrato">
         <h2>4. El tipo como contrato</h2>
         <p>
           El valor de TypeScript no es cazar errores de tipeo. Es que <strong>obliga a
@@ -746,7 +746,7 @@ console.log(datos.mascota);
       </section>
 
 
-      <section>
+      <section id="zod">
         <h2>5. Dónde termina TypeScript y por qué existe Zod</h2>
         <p>
           Vuelvan al diagrama del principio: <strong>los tipos se borran al compilar</strong>. En
@@ -886,7 +886,7 @@ await registrarAplicacion(resultado.data);</div>
       </section>
 
 
-      <section>
+      <section id="decisiones">
         <h2>6. Decisiones: qué se gana y qué se resigna</h2>
         <div class="tabla-scroll">
           <table>
@@ -918,7 +918,7 @@ await registrarAplicacion(resultado.data);</div>
       </section>
 
 
-      <section>
+      <section id="ia">
         <h2>7. Qué le pedimos a la IA (y qué no)</h2>
         <div class="callout callout-ia">
           <span class="callout-titulo">El descubrimiento de esta clase</span>
@@ -957,7 +957,7 @@ await registrarAplicacion(resultado.data);</div>
       </section>
 
 
-      <section>
+      <section id="taller">
         <h2>8. Taller</h2>
 
         <h3>Parte 1 — La spec</h3>
@@ -1030,7 +1030,7 @@ await registrarAplicacion(resultado.data);</div>
       </section>
 
 
-      <section>
+      <section id="entregable">
         <h2>Entregable de la clase</h2>
         <ul class="checklist">
           <li><span class="etiq">docs/spec.md</span> completo y mergeado en <span class="etiq">main</span>.</li>

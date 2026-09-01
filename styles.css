@@ -251,6 +251,31 @@ footer {
 
 .agenda li:last-child { border-bottom: none; }
 
+/* La agenda es también el índice: cada ítem salta a su sección. Se ve como
+   texto, no como link, para no llenar la portada de bordó — el color aparece
+   al pasar por encima, que es cuando el lector ya está buscando dónde ir. */
+.agenda a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.agenda a:hover,
+.agenda a:focus-visible {
+  color: var(--uai-bordo);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Que el título no quede pegado al borde de arriba al saltar desde la agenda. */
+section[id],
+h3[id] { scroll-margin-top: 16px; }
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
 .agenda li::before {
   content: "";
   position: absolute;

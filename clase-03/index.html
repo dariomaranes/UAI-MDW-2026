@@ -27,16 +27,16 @@
           el flujo principal.
         </p>
         <ul class="agenda">
-          <li><span>De la spec al modelo: qué pieza de la spec se convierte en qué</span></li>
-          <li><span>Metodología: Programación Extrema</span></li>
-          <li><span>Entidades, atributos y relaciones: 1‑N, N‑N y cardinalidades</span></li>
-          <li><span>Cada dato en un solo lugar · qué se guarda y qué se calcula</span></li>
-          <li><span>El modelo en Prisma</span></li>
-          <li><span>Migraciones: el historial de la base</span></li>
-          <li><span>Índices y el problema N+1</span></li>
-          <li><span>Demo: el modelo de la libreta sanitaria, de cero a migrado</span></li>
-          <li><span>Taller: modelar y migrar el proyecto del equipo</span></li>
-          <li><span>Code review y cierre</span></li>
+          <li><a href="#spec-al-modelo">De la spec al modelo: qué pieza de la spec se convierte en qué</a></li>
+          <li><a href="#xp">Metodología: Programación Extrema</a></li>
+          <li><a href="#entidades">Entidades, atributos y relaciones: 1‑N, N‑N y cardinalidades</a></li>
+          <li><a href="#un-solo-lugar">Cada dato en un solo lugar · qué se guarda y qué se calcula</a></li>
+          <li><a href="#prisma">El modelo en Prisma</a></li>
+          <li><a href="#migraciones">Migraciones: el historial de la base</a></li>
+          <li><a href="#indices">Índices y el problema N+1</a></li>
+          <li><a href="#prisma">Demo: el modelo de la libreta sanitaria, de cero a migrado</a></li>
+          <li><a href="#taller">Taller: modelar y migrar el proyecto del equipo</a></li>
+          <li><a href="#entregable">Code review y cierre</a></li>
         </ul>
 
         <div class="callout callout-puente">
@@ -56,7 +56,7 @@
       </section>
 
 
-      <section>
+      <section id="spec-al-modelo">
         <h2>1. De la spec al modelo</h2>
         <p class="lead">
           La clase pasada terminó con dos cosas: <span class="etiq">docs/spec.md</span> y un schema
@@ -139,7 +139,7 @@
       </section>
 
 
-      <section>
+      <section id="xp">
         <h2>2. Metodología: Programación Extrema</h2>
         <p class="lead">
           XP nació en 1996, en un proyecto de nómina de Chrysler que venía de mal en peor, cuando
@@ -299,7 +299,7 @@
       </section>
 
 
-      <section>
+      <section id="entidades">
         <h2>3. Entidades, atributos y relaciones</h2>
         <p class="lead">
           Una tabla es una entidad. Una fila es una instancia de esa entidad. Una columna es un dato
@@ -431,7 +431,7 @@ Aplicacion:
       </section>
 
 
-      <section>
+      <section id="un-solo-lugar">
         <h2>4. Cada dato en un solo lugar</h2>
         <p class="lead">
           Se puede dar la teoría de la normalización con sus formas normales, y no la vamos a dar.
@@ -541,7 +541,7 @@ model Vacuna {
       </section>
 
 
-      <section>
+      <section id="prisma">
         <h2>5. El modelo en Prisma</h2>
         <p class="lead">
           El modelo se escribe una sola vez, en <span class="etiq">prisma/schema.prisma</span>, y de
@@ -630,7 +630,7 @@ model Mascota {
       </section>
 
 
-      <section>
+      <section id="migraciones">
         <h2>6. Migraciones: el historial de la base</h2>
         <p class="lead">
           Una migración es <strong>un archivo de SQL, versionado y commiteado</strong>, que describe
@@ -730,7 +730,7 @@ model Mascota {
       </section>
 
 
-      <section>
+      <section id="indices">
         <h2>7. Índices y el problema N+1</h2>
         <p class="lead">
           Con las diez filas que van a tener hoy, todo va a andar instantáneo, hasta lo que está
@@ -874,7 +874,7 @@ for (const m of mascotas) {
       </section>
 
 
-      <section>
+      <section id="decisiones">
         <h2>8. Decisiones: qué se gana y qué se resigna</h2>
         <div class="tabla-scroll">
           <table>
@@ -930,7 +930,7 @@ for (const m of mascotas) {
       </section>
 
 
-      <section>
+      <section id="ia">
         <h2>9. Qué le pedimos a la IA (y qué no)</h2>
         <div class="callout callout-ia">
           <span class="callout-titulo">Hoy la IA parte con ventaja, y ese es el riesgo</span>
@@ -995,7 +995,7 @@ Sin preguntar. Sin recuperación.</div>
       </section>
 
 
-      <section>
+      <section id="taller">
         <h2>10. Taller</h2>
         <p class="lead">
           El recorrido de hoy son tres fases y van en este orden. La primera es en papel y es la que
@@ -1333,7 +1333,7 @@ npx prisma generate</div>
       </section>
 
 
-      <section>
+      <section id="entregable">
         <h2>Entregable de la clase</h2>
         <ul class="checklist">
           <li><span class="etiq">prisma/schema.prisma</span> con el modelo del dominio propio, sin la entidad de ejemplo.</li>
