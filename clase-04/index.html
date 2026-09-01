@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 04 - La API: REST y Server Actions</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 04 — MDW 2026</h1>
+      <p class="fecha-clase">martes 01/09/2026</p>
+      <h2>La API: REST y Server Actions</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Hasta hoy el sistema es una base de datos con un modelo bien pensado y ninguna forma de
+          usarlo. Al final de la clase cada equipo tiene <strong>una API que responde en su URL
+          pública</strong>: el flujo principal de la spec se puede recorrer entero
+          <strong>sin abrir una sola pantalla</strong>, desde un cliente HTTP.
+        </p>
+        <ul class="agenda">
+          <li><a href="#spec-a-la-api">De la spec a la API: qué historia se convierte en qué operación</a></li>
+          <li><a href="#scrum">Metodología: Scrum · las tres piezas · INVEST y los criterios de aceptación</a></li>
+          <li><a href="#rest">Qué es REST: recursos, verbos y status codes</a></li>
+          <li><a href="#route-handlers">Route Handlers en Next.js</a></li>
+          <li><a href="#server-actions">Server Actions: qué son y qué no son</a></li>
+          <li><a href="#rest-o-action">Cuándo REST y cuándo Server Action</a></li>
+          <li><a href="#capas">Las capas: quién puede hablar con quién</a></li>
+          <li><a href="#demo">Demo: la API de la libreta sanitaria, endpoint por endpoint</a></li>
+          <li><a href="#taller">Taller: el contrato en papel y después los endpoints</a></li>
+          <li><a href="#entregable">Code review y cierre</a></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es sobre <strong>Scrum</strong>. El PDF de la clase pasada cerraba
+            recomendando un artículo que lo compara con XP, y ese es exactamente el tema:
+            <strong>Scrum organiza el trabajo y no dice ni una palabra sobre cómo escribir código;
+            XP dice cómo escribirlo y casi nada sobre cómo organizarse</strong>. No compiten: se usan
+            juntos, y ustedes vienen usando los dos desde la clase 1 sin que nadie se los nombrara.
+            Y hay un puente más directo todavía: la parte más larga del material de hoy son
+            <strong>las historias de usuario y sus criterios de aceptación</strong>, que escribieron
+            en la clase 2 y que hoy se convierten en la API. Todo en la sección 2.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-04.pdf">📄 Material de la clase 04 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="spec-a-la-api">
+        <h2>1. De la spec a la API</h2>
+        <p class="lead">
+          La clase pasada terminó con las tablas migradas en la nube. Eso es
+          <strong>lo que el sistema sabe</strong>. Hoy escribimos <strong>lo que el sistema
+          hace</strong>: la lista de operaciones que ofrece, quién puede pedir cada una y qué
+          contesta en cada caso.
+        </p>
+        <p>
+          Y sale del mismo lugar que todo lo demás: de <span class="etiq">docs/spec.md</span>.
+          Trajeron identificadas las operaciones —qué se crea, qué se lee, qué se modifica y qué se
+          borra, y quién puede hacer cada cosa— porque eso, literalmente, <strong>es la
+          API</strong>. Hoy se le pone método, ruta y código de respuesta.
+        </p>
+
+        <h3>La traducción, pieza por pieza</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>En la spec</th><th>Se convierte en</th><th>En la libreta sanitaria</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Una entidad</td>
+                <td>Un <strong>recurso</strong>, con su ruta</td>
+                <td><span class="etiq">/api/mascotas</span></td>
+              </tr>
+              <tr>
+                <td>El verbo de una historia de usuario</td>
+                <td>Un <strong>método HTTP</strong> sobre ese recurso</td>
+                <td>"cargar mis mascotas" (H1) → <span class="etiq">POST /api/mascotas</span></td>
+              </tr>
+              <tr>
+                <td>Un criterio de aceptación del camino feliz</td>
+                <td>La <strong>respuesta exitosa</strong>: qué se devuelve y con qué status</td>
+                <td><span class="etiq">201</span> + la mascota creada</td>
+              </tr>
+              <tr>
+                <td>Un "caso de error"</td>
+                <td>Un <strong>status de error</strong> con un motivo legible</td>
+                <td>fecha futura → <span class="etiq">400</span> + qué campo está mal</td>
+              </tr>
+              <tr>
+                <td>Una fila de la tabla de <strong>roles</strong></td>
+                <td>Quién puede llamar a ese endpoint</td>
+                <td>emitir certificados: solo <span class="etiq">VETERINARIO</span></td>
+              </tr>
+              <tr>
+                <td>Una <strong>regla de negocio</strong></td>
+                <td>Una condición que el endpoint verifica <strong>antes</strong> de escribir</td>
+                <td>no se emite si falta una vacuna obligatoria</td>
+              </tr>
+              <tr>
+                <td>Un paso del <strong>flujo principal</strong></td>
+                <td>La operación que <em>no</em> es un ABM</td>
+                <td>"el veterinario emite el certificado"</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">La última fila es la que separa un proyecto de un TP</span>
+          <p>
+            Las primeras seis salen casi solas. La séptima es la que hace la diferencia: el núcleo
+            obligatorio pide <strong>un flujo de negocio real, no un conjunto de ABMs</strong>, y ese
+            flujo siempre tiene una operación que no es crear, leer, modificar ni borrar.
+            <strong>Emitir</strong>, <strong>aprobar</strong>, <strong>reservar</strong>,
+            <strong>publicar</strong>, <strong>facturar</strong>, <strong>asignar</strong>.
+          </p>
+          <p>
+            Si al terminar el taller su API tiene solamente los cuatro verbos por cada entidad,
+            <strong>todavía no modelaron el negocio</strong>: modelaron una planilla de cálculo con
+            botones. Búsquenla ahora, que es la que se defiende en el Parcial I.
+          </p>
+        </div>
+
+        <h3>Por qué se hace ahora y por qué se hace sin pantallas</h3>
+        <p>
+          Porque la API es <strong>la parte del sistema que sobrevive a todo lo demás</strong>. La
+          pantalla se rediseña tres veces, el framework de UI se cambia, el celular reemplaza a la
+          web — y las operaciones siguen siendo las mismas. Por eso se piensa primero, y por eso el
+          <strong>Parcial I de la clase 8 es una defensa del backend</strong>: se prueba con la API,
+          no con botones.
+        </p>
+        <p>
+          Y hay una razón práctica: <strong>una API se puede probar sola</strong>. Hoy van a
+          verificar cada operación con un archivo de pruebas, sin depender de que alguien haya hecho
+          un formulario. Cuando en la clase 10 aparezca la UI, va a consumir algo que ya funciona.
+        </p>
+      </section>
+
+
+      <section id="scrum">
+        <h2>2. Metodología: Scrum</h2>
+        <p class="lead">
+          Scrum es el marco de trabajo ágil más usado del mundo, y también el peor entendido.
+          La confusión más común es creer que es <em>una metodología de desarrollo</em>. No lo es:
+          <strong>Scrum no dice absolutamente nada sobre cómo escribir una línea de código</strong>.
+          Dice cómo se organiza un equipo para entregar algo cada tanto tiempo, sin decidir por él
+          qué hace adentro.
+        </p>
+
+        <h3>Las tres piezas: quién, qué y cuándo</h3>
+        <p>
+          Scrum tiene <strong>tres tipos de pieza y no hay un cuarto</strong>: los
+          <strong>roles</strong> (quién), los <strong>artefactos</strong> (qué) y los
+          <strong>eventos</strong> (cuándo). Todo lo que el marco define entra en alguna de las tres.
+          Acá va una fila por pieza, agrupada por tipo — de los eventos están los que tienen
+          equivalente en la cursada: el <em>daily scrum</em>, con una clase por semana, no se puede
+          replicar y no hay que inventarlo.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Pieza</th><th>Qué es</th><th>En su equipo</th></tr>
+            </thead>
+            <tbody>
+              <tr><th colspan="3" scope="rowgroup">Los roles — <em>quién</em></th></tr>
+              <tr>
+                <td><strong>Product Owner</strong></td>
+                <td>Decide <em>qué</em> se construye y en qué orden, y reordena el backlog por valor
+                  continuamente. Una persona, no un comité — y en el material, un trabajo de tiempo completo</td>
+                <td>El PO real si lo consiguieron —a tiempo parcial y por WhatsApp, no full‑time—. Si no,
+                  el equipo lo aproxima y lo anota como supuesto</td>
+              </tr>
+              <tr>
+                <td><strong>Scrum Master</strong></td>
+                <td>Se ocupa de que el proceso funcione y de destrabar lo que traba. No es un jefe</td>
+                <td>No lo asignamos: son cuatro y una clase por semana. Lo que sí existe es la
+                  obligación de <strong>avisar temprano</strong> cuando algo está trabado</td>
+              </tr>
+              <tr>
+                <td><strong>Developers</strong></td>
+                <td>Deciden <em>cómo</em> se construye y se comprometen con el incremento</td>
+                <td>Los cuatro, siempre. En Scrum el equipo es dueño del <em>cómo</em>: por eso la
+                  cátedra no les reparte roles</td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr><th colspan="3" scope="rowgroup">Los artefactos — <em>qué</em></th></tr>
+              <tr>
+                <td><strong>Product backlog</strong></td>
+                <td>Todo lo que falta hacer, ordenado por valor</td>
+                <td>Las historias de <span class="etiq">docs/spec.md</span></td>
+              </tr>
+              <tr>
+                <td><strong>Sprint backlog</strong></td>
+                <td>Lo que este sprint se compromete a terminar</td>
+                <td>El <strong>entregable de la clase</strong>. Lo define la cátedra, que acá hace de PO</td>
+              </tr>
+              <tr>
+                <td><strong>Incremento</strong></td>
+                <td>Software que funciona, no una demo con humo</td>
+                <td>Lo que quedó mergeado <strong>y desplegado</strong> en la URL pública</td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr><th colspan="3" scope="rowgroup">Los eventos — <em>cuándo</em></th></tr>
+              <tr>
+                <td><strong>Sprint</strong></td>
+                <td>Un período fijo —de una a cuatro semanas— al final del cual hay algo utilizable.
+                  Es el evento que contiene a todos los demás</td>
+                <td><strong>La semana entre dos clases.</strong> Fijo, corto y sin excepciones</td>
+              </tr>
+              <tr>
+                <td><strong>Sprint review</strong></td>
+                <td>Se le muestra al cliente lo construido y se escucha la devolución. Se habla
+                  <strong>del producto</strong></td>
+                <td>El <strong>Demo Day</strong>, y cada vez que le muestran algo a su Product Owner</td>
+              </tr>
+              <tr>
+                <td><strong>Retrospectiva</strong></td>
+                <td>Qué salió bien, qué no, y qué se cambia. Se habla <strong>del proceso</strong>, no
+                  del producto. Es la práctica que más se saltea y la que más sirve</td>
+                <td>Los últimos minutos de cada clase, y formalmente en el Demo Day</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Las historias de usuario, otra vez — y ahora con una herramienta para revisarlas</h3>
+        <p>
+          La parte más larga del material de hoy no es sobre reuniones: es sobre
+          <strong>historias de usuario y criterios de aceptación</strong>. O sea, sobre lo que
+          ustedes escribieron en la clase 2 sin saber de dónde venía. Y ahora que la spec se va a
+          convertir en endpoints, conviene revisarla con el criterio que propone el PDF:
+          <strong>INVEST</strong>.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Una buena historia es…</th><th>Qué significa</th><th>Cómo se revisa en su spec</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>I</strong>ndependiente</td>
+                <td>Se puede entregar sola y vale por sí misma</td>
+                <td>Si la H4 no sirve para nada hasta que esté la H5, o están mal cortadas o son una sola</td>
+              </tr>
+              <tr>
+                <td><strong>N</strong>egociable</td>
+                <td>Se puede reescribir o cancelar hasta que el equipo se compromete con ella</td>
+                <td>Por eso la spec se actualiza todo el cuatrimestre y no se congela en la clase 2</td>
+              </tr>
+              <tr>
+                <td><strong>V</strong>aliosa</td>
+                <td>Le da valor a alguien de afuera del equipo</td>
+                <td>"Configurar el linter" no es una historia: es una tarea. No tiene un <em>como…&nbsp;quiero…&nbsp;para</em></td>
+              </tr>
+              <tr>
+                <td><strong>E</strong>stimable</td>
+                <td>Está lo bastante descripta como para saber cuánto cuesta</td>
+                <td>Si nadie del equipo puede decir si es media hora o dos días, falta información en la historia</td>
+              </tr>
+              <tr>
+                <td><strong>S</strong>mall (pequeña)</td>
+                <td>Entra en un sprint</td>
+                <td>Entra en <strong>una semana</strong>. La que no entra se parte, y partirla es trabajo del equipo</td>
+              </tr>
+              <tr>
+                <td><strong>T</strong>esteable</td>
+                <td>Da información suficiente para verificar que está terminada</td>
+                <td>Es <strong>el criterio de aceptación</strong>. Sin él la historia no se puede cerrar nunca</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La <strong>T</strong> es la que se cobra hoy. El material llama a los criterios de
+          aceptación <em>"la herramienta más poderosa que tiene el equipo"</em>, y en esta clase se
+          ve por qué de una forma muy concreta: <strong>cada criterio de aceptación se convierte en
+          una respuesta de la API</strong>. El camino feliz es el <span class="etiq">200</span> o el
+          <span class="etiq">201</span>; cada "caso de error" es un status con un motivo. Una
+          historia sin criterios de aceptación es una historia que hoy no se puede convertir en
+          endpoint, porque nadie sabe qué tendría que contestar.
+        </p>
+        <div class="callout">
+          <span class="callout-titulo">Cinco minutos, antes de arrancar el taller</span>
+          <p>
+            Pasen sus historias por INVEST, en voz alta, y marquen las que fallan. En esta materia la
+            que más falla es la <strong>V</strong> —historias que describen una pantalla en vez de
+            algo que alguien quiere lograr— y la <strong>T</strong>: criterios de aceptación
+            escritos como <em>"funciona bien"</em>. Las dos se arreglan hoy, en la fase A, y las dos
+            se pagan caro en el Parcial I si no se arreglan.
+          </p>
+        </div>
+
+      </section>
+
+
+      <section id="rest">
+        <h2>3. Qué es REST</h2>
+        <p class="lead">
+          Una <strong>API</strong> es la puerta del sistema para otro programa: lo mismo que una
+          pantalla es para una persona. <strong>REST</strong> es un estilo para diseñar esa puerta
+          usando lo que HTTP ya trae: direcciones, verbos y códigos de respuesta. No es una
+          librería ni algo que se instale — es una forma de ponerle nombre a las cosas.
+        </p>
+        <p>
+          Lo que sigue es <em>REST pragmático</em>, que es lo que se usa en la industria: recursos en
+          la URL, verbos HTTP, JSON y status codes.
+        </p>
+        <p>
+          Y una palabra que van a leer todo el día, así que conviene fijarla ahora: cada una de esas
+          direcciones —<span class="etiq">POST /api/mascotas</span>— es un <strong>endpoint</strong>,
+          un punto de entrada al sistema. <strong>La API es el conjunto de todos.</strong> El
+          endpoint es <em>dónde se toca</em>; lo que atiende del otro lado tiene otro nombre en cada
+          framework, y el de Next lo vemos en la sección 4.
+        </p>
+
+        <h3>La idea central: sustantivos en la URL, verbos en el método</h3>
+        <p>
+          La URL nombra <strong>una cosa</strong>, no una acción. Qué se hace con esa cosa lo dice el
+          método HTTP, que ya existe y que ya conoce todo el mundo — navegadores, proxies, caches y
+          la persona que va a leer sus logs.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Así no</h4>
+            <div class="caja-codigo">POST /api/crearMascota
+GET  /api/getMascotas
+POST /api/mascota/borrar/12
+POST /api/actualizarMascota</div>
+            <p>
+              El verbo está dos veces: en el método y en la URL, a veces contradiciéndose
+              (<span class="etiq">POST</span> para borrar). Cada operación nueva inventa una
+              convención nueva, y a la décima nadie recuerda si era
+              <span class="etiq">getX</span>, <span class="etiq">listX</span> o
+              <span class="etiq">obtenerX</span>.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Así sí</h4>
+            <div class="caja-codigo">POST   /api/mascotas
+GET    /api/mascotas
+DELETE /api/mascotas/12
+PATCH  /api/mascotas/12</div>
+            <p>
+              Una sola dirección para el recurso "mascotas" y otra para "una mascota". Quien conoce
+              un recurso <strong>ya sabe usar todos los demás</strong>, que es todo el punto de
+              tener una convención.
+            </p>
+          </div>
+        </div>
+
+        <h3>Los verbos, y la palabra que se pregunta en el parcial</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Método</th><th>Para qué</th><th>¿Cambia datos?</th><th>¿Idempotente?</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">GET</span></td>
+                <td>Leer. Nunca modifica nada</td>
+                <td>No</td>
+                <td>Sí</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">POST</span></td>
+                <td>Crear un recurso nuevo, o disparar una operación</td>
+                <td>Sí</td>
+                <td><strong>No</strong></td>
+              </tr>
+              <tr>
+                <td><span class="etiq">PUT</span></td>
+                <td>Reemplazar un recurso entero</td>
+                <td>Sí</td>
+                <td>Sí</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">PATCH</span></td>
+                <td>Modificar algunos campos</td>
+                <td>Sí</td>
+                <td>Depende de lo que haga</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">DELETE</span></td>
+                <td>Borrar</td>
+                <td>Sí</td>
+                <td>Sí</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>Idempotente</strong> significa que hacer la misma llamada dos veces deja el sistema
+          igual que hacerla una. No es teoría: es lo que pasa cuando alguien
+          <strong>hace doble clic en el botón</strong>, o cuando se corta el wifi y el celular
+          reintenta.
+        </p>
+        <div class="esquema">   DELETE /api/mascotas/12  ×2  →  la mascota 12 no existe. Igual que ×1.
+   PATCH  /api/mascotas/12  ×2  →  el mismo nombre puesto dos veces. Igual.
+   POST   /api/mascotas     ×2  →  DOS mascotas. NO es lo mismo.
+
+   Por eso el único método peligroso ante un reintento es POST,
+   y por eso las operaciones que crean cosas necesitan cuidado.</div>
+
+        <h3>Los status codes que van a usar</h3>
+        <p>
+          El status es <strong>la primera respuesta que da el endpoint</strong>, antes del cuerpo. Un
+          cliente tiene que poder decidir qué hacer mirando solo ese número.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Código</th><th>Significa</th><th>Cuándo lo devuelven</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="etiq">200</span> OK</td><td>Salió bien</td><td>Un GET, un PATCH, un DELETE que respondió</td></tr>
+              <tr><td><span class="etiq">201</span> Created</td><td>Se creó un recurso</td><td>Un POST que crea. Se devuelve el objeto creado, con su id</td></tr>
+              <tr><td><span class="etiq">204</span> No Content</td><td>Salió bien y no hay nada que devolver</td><td>Un <span class="etiq">DELETE</span>. <strong>La respuesta viene vacía a propósito</strong>: no es un error</td></tr>
+              <tr><td><span class="etiq">400</span> Bad Request</td><td>El cliente mandó algo mal</td><td>Cuando Zod rechaza el body. <strong>El más frecuente de todos</strong></td></tr>
+              <tr><td><span class="etiq">401</span> Unauthorized</td><td>No sé quién sos</td><td>No hay sesión. Es <em>no autenticado</em>, aunque el nombre diga otra cosa</td></tr>
+              <tr><td><span class="etiq">403</span> Forbidden</td><td>Sé quién sos y no podés</td><td>Un dueño intentando emitir un certificado</td></tr>
+              <tr><td><span class="etiq">404</span> Not Found</td><td>No existe</td><td>Un id que no está… y también un recurso que existe pero no es suyo (ver sección 8)</td></tr>
+              <tr><td><span class="etiq">409</span> Conflict</td><td>Existe pero choca con el estado actual</td><td>Emitir un certificado ya emitido; un email repetido</td></tr>
+              <tr><td><span class="etiq">500</span> Server Error</td><td>Se rompió del lado del servidor</td><td><strong>Nunca a propósito.</strong> Un 500 es siempre un bug suyo</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El antipatrón más común: el 200 que miente</span>
+          <p>
+            Es tentador devolver siempre <span class="etiq">200</span> con un
+            <span class="etiq">{ ok: false, mensaje: "..." }</span> adentro. Funciona… hasta que
+            algo lo consume automáticamente: el <span class="etiq">fetch</span> del navegador no
+            falla, el monitoreo no ve ningún error, la pantalla muestra un cartel de éxito y el
+            registro nunca se guardó.
+          </p>
+          <p>
+            <strong>El status es parte de la respuesta, no un detalle.</strong> Si algo salió mal, el
+            número tiene que decirlo.
+          </p>
+        </div>
+
+        <h3 id="demo">La API de la libreta sanitaria</h3>
+        <p>
+          El contrato completo del proyecto de referencia. Cada fila sale de una historia de la spec,
+          y la columna "Rol" sale de la tabla de roles.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Método y ruta</th><th>Qué hace</th><th>Rol</th><th>Historia</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="etiq">GET /api/mascotas</span></td><td>Las mascotas del usuario de la sesión</td><td>Dueño</td><td>H1</td></tr>
+              <tr><td><span class="etiq">POST /api/mascotas</span></td><td>Registrar una mascota</td><td>Dueño</td><td>H1</td></tr>
+              <tr><td><span class="etiq">GET /api/mascotas/:id</span></td><td>La ficha con su estado sanitario calculado</td><td>Dueño (la suya)</td><td>H3</td></tr>
+              <tr><td><span class="etiq">PATCH /api/mascotas/:id</span></td><td>Corregir datos de la mascota</td><td>Dueño (la suya)</td><td>H1</td></tr>
+              <tr><td><span class="etiq">GET /api/mascotas/:id/aplicaciones</span></td><td>El historial de vacunas</td><td>Dueño o veterinario</td><td>H3</td></tr>
+              <tr><td><span class="etiq">POST /api/aplicaciones</span></td><td>Registrar una vacuna aplicada</td><td>Veterinario</td><td>H2</td></tr>
+              <tr><td><span class="etiq">GET /api/vacunas</span></td><td>El catálogo de vacunas</td><td>Autenticado</td><td>H2</td></tr>
+              <tr><td><span class="etiq">POST /api/certificados</span></td><td>Solicitar un certificado</td><td>Dueño</td><td>H4</td></tr>
+              <tr><td><span class="etiq">POST /api/certificados/:id/emision</span></td><td><strong>Emitir</strong> el certificado</td><td>Veterinario</td><td>H5</td></tr>
+              <tr><td><span class="etiq">POST /api/certificados/:id/anulacion</span></td><td>Anularlo</td><td>El veterinario que lo emitió</td><td>H5</td></tr>
+              <tr><td><span class="etiq">GET /api/verificar/:codigo</span></td><td>Verificar un certificado</td><td><strong>Público</strong></td><td>H6</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">La operación que no es un CRUD: emitir</span>
+          <p>
+            <strong>Emitir</strong> no es "actualizar el estado del certificado". Es un acto con sus
+            propias reglas: verifica que las vacunas obligatorias sigan al día, genera un código
+            único, congela la fecha de vencimiento y guarda quién lo emitió. Hay dos formas de
+            escribirlo y la diferencia importa:
+          </p>
+          <div class="caja-codigo">✗ PATCH /api/certificados/12
+     { "estado": "EMITIDO" }
+
+✓ POST  /api/certificados/12/emision</div>
+          <p>
+            Con el <span class="etiq">PATCH</span>, <strong>es el cliente el que decide la
+            transición</strong> y el servidor obedece: nada impide mandar
+            <span class="etiq">{ "estado": "ANULADO" }</span> o saltarse un paso. Con el
+            sub-recurso, el cliente <em>pide que ocurra la operación</em> y el servidor decide si
+            corresponde. Además cada transición tiene su propio permiso —emitir y anular no los hace
+            la misma persona— y así queda cada una en su endpoint.
+          </p>
+          <p>
+            <strong>Regla:</strong> si una transición de estado tiene reglas o permisos propios,
+            merece su propia ruta.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">La URL no es la pantalla</span>
+          <p>
+            <span class="etiq">/api/mascotas/12</span> es <em>el recurso</em> mascota 12.
+            <span class="etiq">/mascotas/12</span> —sin <span class="etiq">api</span>— va a ser
+            <em>la página</em> que la muestra, y la van a escribir en la clase 10. Pueden parecerse o
+            no: una pantalla suele mostrar varios recursos, y un recurso puede no tener pantalla
+            propia.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="route-handlers">
+        <h2>4. Route Handlers en Next.js</h2>
+        <p class="lead">
+          Un <strong>Route Handler</strong> es un archivo que exporta una función por cada método
+          HTTP que soporta. Next lo publica en la URL que corresponde a su ubicación en el
+          directorio: la ruta <strong>es</strong> la carpeta.
+        </p>
+
+        <div class="esquema">   app/
+   └─ api/
+      ├─ mascotas/
+      │  ├─ route.ts              → /api/mascotas
+      │  └─ [id]/
+      │     ├─ route.ts           → /api/mascotas/:id
+      │     └─ aplicaciones/
+      │        └─ route.ts        → /api/mascotas/:id/aplicaciones
+      ├─ aplicaciones/
+      │  └─ route.ts              → /api/aplicaciones
+      └─ certificados/
+         └─ [id]/
+            └─ emision/
+               └─ route.ts        → /api/certificados/:id/emision
+
+   El archivo SIEMPRE se llama route.ts. Los corchetes son
+   la parte variable de la URL.</div>
+
+        <h3>Anatomía de un endpoint</h3>
+        <p>
+          El template ya trae este archivo como ejemplo, con el patrón comentado. Son
+          <strong>cuatro pasos, siempre en el mismo orden</strong>:
+        </p>
+        <div class="caja-codigo">// app/api/mascotas/route.ts
+import { NextResponse } from "next/server";
+import { crearMascotaSchema } from "@/lib/schemas/mascota";
+import { crearMascota, listarMascotasDeDueno } from "@/lib/db/mascotas";
+
+export async function GET() {
+  // TODO (clase 6): el dueño sale de la sesión.
+  const mascotas = await listarMascotasDeDueno(duenoId);
+  return NextResponse.json(mascotas);            // 200 por defecto
+}
+
+export async function POST(request: Request) {
+  // 1. VALIDAR. El body puede venir de cualquier lado, no solo del
+  //    formulario propio. Nunca se confía.
+  const body: unknown = await request.json();
+  const resultado = crearMascotaSchema.safeParse(body);
+
+  if (!resultado.success) {
+    return NextResponse.json(
+      { error: "Datos inválidos", detalles: resultado.error.flatten() },
+      { status: 400 },
+    );
+  }
+
+  // 2. AUTORIZAR. Quién es sale de la sesión del servidor, NUNCA del body.
+  //    TODO (clase 6): usuario real y 401 si no hay sesión.
+  const duenoId = "usuario-de-ejemplo";
+
+  // 3. DELEGAR. El handler no habla con Prisma: para eso está lib/db.
+  const mascota = await crearMascota(resultado.data, duenoId);
+
+  // 4. RESPONDER con el status correcto y el recurso creado.
+  return NextResponse.json(mascota, { status: 201 });
+}</div>
+        <p>
+          Ese orden no es estético: <strong>validar antes de autorizar</strong> evita gastar una
+          consulta de sesión en un body basura, y <strong>autorizar antes de delegar</strong>
+          garantiza que ninguna consulta se ejecute a nombre de alguien que no corresponde.
+        </p>
+
+        <h3>La parte variable de la URL</h3>
+        <p>
+          En una ruta con <span class="etiq">[id]</span>, el valor llega por el segundo parámetro. En
+          Next 15 <strong><span class="etiq">params</span> es una promesa</strong> y hay que
+          esperarla: es el error de compilación más común de esta clase.
+        </p>
+        <div class="caja-codigo">// app/api/mascotas/[id]/route.ts
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise&lt;{ id: string }&gt; },
+) {
+  const { id } = await params;              // ← el await no es opcional
+
+  const mascota = await obtenerMascota(id);
+
+  // Un id que no existe no es un error del servidor: es un 404.
+  if (!mascota) {
+    return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+  }
+
+  return NextResponse.json(mascota);
+}</div>
+        <p>
+          Y lo que viene después del <span class="etiq">?</span> —filtros, paginación— se lee del
+          request, y <strong>se valida igual que el body</strong>, porque es igual de público:
+        </p>
+        <div class="caja-codigo">const { searchParams } = new URL(request.url);
+const especie = searchParams.get("especie");   // string | null, SIEMPRE texto</div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Todo lo que está en <span class="etiq">app/api/</span> es internet</span>
+          <p>
+            En cuanto hagan <span class="etiq">git push</span>, cada uno de esos archivos es una URL
+            pública que cualquiera puede llamar con un cliente HTTP cualquiera, desde cualquier
+            parte del mundo, sin pasar por su interfaz. Nadie tiene que "hackear" nada: la dirección
+            está a la vista.
+          </p>
+          <p>
+            De ahí sale la regla que va a gobernar las clases 5 y 6:
+            <strong>esconder un botón no es una medida de seguridad</strong>. Si un endpoint no
+            valida y no verifica quién llama, no está protegido — está sin usar todavía.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">¿Y las páginas no van a usar la API?</span>
+          <p>
+            En Next las páginas corren en el servidor, así que una página
+            <strong>puede llamar a <span class="etiq">lib/db/</span> directamente</strong>, sin dar
+            la vuelta por HTTP. Es más rápido y es lo que van a hacer en la clase 9 para leer datos.
+          </p>
+          <p>
+            Entonces, ¿para qué la API? Para todo lo que <strong>no es su propia página</strong>: el
+            navegador cuando ya está cargado, una app móvil, un sistema que integre con ustedes,
+            Postman — y <strong>la defensa del Parcial I</strong>, que se toma sobre el backend
+            cuando todavía no hay interfaz. Una operación que solo existe adentro de un componente no
+            se puede probar ni mostrar sola.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="server-actions">
+        <h2>5. Server Actions</h2>
+        <p class="lead">
+          Una <strong>Server Action</strong> es una función del servidor que un formulario del
+          navegador puede <strong>invocar como si la tuviera al lado</strong>. No se escribe endpoint,
+          no se arma el <span class="etiq">fetch</span>, no se serializa nada: se le pasa la función
+          al <span class="etiq">form</span> y listo.
+        </p>
+        <p>
+          Que es imposible, y por eso hay que entender qué pasa realmente. La función vive en el
+          servidor; el formulario, en la máquina del usuario. <strong>No se pueden llamar.</strong>
+          Lo que hace Next al compilar es otra cosa: deja la función de verdad en el servidor y, en
+          el bundle del navegador, pone en su lugar <strong>una función hueca con un ID
+          secreto</strong> —un <em>stub</em>, que es como se llama— y publica una URL escondida para
+          invocarla. Cuando el usuario manda el formulario, lo que
+          viaja es <strong>un POST por HTTP, igual que siempre</strong>. Next escribió el
+          <span class="etiq">fetch</span> que ustedes no escribieron.
+        </p>
+        <div class="callout callout-puente">
+          <span class="callout-titulo">El control remoto</span>
+          <p>
+            Apretás "volumen +" y sentís que subiste el volumen. Pero el botón no sube nada: manda
+            una señal, y el televisor sube el volumen. <strong>El control remoto es el stub, la
+            señal es el POST, el televisor es el servidor.</strong>
+          </p>
+          <p>
+            Y de ahí sale sola la parte incómoda: <strong>si hay una señal viajando por el aire,
+            cualquiera con el aparato correcto puede mandarla sin tocar tu control remoto.</strong>
+          </p>
+        </div>
+        <p>
+          Lo que se ahorra con eso es todo el andamiaje de hablar con uno mismo: el
+          <span class="etiq">onSubmit</span>, el <span class="etiq">preventDefault</span>, el
+          <span class="etiq">fetch</span> con su <span class="etiq">JSON.stringify</span>, el estado
+          de carga y algo que refresque la lista. Seis piezas para llamar a tu propio servidor. Y hay
+          un premio extra: <strong>ese formulario funciona incluso con el JavaScript
+          deshabilitado</strong>, porque en el fondo es un <span class="etiq">form</span> de HTML.
+          Cómo se escribe se ve en la <strong>clase 11</strong>, cuando haya pantallas donde
+          colgarlo.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Una Server Action es un endpoint público con otro nombre</span>
+          <p>
+            Esta es <strong>la confusión más peligrosa de la clase</strong>. Como la función se
+            escribe en un archivo del proyecto y se llama como cualquier otra, parece privada. No lo
+            es: al compilar, Next <strong>publica una ruta</strong> para poder invocarla desde el
+            navegador. Cualquiera puede llamarla con las herramientas de desarrollo abiertas, sin
+            pasar por el formulario.
+          </p>
+          <p>
+            Consecuencia práctica: <strong>una Server Action tiene exactamente las mismas
+            obligaciones que un Route Handler</strong>. Valida su entrada y verifica quién llama. Lo
+            único que cambia es cómo se escribe; el riesgo es idéntico.
+          </p>
+        </div>
+
+        <h3>Qué se resigna</h3>
+        <ul>
+          <li>
+            <strong>No hay status codes.</strong> Se devuelve un objeto y quien la llamó lo
+            interpreta. Sirve para su propia interfaz; no sirve como contrato para un tercero.
+          </li>
+          <li>
+            <strong>No tiene una URL estable ni documentable.</strong> El identificador lo genera el
+            compilador y cambia entre builds. Un cliente externo no puede depender de eso.
+          </li>
+          <li>
+            <strong>Es de Next.</strong> Un Route Handler es HTTP y lo entiende cualquier cosa; una
+            Server Action solo existe adentro de este framework.
+          </li>
+        </ul>
+      </section>
+
+
+      <section id="rest-o-action">
+        <h2>6. Cuándo REST y cuándo Server Action</h2>
+        <p class="lead">
+          Los dos hacen lo mismo con el mismo código de negocio detrás. Lo que cambia es
+          <strong>quién los llama</strong>, y esa es toda la regla de decisión.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Si el que llama es…</th><th>Va</th><th>Por qué</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Un formulario de su propia app</td>
+                <td><strong>Server Action</strong></td>
+                <td>Es el caso para el que existen: menos código y menos lugares donde equivocarse</td>
+              </tr>
+              <tr>
+                <td>Una app móvil, otro sistema, un webhook</td>
+                <td><strong>Route Handler</strong></td>
+                <td>Necesitan una URL estable y HTTP de verdad</td>
+              </tr>
+              <tr>
+                <td>Un <span class="etiq">api.http</span>, Postman, la defensa del Parcial I</td>
+                <td><strong>Route Handler</strong></td>
+                <td>Es lo único que se puede probar sin interfaz</td>
+              </tr>
+              <tr>
+                <td>Una página del servidor que solo lee</td>
+                <td><strong>Ninguno</strong>: <span class="etiq">lib/db/</span> directo</td>
+                <td>Dar la vuelta por HTTP contra uno mismo agrega latencia y no aporta nada</td>
+              </tr>
+              <tr>
+                <td>Algo que tiene que ser cacheable o compartible por URL</td>
+                <td><strong>Route Handler</strong> (<span class="etiq">GET</span>)</td>
+                <td>La verificación pública del certificado es el ejemplo perfecto</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">La regla de la materia, para que no quede a criterio</span>
+          <p>
+            <strong>1.</strong> Todo el núcleo del dominio se expone como <strong>API REST</strong>.
+            No es negociable: el Parcial I de la clase 8 se defiende sin interfaz, y lo que no tenga
+            endpoint no se puede mostrar.
+          </p>
+          <p>
+            <strong>2.</strong> Las <strong>Server Actions</strong> son para las mutaciones que
+            dispara la propia UI. Hoy no escriben ninguna —no hay UI todavía— y se trabajan en serio
+            en la <strong>clase 11</strong>. Están acá para que sepan qué son <em>antes</em> de que
+            la IA les escriba una, y para que la reconozcan cuando aparezca.
+          </p>
+          <p>
+            <strong>3.</strong> Y la que importa: <strong>la lógica no vive en ninguno de los
+            dos</strong>. Handler y action son cáscaras finas sobre el mismo código. Si mañana hay
+            que cambiar cómo se emite un certificado, se cambia en un solo lugar y las dos puertas se
+            enteran.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="capas">
+        <h2>7. Las capas: quién puede hablar con quién</h2>
+        <p class="lead">
+          Con dos entidades cualquier organización funciona. El problema aparece en la clase 10,
+          cuando hay veinte archivos y una consulta lenta, y la pregunta "¿dónde se lee esto?" no
+          tiene una sola respuesta. Por eso el orden se pone hoy, que es gratis.
+        </p>
+        <div class="esquema">   navegador · Postman · app móvil
+            │  HTTP
+            ▼
+   ┌─────────────────────────────────┐
+   │ app/api/**/route.ts             │  la frontera:
+   │ app/**/acciones.ts              │  validar · autorizar · responder
+   └───────────────┬─────────────────┘
+                   │            ▲
+                   ▼            │ (una página del servidor entra acá)
+   ┌─────────────────────────────────┐
+   │ lib/db/*.ts                     │  las consultas: select, take, include
+   │ lib/*.ts                        │  las reglas del negocio
+   └───────────────┬─────────────────┘
+                   ▼
+   ┌─────────────────────────────────┐
+   │ Prisma  →  Postgres             │
+   └─────────────────────────────────┘
+
+   La flecha nunca salta un nivel, y nunca va para arriba.</div>
+
+        <h3>Las tres reglas</h3>
+        <ol>
+          <li>
+            <strong>Ningún <span class="etiq">route.ts</span> importa Prisma.</strong> Si aparece un
+            <span class="etiq">prisma.</span> adentro de <span class="etiq">app/</span>, esa consulta
+            ya está en un solo lugar del que nadie más se puede aprovechar, y el día que esté lenta
+            nadie la va a encontrar.
+          </li>
+          <li>
+            <strong>Ninguna función de <span class="etiq">lib/db/</span> sabe qué es un
+            request.</strong> Recibe datos y devuelve datos. Por eso se puede llamar igual desde un
+            endpoint, desde una Server Action, desde una página o desde un test.
+          </li>
+          <li>
+            <strong>Quién es el usuario se decide en la frontera y baja por parámetro.</strong>
+            <span class="etiq">crearMascota(datos, duenoId)</span>: el <span class="etiq">duenoId</span>
+            lo pone el handler leyendo la sesión, y nunca sale del body.
+          </li>
+        </ol>
+
+        <h3>Dos cosas que se deciden en las consultas de hoy</h3>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Devolver la fila entera</h4>
+            <div class="caja-codigo">return prisma.mascota.findMany({
+  include: { dueno: true },
+});</div>
+            <p>
+              Ese <span class="etiq">include</span> devuelve el <strong>email de todos los
+              dueños</strong> en un endpoint de listado. Nadie lo pidió, la pantalla no lo usa, y
+              está publicado en internet. Es la fuga de datos más común que existe, y no se ve
+              porque la pantalla queda igual.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Elegir columnas</h4>
+            <div class="caja-codigo">return prisma.mascota.findMany({
+  where: { duenoId },
+  take: 50,
+  select: {
+    id: true,
+    nombre: true,
+    especie: true,
+    dueno: { select: { nombre: true } },
+  },
+});</div>
+            <p>
+              <span class="etiq">select</span> explícito: sale lo que se decidió que salga.
+              <span class="etiq">where</span> con el dueño, que es la regla de negocio. Y
+              <span class="etiq">take</span>, porque <strong>todo listado lleva límite</strong>: sin
+              él, el día que haya 40.000 filas el endpoint las trae todas.
+            </p>
+          </div>
+        </div>
+        <p>
+          Y ahí está el <strong>N+1</strong> de la clase pasada, ya no como advertencia: ese
+          <span class="etiq">select</span> anidado es la forma correcta, y la incorrecta —pedir el
+          dueño adentro de un <span class="etiq">for</span>— se escribe casi igual de natural.
+        </p>
+      </section>
+
+
+      <section id="decisiones">
+        <h2>8. Decisiones: qué se gana y qué se resigna</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>A favor</th><th>En contra</th><th>Qué hacemos</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Un endpoint por <strong>recurso</strong> vs. uno por <strong>pantalla</strong></td>
+                <td>Uno por pantalla trae de una todo lo que esa vista necesita, en una sola llamada</td>
+                <td>Cada cambio de diseño obliga a tocar el backend, y ese endpoint no lo puede reusar nadie más</td>
+                <td><strong>Por recurso.</strong> La API sobrevive al rediseño; la pantalla arma lo que precisa</td>
+              </tr>
+              <tr>
+                <td>Recurso ajeno: <span class="etiq">403</span> o <span class="etiq">404</span></td>
+                <td>403 es más honesto: "existe y no podés"</td>
+                <td>Y con eso confirma que el recurso existe, que a veces ya es información de más</td>
+                <td><strong>403 si el problema es el rol</strong> (un dueño emitiendo). <strong>404 si el problema es que no es suyo</strong>: la mascota del vecino, para ustedes, no existe</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">PUT</span> vs. <span class="etiq">PATCH</span></td>
+                <td>PUT es idempotente y más simple de razonar</td>
+                <td>Obliga a mandar el objeto completo: un campo que falte se borra</td>
+                <td><strong>PATCH</strong>, con <span class="etiq">crearMascotaSchema.partial()</span>, que ya escribieron en la clase 2</td>
+              </tr>
+              <tr>
+                <td>Rutas anidadas vs. planas</td>
+                <td>Anidar se lee como el dominio: <span class="etiq">/mascotas/12/aplicaciones</span></td>
+                <td>Anidar de más da rutas larguísimas y duplicadas</td>
+                <td><strong>Un solo nivel de anidamiento</strong>, y solo cuando el hijo no tiene sentido sin el padre</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section id="ia">
+        <h2>9. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Hoy la IA escribe la API entera. Ese es el problema</span>
+          <p>
+            Con el <span class="etiq">schema.prisma</span> de la clase pasada, cualquier asistente
+            genera <strong>los cinco endpoints de las seis entidades</strong> en un minuto, y todo
+            compila. Lo que no puede saber es <em>quién puede llamar a cada uno</em>, <em>qué campos
+            se pueden devolver</em> y <em>cuál de esas operaciones es en realidad el negocio</em> —
+            que son las tres cosas que se evalúan.
+          </p>
+          <p>
+            El síntoma es fácil de reconocer: <strong>una API generada tiene treinta endpoints
+            perfectamente simétricos y ninguno se llama "emitir"</strong>.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Deleguen</h4>
+            <ul>
+              <li>El esqueleto del handler <strong>una vez que le dieron el contrato</strong></li>
+              <li>Las consultas de <span class="etiq">lib/db/</span> con su <span class="etiq">select</span></li>
+              <li>El <span class="etiq">api.http</span>, con los tres casos de cada endpoint</li>
+              <li>Revisar su tabla de rutas y decirles cuál falta o cuál se solapa</li>
+              <li>Explicarles un error de tipos de <span class="etiq">params</span></li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>Decidan ustedes</h4>
+            <ul>
+              <li>Qué <strong>recursos</strong> existen y cómo se llaman</li>
+              <li>Qué <strong>rol</strong> puede llamar a cada operación</li>
+              <li>Qué <strong>status</strong> devuelve cada error</li>
+              <li>Qué campos <strong>salen</strong> y cuáles no</li>
+              <li>Cuál es la operación del <strong>flujo principal</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El antipatrón de esta clase: el <span class="etiq">data: body</span></span>
+          <p>
+            Es la línea que sale sola, y es la vulnerabilidad más clásica que existe:
+          </p>
+          <div class="caja-codigo">// ✗ lo que escribe un asistente sin contexto
+export async function POST(request: Request) {
+  const body = await request.json();
+  const mascota = await prisma.mascota.create({ data: body });
+  return NextResponse.json(mascota);
+}</div>
+          <p>
+            Anda perfecto con el formulario propio. Ahora miren qué pasa si alguien manda
+            <span class="etiq">{ "nombre": "Fido", "duenoId": "el-id-del-vecino" }</span> desde
+            Postman: <strong>el sistema le crea una mascota a otra persona</strong>. Nadie rompió
+            nada — el endpoint hizo exactamente lo que le pidieron.
+          </p>
+          <p>
+            Y en cuanto el modelo crezca es peor: cualquier columna que exista pasa a ser
+            escribible desde afuera. Un campo <span class="etiq">rol</span> en
+            <span class="etiq">Usuario</span> con esta línea significa que cualquiera puede
+            registrarse como veterinario, que es literalmente la regla de negocio que la spec
+            declara crítica.
+          </p>
+          <p>
+            <strong>Las dos correcciones son las mismas de siempre:</strong> el body pasa por Zod
+            —que descarta lo que no está en el schema— y <strong>la identidad no se lee del body,
+            baja de la sesión</strong>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="taller">
+        <h2>10. Taller</h2>
+        <p class="lead">
+          Tres fases, en este orden. La primera es en papel otra vez, y por la misma razón que la
+          clase pasada: <strong>escribir un handler lleva cinco minutos; decidir qué operaciones
+          existen y quién puede llamarlas, no</strong>. El editor se abre en la fase B.
+        </p>
+
+        <div class="esquema">   A. EL CONTRATO   papel y docs/api.md, editor cerrado
+   B. LOS ENDPOINTS app/api/ + lib/db/, la lógica en un solo lugar
+   C. LA PRUEBA     sin interfaz: docs/api.http, local y producción</div>
+
+        <h3>Fase A — El contrato, con el editor cerrado</h3>
+        <p>
+          Con <span class="etiq">docs/spec.md</span> abierto y la lista de operaciones que trajeron.
+          Todo esto se contesta entre los cuatro, en voz alta.
+        </p>
+        <ol>
+          <li>
+            <strong>Una fila por operación.</strong> Recorran las historias de usuario y, por cada
+            una, escriban qué se crea, qué se lee, qué se modifica y qué se borra. Si una historia no
+            genera ninguna operación, o está mal escrita o no era una historia.
+          </li>
+          <li>
+            <strong>Pónganle método y ruta a cada fila.</strong> Sustantivo en plural en la URL,
+            verbo en el método. Si les sale un verbo en la URL, es que la operación no es un CRUD:
+            va al punto 4.
+          </li>
+          <li>
+            <strong>La columna del rol.</strong> Quién puede llamar a esa operación, según la tabla
+            de roles de su spec. <strong>Ninguna fila puede quedar vacía</strong>, y las que digan
+            "cualquiera" tienen que ser públicas a propósito, como la verificación del certificado.
+          </li>
+          <li>
+            <strong>Busquen la operación que no es un ABM.</strong> Está en el paso 4 o 5 de su flujo
+            principal, y es la que decide si esto es un producto o una planilla. Decidan su ruta:
+            <span class="etiq">POST /api/&lt;recurso&gt;/:id/&lt;la-operación&gt;</span>. Fíjense que
+            <strong>el verbo se convierte en sustantivo</strong> — es lo que lo mantiene REST:
+            <div class="caja-codigo">emitir      →  POST /api/certificados/:id/emision
+confirmar   →  POST /api/reservas/:id/confirmacion
+aprobar     →  POST /api/solicitudes/:id/aprobacion
+publicar    →  POST /api/articulos/:id/publicacion
+asignar     →  POST /api/tickets/:id/asignacion
+cancelar    →  POST /api/turnos/:id/cancelacion
+despachar   →  POST /api/pedidos/:id/despacho
+inscribir   →  POST /api/cursos/:id/inscripciones</div>
+            La última es la excepción que confirma la regla: si la operación puede ocurrir
+            <strong>muchas veces</strong> sobre el mismo recurso, el sustantivo va en plural y es una
+            colección de verdad. Emitir un certificado pasa una vez; inscribirse a un curso, muchas.
+          </li>
+          <li>
+            <strong>Los casos de error, con su status.</strong> Ya están escritos en los criterios de
+            aceptación de cada historia —"caso de error: si…"—: hoy se convierten en un número. Este
+            es el insumo de la clase 5, así que cuanto más completo, mejor.
+          </li>
+          <li>
+            <strong>Vuélquenlo a <span class="etiq">docs/api.md</span></strong> con esas cuatro
+            columnas. Es un archivo nuevo y es parte del entregable:
+            <div class="caja-codigo">| Método y ruta                      | Qué hace                 | Rol         | Errores  |
+|------------------------------------|--------------------------|-------------|----------|
+| POST /api/certificados             | Solicitar un certificado | Dueño       | 400, 409 |
+| POST /api/certificados/:id/emision | Emitirlo                 | Veterinario | 403, 404 |</div>
+          </li>
+        </ol>
+
+        <h3>Fase B — Los endpoints</h3>
+        <ol start="7">
+          <li>
+            <strong>Un archivo por recurso.</strong> <span class="etiq">app/api/&lt;recurso&gt;/route.ts</span>
+            para la colección (<span class="etiq">GET</span> y <span class="etiq">POST</span>) y
+            <span class="etiq">app/api/&lt;recurso&gt;/[id]/route.ts</span> para el individual
+            (<span class="etiq">GET</span>, <span class="etiq">PATCH</span>,
+            <span class="etiq">DELETE</span>). Recuerden el <span class="etiq">await params</span>.
+          </li>
+          <li>
+            <strong>Los cuatro pasos, en orden, en todos.</strong> Validar con el schema de Zod que
+            ya tienen, autorizar, delegar, responder. Donde todavía no hay sesión va el
+            <span class="etiq">TODO (clase 6)</span> explícito, como en el archivo de ejemplo del
+            template: <strong>un TODO escrito es una decisión postergada; un TODO ausente es una que
+            nadie tomó</strong>.
+          </li>
+          <li>
+            <strong>Las consultas, en <span class="etiq">lib/db/&lt;entidad&gt;.ts</span>.</strong>
+            Con <span class="etiq">select</span> explícito y <span class="etiq">take</span> en todo
+            listado. Chequeo rápido: <span class="etiq">grep -r "prisma\." app/</span> no tiene que
+            devolver nada.
+          </li>
+          <li>
+            <strong>El mínimo que hay que tener funcionando:</strong>
+            <div class="caja-codigo">[ ] CRUD completo de la entidad principal del dominio
+[ ] El listado que filtra por dueño (o el equivalente de su spec)
+[ ] La operación del flujo principal, la que no es un ABM
+[ ] Un GET público, si su dominio tiene alguno</div>
+          </li>
+          <li>
+            <span class="etiq">npm run typecheck</span> y <span class="etiq">npm run lint</span> en
+            verde antes de abrir el PR.
+          </li>
+        </ol>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Deléguenlo, pero después de la fase A</span>
+          <p>
+            Los handlers <strong>sí</strong> son buenos candidatos a delegar: son repetitivos y las
+            decisiones ya las tomaron ustedes en el papel. Toda la diferencia está en cuánto
+            contexto le dan:
+          </p>
+          <div class="caja-codigo">✗ "Hacéme la API REST de este schema.prisma"
+
+✓ "Escribí app/api/certificados/route.ts siguiendo el patrón de
+   app/api/mascotas/route.ts: GET lista los certificados de las mascotas
+   del dueño de la sesión con listarCertificadosDeDueno, POST valida con
+   solicitarCertificadoSchema (400 si falla), el duenoId sale de la
+   sesión y NO del body, delega en solicitarCertificado y devuelve 201.
+   Dejá el TODO de la clase 6 donde va la sesión. No importes prisma en
+   este archivo."</div>
+          <p>
+            En el segundo caso hace tipeo. En el primero toma <strong>todas</strong> las decisiones
+            de la fase A —y las toma bien parecido para los seis recursos, que es justo lo que
+            oculta que las tomó alguien más.
+          </p>
+        </div>
+
+        <h3>Fase C — Probarla sin interfaz</h3>
+        <p>
+          No hay pantallas todavía y no hacen falta. La API se prueba con un archivo
+          <span class="etiq">docs/api.http</span>, que se corre desde el editor con la
+          extensión <strong>REST Client</strong>. <strong>Es parte del entregable</strong>: queda
+          versionado, se revisa en el PR igual que cualquier otro archivo, y es lo que van a abrir en
+          la defensa del Parcial I.
+        </p>
+        <div class="caja-codigo">### docs/api.http
+
+@base = http://localhost:3000
+# @base = https://&lt;la-url-que-les-dio-vercel&gt;
+
+### crear → tiene que devolver 201 y el objeto con su id
+POST {{base}}/api/mascotas
+Content-Type: application/json
+
+{ "nombre": "Fido", "especie": "PERRO", "fechaNacimiento": "2024-03-01" }
+
+### el mismo con un dato inválido → tiene que devolver 400, NO 500
+POST {{base}}/api/mascotas
+Content-Type: application/json
+
+{ "nombre": "", "especie": "DRAGON" }
+
+### un id que no existe → 404
+GET {{base}}/api/mascotas/no-existe
+
+### listar
+GET {{base}}/api/mascotas</div>
+        <p>
+          Arriba de cada <span class="etiq">###</span> aparece un <em>Send Request</em>: click, y la
+          respuesta se abre al costado con <strong>el status y los headers a la vista</strong>. Para
+          probar contra producción se descomenta la segunda línea y se vuelve a correr el archivo
+          entero, sin tocar nada más.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Postman, y por qué no es el entregable</span>
+          <p>
+            En la demo van a ver el mismo endpoint una vez en <strong>Postman</strong>: es lo que se
+            van a encontrar en cualquier equipo, y muestra la respuesta más grande y más cómoda de
+            leer. Si les resulta más claro para trabajar, úsenlo.
+          </p>
+          <p>
+            Lo que se entrega igual es el <span class="etiq">api.http</span>, por una razón sola:
+            <strong>vive en el repo</strong>. Una colección de Postman está en la cuenta de quien la
+            armó, hay que exportarla para compartirla, y se desactualiza el día que alguien cambia
+            una ruta sin que el resto se entere. El archivo del repo se revisa en el mismo PR que el
+            endpoint que prueba, y llega a la defensa junto con el código.
+          </p>
+        </div>
+        <ol start="12">
+          <li>
+            <strong>Prueben los tres casos de cada endpoint:</strong> el que anda, el body inválido y
+            el recurso que no existe. Los tres van al <span class="etiq">api.http</span>, no solo el
+            que anda. Y <strong>miren el status, no el body</strong>: un 500 donde tenía que haber un
+            400 es el error más común de hoy, y desde afuera los dos se ven igual de "roto".
+          </li>
+          <li>
+            <strong>Repitan las mismas pruebas contra producción</strong> después del merge:
+            descomenten la línea de <span class="etiq">@base</span> con la URL de Vercel y corran el
+            archivo entero otra vez. Ese es el hito:
+            un endpoint que anda en <span class="etiq">localhost</span> y no en la URL pública, para
+            esta materia, no existe. Si falla solo en producción, casi siempre es una variable de
+            entorno que está en el <span class="etiq">.env.local</span> y no en el panel de Vercel.
+          </li>
+          <li>
+            <strong>PR y code review.</strong> Además de lo de siempre, el que revisa mira estas
+            seis cosas:
+            <div class="caja-codigo">[ ] ¿Hay algún `prisma.` adentro de app/ ?
+[ ] ¿Algún endpoint hace `data: body` sin pasar por Zod?
+[ ] ¿Alguna identidad (duenoId, emisorId, autorId) sale del body?
+[ ] ¿Algún listado sin `take` o sin `select`?
+[ ] ¿Las rutas coinciden con docs/api.md?
+[ ] ¿docs/api.http tiene los tres casos de cada endpoint nuevo?</div>
+          </li>
+        </ol>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Ojo con probar POST contra la base compartida</span>
+          <p>
+            Su <span class="etiq">.env.local</span> apunta a la misma base de Supabase que usan los
+            cuatro y que usa producción. Cada <span class="etiq">POST</span> de prueba
+            <strong>deja una fila real</strong>, y a las dos horas de taller la tabla tiene treinta
+            mascotas llamadas "asdasd".
+          </p>
+          <p>
+            No es grave hoy, pero sí antes del parcial: usen nombres reconocibles
+            (<span class="etiq">PRUEBA-nombre</span>), y dejen la base limpia con
+            <span class="etiq">npm run db:seed</span> antes de la demo. El seed es idempotente
+            justamente para eso.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Si el equipo no usa Next</span>
+          <p>
+            Las Server Actions no existen fuera de Next y no hay que reemplazarlas: es una
+            característica del framework, no un requisito. Lo que sí se exige igual es
+            <strong>la API REST completa con su <span class="etiq">docs/api.md</span></strong>, la
+            separación entre la capa que atiende el request y la que consulta la base, y que todo
+            responda en la URL pública. En Express, Fastify o Django el patrón de cuatro pasos es
+            exactamente el mismo; cambian los nombres.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="entregable">
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li><span class="etiq">docs/api.md</span> con el contrato completo: método, ruta, qué hace, rol y errores.</li>
+          <li>CRUD completo de la entidad principal, en <span class="etiq">app/api/</span>, con los status codes correctos.</li>
+          <li><strong>La operación del flujo principal</strong> —la que no es un ABM— con su propia ruta.</li>
+          <li>Todas las consultas en <span class="etiq">lib/db/</span>, con <span class="etiq">select</span> y <span class="etiq">take</span> explícitos. Ningún <span class="etiq">prisma.</span> dentro de <span class="etiq">app/</span>.</li>
+          <li>Los <span class="etiq">TODO (clase 5)</span> y <span class="etiq">TODO (clase 6)</span> escritos donde faltan la validación de reglas y la sesión.</li>
+          <li><span class="etiq">docs/api.http</span> commiteado, con los tres casos de cada endpoint.</li>
+          <li><strong>Todo respondiendo en la URL pública</strong>, verificado corriendo ese mismo archivo contra local y contra producción.</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>
+            Lectura del eje metodológico (<strong>Ágil</strong>) + entrega del cuestionario en UAI
+            Online Ultra. Después de XP y de Scrum, el manifiesto se lee distinto: van a reconocer de
+            dónde salieron los dos.
+          </li>
+          <li>
+            Traer, de su spec, <strong>todos los "caso de error" de las historias de usuario</strong>
+            en una sola lista. No hay que inventar ninguno: ya están escritos en los criterios de
+            aceptación, desperdigados en una historia cada uno. El trabajo es <strong>juntarlos y
+            agregarles dos columnas</strong>:
+            <div class="caja-codigo">| Caso de error (sale de la historia)      | Qué ve el usuario           | ¿Quién lo agarra? |
+|------------------------------------------|-----------------------------|-------------------|
+| H1: fecha de nacimiento futura           | "No puede ser futura"       | Zod, ya está      |
+| H4: le falta una vacuna obligatoria      | "Falta: antirrábica"        | ? hay que ir a la base |
+| H5: quien emite no es veterinario        | "No podés emitir"           | ? la sesión       |</div>
+            <p>
+              La tercera columna es la que hace el trabajo, y es la pregunta de la clase 5:
+              <strong>¿esto lo puede rechazar un schema mirando el body, o hay que preguntarle algo
+              a la base?</strong> Lo primero ya lo saben hacer desde la clase 2. Lo segundo es
+              validación de reglas de negocio, y no existe todavía en su código — son los
+              <span class="etiq">TODO (clase 5)</span> que dejaron escritos hoy.
+            </p>
+            <p>
+              De una spec con cinco o seis historias salen <strong>entre seis y doce filas</strong>.
+              Si les salen dos, no buscaron bien; si les salen treinta, están escribiendo casos que
+              la spec no pide.
+            </p>
+            <p>
+              <strong>Va en papel, y no en el repositorio.</strong> Esos casos ya están escritos en
+              <span class="etiq">docs/spec.md</span>, adentro de cada historia: copiarlos a un
+              archivo nuevo los deja en dos lugares, y el día que alguien ajuste un criterio se va a
+              acordar de uno solo. Es <em>cada dato en un solo lugar</em>, el de la clase 3, aplicado
+              a la documentación. Lo que traen no es un entregable: es una <strong>vista</strong> de
+              algo que ya existe, armada para poder discutirla. En la clase 5 esta lista sí aterriza
+              en el repo, pero en la columna <strong>Errores</strong> de
+              <span class="etiq">docs/api.md</span>, que ya está esperándola.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 04 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
