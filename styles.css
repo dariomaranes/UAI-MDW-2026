@@ -328,6 +328,23 @@ tbody tr:nth-child(even) { background-color: #fcfafb; }
   margin: 16px 0;
 }
 
+/* Sin esto, una caja de código larga estira su columna y desborda la página.
+   Un ítem de grilla mide por defecto `min-width: auto`, o sea AL MENOS lo que
+   mide su contenido, así que el `overflow-x` de .caja-codigo nunca llegaba a
+   activarse: en vez de scrollear adentro de la tarjeta, empujaba la tarjeta. */
+.grid-2 > * { min-width: 0; }
+
+/* Comparaciones cuyo contenido es código de verdad. En dos columnas entran
+   unos 38 caracteres por línea y no hay TypeScript que entre en eso, así que
+   estas se apilan y usan el ancho completo. El contraste "así no / así sí" se
+   sigue leyendo por el color del borde superior. */
+.grid-apilada {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
 .tarjeta {
   border: 1px solid var(--linea);
   border-radius: 6px;
