@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 05 - Validación, errores y capas</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 05 — MDW 2026</h1>
+      <p class="fecha-clase">martes 08/09/2026</p>
+      <h2>Validación, errores y capas</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          La API de la clase pasada responde, pero solo sabe rechazar lo que está mal
+          <strong>escrito</strong>. Todo lo que está mal <strong>según el negocio</strong> lo acepta
+          sin chistar: hoy se puede pedir un certificado para una mascota sin vacunar. Al final de
+          la clase, cada equipo tiene <strong>las reglas de su dominio implementadas y probadas</strong>,
+          y cada error con su status y su mensaje escritos en el contrato.
+        </p>
+        <ul class="agenda">
+          <li><a href="#de-donde-salen">De dónde salen las reglas de hoy: la lista que trajeron</a></li>
+          <li><a href="#agil">Metodología: Ágil · el manifiesto y la línea que todos se saltean</a></li>
+          <li><a href="#tres-capas">Las tres capas de validación y la pregunta que las separa</a></li>
+          <li><a href="#funciones-puras">Las reglas viven en funciones puras</a></li>
+          <li><a href="#estado-sanitario">El caso completo: una función, tres endpoints</a></li>
+          <li><a href="#el-error">El error es parte del contrato: status, forma y mensaje</a></li>
+          <li><a href="#esperado-inesperado">Errores esperados e inesperados: qué se devuelve y qué se lanza</a></li>
+          <li><a href="#recorrido">El recorrido completo: de la spec al 409</a></li>
+          <li><a href="#ia">Qué le pedimos a la IA (y qué no)</a></li>
+          <li><a href="#taller">Taller</a></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es el <strong>Manifiesto Ágil</strong>, y llega en el orden correcto: leyeron
+            XP en la clase 3 y Scrum en la 4, o sea que ya conocen dos hijos antes que al padre. El
+            manifiesto no es una tercera metodología que compite con esas dos —<strong>no es una
+            metodología en absoluto</strong>, son cuatro valores y doce principios— y esa distinción
+            es media clase. La otra media es la línea que casi nadie cita, la que viene después de
+            los cuatro valores, y que hoy justifica que estemos escribiendo más documentación y no
+            menos. Todo en la sección 2.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-05.pdf">📄 Material de la clase 05 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="de-donde-salen">
+        <h2>1. De dónde salen las reglas de hoy</h2>
+        <p class="lead">
+          Traen una lista en papel. Es el temario de la clase de hoy, y lo escribieron ustedes en la
+          clase 2 sin saberlo: cada fila salió de un <em>"caso de error"</em> de un criterio de
+          aceptación de <span class="etiq">docs/spec.md</span>.
+        </p>
+        <div class="caja-codigo">| Caso de error (sale de la historia)      | Qué ve el usuario           | ¿Quién lo agarra? |
+|------------------------------------------|-----------------------------|-------------------|
+| H1: fecha de nacimiento futura           | "No puede ser futura"       | Zod, ya está      |
+| H2: la mascota no llega a la edad mínima | "Recién a partir de los 3m" | ? la base sabe    |
+| H4: le falta una vacuna obligatoria      | "Falta: antirrábica"        | ? hay que buscarlo|
+| H5: quien emite no es veterinario        | "No podés emitir"           | ? la sesión       |</div>
+
+        <p>
+          Al llenar la tercera columna las filas <strong>no salieron todas iguales</strong>. Lo que
+          las separa es una sola pregunta, y es la que ordena la clase de hoy:
+        </p>
+        <div class="esquema">   ¿alcanza con mirar el body para decidir si esto está bien?
+
+      SÍ  ─►  es un schema de Zod. Ya lo saben hacer.        → 400
+
+      NO  ─►  hay que ir a buscar algo: el plan de la especie,
+              las aplicaciones cargadas, el estado del certificado.
+              Eso es una REGLA DE NEGOCIO, y hoy no existe
+              en su código.                                  → 409</div>
+
+        <p>
+          <strong>Fila 1:</strong> "no puede haber nacido en el futuro" se decide con el body y el
+          calendario. Va en Zod y ya funciona.
+          <strong>Fila 3:</strong> para saber si a Laika le falta la antirrábica hay que buscar qué
+          exige el plan de su especie a su edad y qué tiene aplicado. <strong>Dos consultas antes
+          de poder opinar.</strong> Ningún schema puede con eso.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Ojo con "validación de forma vs. validación de negocio"</span>
+          <p>
+            Es la división que traen los tutoriales y engaña: la fecha futura de la H1 <em>es</em>
+            negocio y va en Zod igual. Lo que separa las capas no es <strong>qué</strong> se valida,
+            sino <strong>con qué información alcanza para decidirlo</strong>.
+          </p>
+        </div>
+
+        <p>
+          La cuarta fila tampoco se resuelve hoy: necesita saber <em>quién</em> hace el request, y
+          eso es la sesión de la clase 6. Hoy desaparecen los
+          <span class="etiq">TODO (clase 5)</span>; los de la 6 siguen esperando, escritos.
+        </p>
+      </section>
+
+
+      <section id="agil">
+        <h2>2. Metodología: Ágil</h2>
+        <p class="lead">
+          Cuatro valores y doce principios, escritos en 2001 entre diecisiete personas que ya venían
+          practicando cosas distintas y buscaban el denominador común. XP era una de esas cosas.
+          Scrum era otra.
+        </p>
+
+        <h3>Ágil no es una metodología</h3>
+        <p>
+          No se puede "hacer Ágil", igual que no se puede "hacer honestidad". Es un conjunto de
+          valores: dice qué priorizar cuando hay que elegir, y nada sobre qué hacer el lunes a la
+          mañana. Eso lo dicen las metodologías, y esas ya las leyeron:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Qué es</th>
+                <th>Qué responde</th>
+                <th>Dónde lo vieron</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ágil</strong> — un manifiesto</td>
+                <td>Qué priorizar cuando dos cosas buenas compiten</td>
+                <td>Hoy</td>
+              </tr>
+              <tr>
+                <td><strong>XP</strong> — una metodología</td>
+                <td>Cómo escribir el código: tests, pares, refactor</td>
+                <td>Clase 3</td>
+              </tr>
+              <tr>
+                <td><strong>Scrum</strong> — un marco de trabajo</td>
+                <td>Cómo organizar el trabajo: roles, eventos, artefactos</td>
+                <td>Clase 4</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Los cuatro valores, y la línea que casi nadie cita</h3>
+        <div class="caja-codigo">Individuos e interacciones   sobre   procesos y herramientas
+Software funcionando         sobre   documentación extensiva
+Colaboración con el cliente  sobre   negociación contractual
+Respuesta ante el cambio     sobre   seguir un plan
+
+  Esto es, aunque valoramos los elementos de la derecha,
+  valoramos más los de la izquierda.</div>
+        <p>
+          Las cuatro de arriba se citan todo el tiempo; la de abajo casi nunca, y es la que hace al
+          manifiesto utilizable. <strong>No dice que lo de la derecha no valga.</strong> Dice qué
+          gana cuando los dos compiten.
+        </p>
+        <p>
+          Búsquenla en el PDF que leyeron para hoy: <strong>no está</strong>. Y no es un descuido de
+          ese material en particular — se cae de casi todos los resúmenes, y por eso el manifiesto
+          termina leyéndose como una lista de cosas prohibidas.
+        </p>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Por qué importa hoy, y una trampa de traducción</span>
+          <p>
+            La primera fase del taller es escribir documentación —el catálogo de errores en
+            <span class="etiq">docs/api.md</span>— y eso parece contradecir el segundo valor, que en
+            el PDF que leyeron aparece como <em>"software de trabajo sobre documentación
+            completa"</em>.
+          </p>
+          <p>
+            Esa línea trae <strong>dos traducciones flojas</strong>. El original dice
+            <em>"working software over comprehensive documentation"</em>, y la traducción oficial al
+            castellano, <em>"software funcionando sobre documentación extensiva"</em>. No es
+            cosmético: <strong>"completa" suena a que el problema es documentar de menos</strong>,
+            cuando lo que el manifiesto rechaza es lo contrario — el documento
+            <em>exhaustivo que sustituye al software</em>, las doscientas páginas que se firmaban
+            antes de escribir la primera línea y quedaban desactualizadas en la segunda semana.
+          </p>
+          <p>
+            El de ustedes entra en una página, vive en el repo, se revisa en el mismo PR que el
+            código que describe y se usa para construir la semana que viene. Esa es la prueba:
+            <strong>si un documento no se lee para trabajar, no se escribe.</strong>
+          </p>
+        </div>
+
+        <p>
+          Y un principio que es literalmente la clase de hoy: <strong>"la atención continua a la
+          excelencia técnica y al buen diseño mejora la agilidad"</strong>. Es el que explica por
+          qué no vamos a meter la regla del certificado adentro del handler aunque ahí funcione: en
+          la clase 11 el formulario va a necesitar la misma regla, y la agilidad va a depender de si
+          está en un lugar o en cuatro. El otro —<em>"maximizar la cantidad de trabajo no
+          realizado"</em>— se aplica en un punto concreto: hoy no construyen un sistema de manejo de
+          errores, implementan los que su spec pide.
+        </p>
+      </section>
+
+
+      <section id="tres-capas">
+        <h2>3. Las tres capas de validación</h2>
+        <p class="lead">
+          Un dato que llega del cliente atraviesa tres controles antes de quedar guardado. Los tres
+          existen a propósito, hacen cosas distintas y ninguno reemplaza a los otros dos.
+        </p>
+        <div class="esquema">   request
+      │
+      ▼
+   ┌──────────────────────────────────────────────┐
+   │  app/api/**/route.ts        EL BORDE          │  400
+   │    Zod: ¿el body tiene la forma acordada?     │  ¿alcanza con el body?
+   ├──────────────────────────────────────────────┤
+   │  lib/&lt;dominio&gt;.ts           LAS REGLAS        │  409
+   │    funciones puras: ¿el negocio lo permite?   │  necesita el estado
+   ├──────────────────────────────────────────────┤
+   │  lib/db/&lt;entidad&gt;.ts        LAS CONSULTAS     │  404
+   │    ¿existe? ¿es de quien pregunta?            │
+   ├──────────────────────────────────────────────┤
+   │  Postgres                   LAS GARANTÍAS     │  la última línea
+   │    unique, FK, Restrict, NOT NULL             │  nunca debería llegar
+   └──────────────────────────────────────────────┘</div>
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Capa</th>
+                <th>Qué chequea</th>
+                <th>Con qué información</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Zod</strong>, en el handler</td>
+                <td>Que el body tenga los campos, con los tipos y los rangos acordados. Incluidas las reglas de negocio que se deciden mirando solo el body</td>
+                <td>El body y nada más</td>
+                <td><span class="etiq">400</span></td>
+              </tr>
+              <tr>
+                <td><strong>Las reglas</strong>, en <span class="etiq">lib/</span></td>
+                <td>Que la operación tenga sentido dado el estado actual del sistema</td>
+                <td>Datos que hay que ir a buscar primero</td>
+                <td><span class="etiq">409</span></td>
+              </tr>
+              <tr>
+                <td><strong>La base</strong></td>
+                <td>Que las garantías estructurales no se rompan: unicidad, integridad referencial, borrados</td>
+                <td>Toda la tabla</td>
+                <td><span class="etiq">409</span> traducido, nunca un <span class="etiq">500</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Por qué la misma regla puede estar dos veces</h3>
+        <p>
+          Va a aparecer la objeción, y es buena: si la base ya tiene <span class="etiq">@unique</span>
+          en el email, ¿para qué chequearlo también en el código? ¿No es duplicar?
+        </p>
+        <p>
+          No, y el motivo es que <strong>las dos capas responden preguntas distintas</strong>. El
+          chequeo en el código existe para <em>darle una respuesta útil a quien preguntó</em>: un
+          <span class="etiq">409</span> con "ese email ya está registrado". La restricción en la base
+          existe para <em>garantizar que el dato nunca quede mal</em>, incluso si mañana alguien
+          escribe un segundo endpoint y se olvida del chequeo, o corre un script a mano.
+        </p>
+        <div class="esquema">   el chequeo en el código  →  buena UX      (se puede olvidar)
+   la restricción en la base →  la garantía  (no se puede evitar)</div>
+        <p>
+          Es <strong>defensa en profundidad</strong>: la de arriba explica, la de abajo protege. Lo
+          que sí es un error es tener <em>solo</em> la de arriba —porque tarde o temprano algún
+          camino la esquiva— o <em>solo</em> la de abajo, porque entonces el usuario recibe un
+          <span class="etiq">500</span> donde tenía que haber una explicación.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Lo que NO es una capa de validación: la pantalla</span>
+          <p>
+            El <span class="etiq">required</span> del input y el botón deshabilitado son
+            <strong>comodidad</strong>, no seguridad. Se pueden sacar desde las herramientas del
+            navegador en cuatro segundos, y de todas formas el endpoint sigue estando ahí para
+            cualquiera que abra Postman. Lo van a escribir igual en la clase 11 —es buena UX
+            avisar antes de mandar— pero <strong>nunca reemplaza</strong> a la validación del
+            servidor: la duplica para que el usuario se entere antes.
+          </p>
+          <p>
+            La forma corta de decirlo, y sirve para toda la materia: <strong>todo lo que corre en el
+            navegador está bajo el control del usuario.</strong>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="funciones-puras">
+        <h2>4. Las reglas viven en funciones puras</h2>
+        <p class="lead">
+          La capa que falta no es un archivo nuevo cualquiera: tiene una característica que decide
+          todo lo demás. <strong>No importa Prisma y no importa Next.</strong> Recibe datos, devuelve
+          un veredicto.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Función pura, para anotar</span>
+          <p>
+            <strong>Una función pura es la que, con los mismos parámetros, devuelve siempre lo mismo
+            y no cambia nada afuera.</strong>
+          </p>
+          <p>
+            Las dos mitades se necesitan. <em>Siempre lo mismo</em> obliga a que todo lo que use
+            entre por parámetro: si adentro lee la base o el reloj, el resultado ya no depende solo
+            de lo que le pasaron. <em>No cambia nada afuera</em> significa que no guarda, no manda
+            mails y no responde un request: devuelve un valor y quien la llamó decide qué hacer.
+          </p>
+          <p>
+            La consecuencia práctica, que es por lo que nos importa hoy:
+            <strong>una función pura se puede probar llamándola</strong>. No hay nada que levantar
+            ni que preparar antes.
+          </p>
+        </div>
+
+        <p>
+          Es la misma separación que ya tienen entre <span class="etiq">app/</span> y
+          <span class="etiq">lib/db/</span>, un piso más abajo:
+        </p>
+        <div class="esquema">   lib/db/&lt;entidad&gt;.ts   →  sabe LEER          (importa Prisma, no decide nada)
+   lib/&lt;dominio&gt;.ts     →  sabe DECIDIR       (no importa nada, no lee nada)
+   app/api/**/route.ts  →  sabe RESPONDER     (junta los dos y elige el status)</div>
+
+        <h3>La misma regla, en los dos lugares posibles</h3>
+        <div class="grid-apilada">
+          <div class="tarjeta tarjeta-no">
+            <h4>Así no</h4>
+            <div class="caja-codigo">// app/api/certificados/route.ts
+
+const plan = await prisma.vacuna.findMany({
+  where: { especie, obligatoria: true },
+});
+const puestas = await prisma.aplicacion.findMany({
+  where: { mascotaId },
+});
+
+const faltantes = [];
+for (const v of plan) {
+  const a = puestas.find(x =&gt; x.vacunaId === v.id);
+  if (!a || a.proximaDosis &lt; new Date()) {
+    faltantes.push(v.nombre);
+  }
+}</div>
+            <p>
+              Anda. Y tiene tres problemas que no se ven hoy: <strong>hay Prisma adentro de
+              <span class="etiq">app/</span></strong> (la regla de la clase 4);
+              <strong>no se puede probar</strong> sin levantar un servidor y una base con datos
+              justos; y <strong>la misma lógica hace falta en <span class="etiq">/emision</span></strong>,
+              así que en veinte minutos va a estar copiada. El día que el plan cambie, se corrige
+              una de las dos.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Así sí</h4>
+            <div class="caja-codigo">// lib/estado-sanitario.ts
+// Sin imports. Recibe datos, devuelve datos.
+
+export function vacunasFaltantes(
+  plan: VacunaDelPlan[],
+  aplicaciones: AplicacionCargada[],
+  fechaNacimiento: Date,
+  hoy: Date,
+): string[] {
+  return estadoSanitario(
+    plan, aplicaciones, fechaNacimiento, hoy,
+  )
+    .filter(v =&gt; v.obligatoria)
+    .filter(v =&gt; v.estado === "PENDIENTE"
+              || v.estado === "VENCIDA")
+    .map(v =&gt; v.nombre);
+}</div>
+            <p>
+              El handler queda leyendo como el criterio de aceptación: buscá el plan, buscá las
+              aplicaciones, preguntá qué falta, si falta algo devolvé
+              <span class="etiq">409</span> con la lista. Y la función se prueba con
+              <span class="etiq">npm test</span>, <strong>sin base, sin servidor y en
+              milisegundos</strong>.
+            </p>
+          </div>
+        </div>
+
+        <h3>Las tres marcas de una función pura</h3>
+        <ol>
+          <li>
+            <strong>No lee nada de afuera.</strong> Ni la base, ni un archivo, ni una variable de
+            entorno. Todo lo que necesita llega por parámetro. Si necesita el plan de vacunación,
+            el plan es un parámetro y alguien más lo fue a buscar.
+          </li>
+          <li>
+            <strong>No escribe nada.</strong> No guarda, no manda mails, no devuelve un
+            <span class="etiq">NextResponse</span>. Devuelve un valor y quien la llamó decide qué
+            hacer con él.
+          </li>
+          <li>
+            <strong>Con los mismos parámetros devuelve siempre lo mismo.</strong> Y de acá sale el
+            detalle que parece una manía y no lo es: <strong><span class="etiq">hoy</span> entra
+            por parámetro</strong>, no se lee con <span class="etiq">new Date()</span> adentro.
+            Una función que mira el reloj no se puede testear —el test "una vacuna vencida aparece
+            como vencida" tendría que esperar a que venza— y no se puede reusar para preguntar
+            "¿estaba al día el 3 de agosto?", que es exactamente lo que un certificado emitido
+            afirma.
+          </li>
+        </ol>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto ya está en su repositorio, de la clase pasada</span>
+          <p>
+            <span class="etiq">lib/certificados.ts</span> del proyecto de referencia ya es esto:
+            <span class="etiq">calcularVencimiento(emitidoEn, vencimientoDeVacunas)</span> no importa
+            Prisma, recibe dos fechas y devuelve una. Por eso su segundo parámetro está
+            <strong>esperando desde la clase 4</strong> con un <span class="etiq">null</span>: es el
+            valor que la regla de hoy le va a pasar. La capa no se inventa hoy, se completa.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="estado-sanitario">
+        <h2>5. El caso completo: una función, tres endpoints</h2>
+        <p class="lead">
+          Vale la pena seguir una sola regla hasta el final, porque el punto no es la regla: es
+          que <strong>bien ubicada, una regla sirve para tres cosas que parecían tres problemas
+          distintos</strong>.
+        </p>
+        <p>
+          En la libreta sanitaria, la regla es <em>el estado sanitario de una mascota</em>. Dado el
+          plan de vacunación de su especie, sus aplicaciones cargadas y una fecha, cada vacuna del
+          plan está en uno de tres estados:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Cuándo</th>
+                <th>De dónde sale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Al día</strong></td>
+                <td>Está aplicada y su próxima dosis todavía no llegó (o no tiene refuerzo)</td>
+                <td>H3</td>
+              </tr>
+              <tr>
+                <td><strong>Pendiente</strong></td>
+                <td>Nunca se aplicó y la mascota <strong>ya alcanzó</strong> la edad mínima</td>
+                <td>H3</td>
+              </tr>
+              <tr>
+                <td><strong>Vencida</strong></td>
+                <td>Se aplicó, tenía refuerzo, y la fecha de la próxima dosis ya pasó</td>
+                <td>H3</td>
+              </tr>
+              <tr>
+                <td><em>(no corresponde)</em></td>
+                <td>La mascota todavía no tiene la edad mínima de esa vacuna</td>
+                <td>Regla de negocio de la spec</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Ese cuarto caso es el que se olvida siempre y el que hace fallar la demo: un cachorro de
+          un mes <strong>no está "pendiente" de la antirrábica</strong>, no le corresponde todavía.
+          Si el cálculo no lo contempla, ningún cachorro puede tener un certificado nunca.
+        </p>
+
+        <h3>Los tres usos</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Dónde</th>
+                <th>Qué le pregunta</th>
+                <th>Qué hace con la respuesta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">GET /api/mascotas/:id/estado-sanitario</span></td>
+                <td>El estado de <strong>cada</strong> vacuna del plan</td>
+                <td>Lo devuelve tal cual: es la H3</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">POST /api/certificados</span></td>
+                <td>Las <strong>obligatorias</strong> que no están al día</td>
+                <td>Si hay alguna, <span class="etiq">409</span> enumerándolas (H4)</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">POST /api/certificados/:id/emision</span></td>
+                <td>Lo mismo, otra vez, y además <strong>cuándo vence la primera</strong></td>
+                <td><span class="etiq">409</span> si venció alguna; si no, esa fecha es el vencimiento (H5)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Por qué se pregunta dos veces, al solicitar y al emitir</span>
+          <p>
+            Parece redundante y no lo es: <strong>entre la solicitud y la emisión pasa tiempo</strong>,
+            y en ese tiempo una vacuna pudo vencer. El criterio de aceptación de la H5 lo dice con
+            todas las letras. Es el ejemplo más limpio de por qué una regla de negocio no se
+            evalúa "una vez, al principio": se evalúa <strong>en cada operación que dependa de
+            ella</strong>, con los datos del momento.
+          </p>
+          <p>
+            Y es también la razón por la que la función tiene que estar en un solo lugar. Dos
+            endpoints con la misma pregunta y dos implementaciones distintas es un bug esperando la
+            fecha.
+          </p>
+        </div>
+
+        <h3>Un detalle que decide la nota: qué devuelve la función</h3>
+        <p>
+          Se puede escribir <span class="etiq">estaAlDia(): boolean</span> y es lo primero que sale.
+          Pero la H4 no pide saber si está al día: pide <strong>enumerar cuáles faltan</strong>. Un
+          booleano no se puede convertir en una lista, así que ese
+          <span class="etiq">true/false</span> obliga a hacer el cálculo dos veces o a devolver un
+          mensaje genérico.
+        </p>
+        <div class="esquema">   ✗ estaAlDia(...): boolean          →  "La mascota no está al día"
+   ✓ vacunasFaltantes(...): string[] →  "Faltan: antirrábica, quíntuple"
+
+   El array vacío significa "al día". No hace falta el booleano.</div>
+        <p>
+          La regla general: <strong>que la función devuelva el dato más rico que el criterio de
+          aceptación necesite</strong>, y que sea el handler el que lo reduzca. Reducir es fácil;
+          reconstruir lo que se tiró, no.
+        </p>
+      </section>
+
+
+      <section id="el-error">
+        <h2>6. El error es parte del contrato</h2>
+        <p class="lead">
+          Un endpoint no es "la respuesta cuando todo sale bien" más una sorpresa cuando no. Sus
+          errores son tan contrato como su camino feliz: <strong>alguien va a programar contra
+          ellos</strong>, y en la clase 11 ese alguien son ustedes mismos escribiendo el formulario.
+        </p>
+
+        <h3>Una sola forma, para todos</h3>
+        <p>
+          Lo primero que hay que decidir —una vez, hoy, y no endpoint por endpoint— es
+          <strong>qué forma tiene una respuesta de error</strong>. Cualquiera sirve; lo que no sirve
+          es que haya cuatro:
+        </p>
+        <div class="caja-codigo">// ✗ cuatro endpoints, cuatro formas
+{ "error": "Datos inválidos" }
+{ "message": "no encontrado" }
+{ "errors": ["falta el nombre"] }
+"Mascota no encontrada"
+
+// ✓ una sola, con un campo opcional para el detalle
+{ "error": "&lt;mensaje para la persona&gt;", "detalles": { ... } }</div>
+        <p>
+          Con una sola forma, el código que consume la API tiene <strong>un</strong> lugar donde
+          leer el mensaje. Con cuatro, cada pantalla adivina, y la que adivina mal muestra
+          <span class="etiq">undefined</span> al usuario.
+        </p>
+
+        <h3>El 409 que enumera</h3>
+        <p>
+          La H4 pide que la respuesta enumere las vacunas que faltan. Eso significa que
+          <strong>el array no es decoración: es el criterio de aceptación</strong>, y va en un campo
+          propio, no embutido en el string del mensaje.
+        </p>
+        <div class="caja-codigo">// ✗ el dato adentro del texto: la pantalla tendría que parsear castellano
+{ "error": "Faltan las vacunas: antirrábica, quíntuple" }
+
+// ✓ el mensaje para la persona, el dato para el programa
+{
+  "error": "La mascota no está al día con las vacunas obligatorias",
+  "faltantes": ["Antirrábica", "Quíntuple"]
+}</div>
+        <p>
+          Toda respuesta de error tiene <strong>dos audiencias</strong>: la persona, que lee el
+          mensaje, y el programa, que necesita el status y el dato estructurado para decidir qué
+          hacer —resaltar un campo, ofrecer un botón, mandar a otra pantalla—. Escribir para una
+          sola de las dos es el error más común.
+        </p>
+
+        <h3>400 o 409: la pregunta que lo decide</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Qué significa exactamente</th>
+                <th>Ejemplo del dominio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">400</span></td>
+                <td>El <strong>request</strong> está mal. Mandándolo distinto, funciona</td>
+                <td>Falta el nombre; la especie es <span class="etiq">"DRAGON"</span>; la fecha de nacimiento es futura</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">409</span></td>
+                <td>El request está <strong>perfecto</strong>. Es el estado del sistema el que no lo permite</td>
+                <td>A la mascota le falta la antirrábica; el certificado ya está emitido; la mascota tiene historial y no se puede borrar</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">404</span></td>
+                <td>No existe… <strong>o no es suyo</strong></td>
+                <td>Un id inventado, y también la mascota del vecino</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">500</span></td>
+                <td>Se rompió algo del lado de ustedes</td>
+                <td><strong>Ninguno.</strong> Un 500 es siempre un bug</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La prueba práctica, cuando hay dudas: <strong>"¿el cliente puede arreglarlo cambiando lo
+          que manda?"</strong> Si sí, es <span class="etiq">400</span>. Si tiene que pasar otra cosa
+          en el sistema —vacunar al perro, esperar, que otro anule el certificado— es
+          <span class="etiq">409</span>.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">¿Y el 422, que aparece en todos lados?</span>
+          <p>
+            <span class="etiq">422 Unprocessable Content</span> existe y significa "entendí el
+            formato pero el contenido no es procesable". Muchas APIs lo usan para lo que nosotros
+            mandamos con <span class="etiq">400</span>. <strong>No está mal usarlo</strong>; lo que
+            está mal es usar los dos sin un criterio escrito, que es lo que pasa cuando cada
+            integrante copia de un tutorial distinto.
+          </p>
+          <p>
+            En esta materia usamos <strong><span class="etiq">400</span> para todo lo que rechaza
+            Zod y <span class="etiq">409</span> para las reglas de negocio</strong>, y queda
+            escrito en <span class="etiq">docs/api.md</span>. Si su equipo prefiere el 422, es una
+            decisión válida y va en un ADR. Lo que se corrige en el code review es la mezcla sin
+            criterio.
+          </p>
+        </div>
+
+        <h3>Los mensajes</h3>
+        <ul>
+          <li>
+            <strong>En castellano y dirigidos a quien los va a leer.</strong>
+            <span class="etiq">"Invalid input"</span> no es un mensaje: es un log.
+          </li>
+          <li>
+            <strong>Dicen qué hacer, no solo qué pasó.</strong> "La fecha de nacimiento no puede ser
+            futura" sirve; "Fecha inválida" obliga a adivinar cuál de las tres fechas del formulario
+            y por qué.
+          </li>
+          <li>
+            <strong>No filtran internals.</strong> El mensaje de una excepción de Prisma revela
+            nombres de tablas, de columnas y a veces el SQL. Eso va al log del servidor, nunca al
+            cliente.
+          </li>
+        </ul>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El error de hoy que se paga en la clase 6</span>
+          <p>
+            "Enumerar" es correcto acá y va a ser <strong>incorrecto</strong> dentro de dos clases,
+            con la misma forma técnica. Que la respuesta liste las vacunas que le faltan a
+            <em>su</em> mascota está bien: el dueño ya tiene derecho a ese dato.
+          </p>
+          <p>
+            El mismo detalle en un login —"el email existe pero la contraseña está mal"— es un
+            agujero: le confirma a cualquiera qué direcciones están registradas. Ahí el mensaje
+            correcto es el genérico, "email o contraseña incorrectos", <strong>a propósito y
+            aunque sea peor UX</strong>.
+          </p>
+          <p>
+            La diferencia no es técnica: es <strong>quién pregunta y sobre qué</strong>. Es la
+            misma decisión que ya tomaron con el <span class="etiq">404</span> de las mascotas
+            ajenas en la clase 4.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="esperado-inesperado">
+        <h2>7. Errores esperados e inesperados</h2>
+        <p class="lead">
+          Hay dos clases de cosas que salen mal y se manejan al revés una de la otra. Confundirlas
+          es lo que produce los dos síntomas más típicos: el <span class="etiq">500</span> que tenía
+          que ser un <span class="etiq">409</span>, y el <span class="etiq">try/catch</span> cada
+          cuatro líneas.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Esperado</th>
+                <th>Inesperado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Qué es</td>
+                <td>Un resultado posible del negocio</td>
+                <td>Algo que <strong>no debería pasar nunca</strong></td>
+              </tr>
+              <tr>
+                <td>Ejemplos</td>
+                <td>Falta una vacuna; el id no existe; el certificado ya estaba emitido</td>
+                <td>La base no responde; una variable de entorno vacía; un bug</td>
+              </tr>
+              <tr>
+                <td>Cómo se maneja</td>
+                <td><strong>Se devuelve</strong> como valor: <span class="etiq">null</span>, un array, un objeto con el motivo</td>
+                <td><strong>Se lanza</strong> y sube</td>
+              </tr>
+              <tr>
+                <td>Quién lo traduce</td>
+                <td>El handler, con un <span class="etiq">if</span></td>
+                <td>Un solo <span class="etiq">catch</span> al final del handler</td>
+              </tr>
+              <tr>
+                <td>Qué ve el cliente</td>
+                <td><span class="etiq">400</span>, <span class="etiq">404</span>, <span class="etiq">409</span> con su mensaje</td>
+                <td><span class="etiq">500</span> genérico, sin detalles</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Esto ya lo vienen haciendo sin que se lo nombraran: <span class="etiq">obtenerMascota</span>
+          devuelve <span class="etiq">null</span> cuando no existe, y el handler lo convierte en
+          <span class="etiq">404</span>. <strong>"No existe" no es una excepción</strong>: es una de
+          las dos respuestas normales a la pregunta "¿existe?".
+        </p>
+
+        <h3>Un catch por handler, al final</h3>
+        <div class="caja-codigo">export async function POST(request: Request) {
+  try {
+    // 1. VALIDAR    → 400 con un if
+    // 2. AUTORIZAR  → 401 / 403  (clase 6)
+    // 3. REGLAS     → 409 con un if
+    // 4. DELEGAR    → null es 404, con un if
+    // 5. RESPONDER  → 201
+  } catch (error) {
+    // Acá solo llega lo que NO se previó.
+    console.error("POST /api/certificados", error);
+    return NextResponse.json(
+      { error: "Error interno" },   // sin detalles: el detalle va al log
+      { status: 500 },
+    );
+  }
+}</div>
+        <p>
+          Un solo <span class="etiq">catch</span>, en el borde, que <strong>loguea todo y cuenta
+          nada</strong>. El log es para ustedes; la respuesta, para un desconocido.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El catch que se traga los errores buenos</span>
+          <p>
+            Es el bug más difícil de ver de la clase, porque el código parece más prolijo:
+          </p>
+          <div class="caja-codigo">// ✗ el 409 nunca llega: lo tapa el catch
+try {
+  if (faltantes.length) {
+    throw new Error("Faltan vacunas");   // ← lanzado…
+  }
+} catch (error) {
+  return NextResponse.json({ error: "Error interno" }, { status: 500 });
+}                                        // ← …y atrapado dos líneas después</div>
+          <p>
+            Se lanza un error esperado y se lo atrapa en el mismo bloque que los inesperados. Desde
+            afuera, "falta la antirrábica" y "se cayó Postgres" se ven <strong>idénticos</strong>: un
+            500 sin explicación. Y como el status es 500, en la clase 11 el formulario no va a poder
+            distinguirlos tampoco.
+          </p>
+          <p>
+            La forma de detectarlo en el code review es una sola pregunta: <strong>¿hay algún
+            <span class="etiq">throw</span> propio adentro del <span class="etiq">try</span>?</strong>
+            Si lo hay, ese error tendría que haber sido un <span class="etiq">return</span>.
+          </p>
+        </div>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">La excepción a la regla, que llega en la clase 6</span>
+          <p>
+            <span class="etiq">requerirUsuario()</span> —que ya está escrita en
+            <span class="etiq">lib/auth.ts</span> del proyecto de referencia— <strong>lanza</strong>
+            cuando no hay sesión, en lugar de devolver <span class="etiq">null</span>. Es a
+            propósito: obliga a que el handler no pueda seguir sin haber verificado nada. Cuando
+            eso se conecte, el <span class="etiq">catch</span> del final va a tener que distinguir
+            ese error del resto para responder <span class="etiq">401</span> y no
+            <span class="etiq">500</span>. Vale la pena mirar el archivo hoy, porque es la única
+            pieza del proyecto que rompe la regla y explica por qué.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="recorrido">
+        <h2>8. El recorrido completo: de la spec al 409</h2>
+        <p class="lead">
+          Un solo caso de error, seguido de punta a punta por los archivos que atraviesa. Es el
+          mismo recorrido que van a hacer hoy en su proyecto, y conviene tenerlo a la vista durante
+          el taller: cada parada es una de las fases.
+        </p>
+        <div class="esquema">   docs/spec.md, H4          "el sistema enumera cuáles faltan"
+        │
+        ▼
+   docs/api.md               la fila dice 409, y el catálogo con qué mensaje
+        │
+        ▼
+   lib/db/vacunas.ts         trae el plan y las aplicaciones
+   lib/estado-sanitario.ts   decide qué falta      ← sin imports, testeada
+        │
+        ▼
+   app/api/certificados/     traduce el hecho a 409 + faltantes
+        │
+        ▼
+   docs/api.http             la request que lo comprueba</div>
+
+        <h3>1 · La spec: de dónde sale todo</h3>
+        <p>
+          El segundo criterio de aceptación de la <strong>H4</strong> dice que si a la mascota le
+          falta alguna vacuna obligatoria, la solicitud no se crea y el sistema
+          <strong>enumera cuáles faltan</strong>. Nada de lo que sigue se inventó: está todo ahí.
+        </p>
+        <p>
+          Y prestenle atención a esa palabra, <em>enumera</em>, porque en un rato va a decidir el
+          tipo de retorno de una función que todavía no existe.
+        </p>
+
+        <h3>2 · El contrato: qué se responde</h3>
+        <p>
+          En <span class="etiq">docs/api.md</span>, la fila de
+          <span class="etiq">POST /api/certificados</span> dice <span class="etiq">409</span> en la
+          columna <em>Errores</em> <strong>desde la clase 4</strong>: el contrato se escribió antes
+          que el código. Lo que se completó hoy es la otra tabla, la del catálogo, que agrega
+          <em>qué situación</em> produce ese status y <em>qué mensaje</em> ve el usuario.
+        </p>
+        <p>
+          Ahí está también la marca que dispara el trabajo: esta fila la agarra
+          <strong>una regla</strong>. No Zod —haría falta ir a buscar el plan de vacunación y las
+          aplicaciones— y no la consulta. O sea que hace falta código que hoy no existe.
+        </p>
+
+        <h3>3 · Las consultas: quién va a buscar</h3>
+        <p>
+          <span class="etiq">lib/db/vacunas.ts</span> tiene
+          <span class="etiq">datosDelEstadoSanitario(especie, mascotaId)</span>, que trae el plan de
+          la especie y las aplicaciones cargadas. Dos consultas en paralelo con
+          <span class="etiq">Promise.all</span>, porque no dependen una de la otra.
+        </p>
+        <p>
+          Fijate en lo que <strong>no</strong> hace: no calcula nada y no mira el reloj. Trae datos.
+        </p>
+
+        <h3>4 · La regla: quién decide</h3>
+        <p>
+          <span class="etiq">lib/estado-sanitario.ts</span>, y lo primero para mirar está arriba de
+          todo: <strong>no tiene un solo <span class="etiq">import</span></strong>. No sabe que
+          existe una base de datos ni que existe la web.
+        </p>
+        <div class="caja-codigo">vacunasFaltantes(plan, aplicaciones, fechaNacimiento, hoy): string[]</div>
+        <p>
+          Devuelve <strong>los nombres y no un booleano</strong>, y ese no fue un gusto: lo decidió
+          el mensaje del catálogo. Con "Faltan: Antirrábica, Triple felina" escrito en la tabla, un
+          <span class="etiq">true/false</span> ya era imposible. <strong>El catálogo define la firma
+          de la función</strong>, y por eso la fase A del taller va antes que la B.
+        </p>
+        <p>
+          Adentro está el caso que se olvida siempre: una vacuna que la mascota todavía no tiene
+          edad de recibir no está <em>pendiente</em>, está <span class="etiq">NO_CORRESPONDE</span>.
+          Sin ese cuarto estado, ningún cachorro podría tener un certificado nunca.
+        </p>
+
+        <h3>5 · El handler: quién responde</h3>
+        <p>
+          En <span class="etiq">app/api/certificados/route.ts</span>, el paso 3 son tres líneas:
+          buscar los datos, preguntar qué falta, traducir. <strong>Ningún <span class="etiq">for</span>
+          y ninguna comparación de fechas</strong> — todo eso vive en la capa de abajo.
+        </p>
+        <p>
+          El <span class="etiq">409</span> se elige acá, y no en la regla, por un motivo que no es
+          de estilo: <strong>una función pura no puede producir un status</strong>. Un
+          <span class="etiq">409</span> es un concepto de HTTP, y ese archivo no sabe que HTTP
+          existe. Lo máximo que puede decir es "estas dos vacunas no están al día". Que eso sea un
+          <span class="etiq">409</span> y no un <span class="etiq">400</span> lo decide el borde.
+        </p>
+        <p>
+          Y el <span class="etiq">faltantes</span> va en su propio campo, al lado del mensaje: el
+          criterio pedía enumerar, así que ese array <strong>es</strong> el criterio de aceptación,
+          no un adorno.
+        </p>
+
+        <h3>6 · La comprobación</h3>
+        <p>
+          En <span class="etiq">docs/api.http</span>, la request que solicita un certificado para
+          <span class="etiq">mishi</span> —que tiene la antirrábica vencida— responde:
+        </p>
+        <div class="caja-codigo">409 Conflict
+
+{
+  "error": "La mascota no está al día con las vacunas obligatorias",
+  "faltantes": ["Antirrábica", "Triple felina"]
+}</div>
+        <p>
+          Hasta ayer esa misma request devolvía <span class="etiq">201</span>. El sistema estaba
+          incumpliendo la spec <strong>en silencio</strong>, que es la única forma en que se
+          incumple una regla de negocio: sin error, sin log, sin nada roto a la vista.
+        </p>
+
+        <h3>El mismo trabajo, usado dos veces más</h3>
+        <p>
+          La misma función responde otras dos preguntas sin escribir una línea nueva:
+          <span class="etiq">POST /api/certificados/:id/emision</span> la vuelve a llamar —entre la
+          solicitud y la emisión pudo vencer una vacuna, y lo pide el criterio de la H5— y de ahí
+          sale además el vencimiento del certificado, que hasta hoy iba en
+          <span class="etiq">null</span>. <span class="etiq">calcularVencimiento</span>
+          <strong>no se tocó</strong>: estaba escrita desde la clase 4 esperando ese parámetro.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Lo que hay que llevarse de todo esto</span>
+          <p>
+            <strong>Que el handler no creció.</strong> Se agregó una regla de negocio completa, con
+            su caso de error enumerado y usada desde tres lugares, y el endpoint tiene cuatro líneas
+            más y ni un <span class="etiq">for</span>.
+          </p>
+          <p>
+            Ese es el resultado de haber decidido dónde vive la regla <em>antes</em> de escribirla —
+            y es lo que se pregunta en el parcial, no la regla.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="ia">
+        <h2>9. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Hoy la IA no puede saber lo que hay que hacer</span>
+          <p>
+            Es la primera clase en la que el asistente juega en desventaja, y conviene decirlo
+            explícitamente porque es contraintuitivo: hasta ahora, con el
+            <span class="etiq">schema.prisma</span> a la vista, podía escribir la API entera casi
+            bien. <strong>Las reglas de negocio no están en el código de ningún otro proyecto.</strong>
+            Están en la spec de ustedes y en ningún otro lado del mundo.
+          </p>
+          <p>
+            Lo que hace un modelo cuando le falta esa información no es avisar: es
+            <strong>inventar la regla más plausible</strong>. "El certificado vence a los 90 días",
+            "se exigen todas las vacunas del catálogo", "la edad mínima es un mes". Suena bien,
+            compila, pasa el lint y contradice la spec. Y a diferencia de un error de tipos, no lo
+            marca nadie: lo descubre el docente en la defensa.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Sí, deléguenlo</h4>
+            <ul>
+              <li><strong>Los tests de la función pura.</strong> Es el mejor uso del día: se le dan las reglas escritas y devuelve los casos borde, incluidos los tres o cuatro que ustedes no pensaron</li>
+              <li>El <span class="etiq">try/catch</span> y el <span class="etiq">console.error</span> de cada handler, que son idénticos</li>
+              <li>Pasar el catálogo de errores a la tabla de <span class="etiq">docs/api.md</span> a partir de la lista en papel</li>
+              <li>Las requests de <span class="etiq">api.http</span> para cada caso de error</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>No, es de ustedes</h4>
+            <ul>
+              <li><strong>Cuál es la regla.</strong> Sale de <span class="etiq">docs/spec.md</span> y de nadie más</li>
+              <li><strong>Qué es 400 y qué es 409</strong> en cada caso del catálogo</li>
+              <li>Los mensajes que ve el usuario, uno por uno</li>
+              <li>Qué se enumera y qué no se enumera en la respuesta</li>
+              <li>Dónde vive cada regla: <span class="etiq">lib/</span>, <span class="etiq">lib/db/</span> o el handler</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El antipatrón de esta clase: la regla adentro del schema</span>
+          <p>
+            Primero, qué es <span class="etiq">refine</span>, que lo vienen usando desde la clase 2
+            sin que nadie se los nombrara: es <strong>la puerta de escape de Zod</strong>. Cuando una
+            regla no se puede expresar con los validadores que trae (<span class="etiq">min</span>,
+            <span class="etiq">email</span>, <span class="etiq">enum</span>), se le cuelga al schema
+            una función propia; si devuelve <span class="etiq">false</span>, la validación falla con
+            el mensaje que se le pasa. <span class="etiq">fechaNoFutura</span>, en
+            <span class="etiq">lib/schemas/comunes.ts</span>, es exactamente eso.
+          </p>
+          <p>
+            Entonces le piden "validá que la mascota esté al día con las obligatorias" y, como el
+            contexto que le dieron es <span class="etiq">lib/schemas/</span>, contesta con el
+            <span class="etiq">refine</span> de siempre — pero con una consulta a la base adentro:
+          </p>
+          <div class="caja-codigo">// ✗ un schema que abre una conexión a la base
+export const solicitarCertificadoSchema = z.object({ ... })
+  .refine(async (datos) =&gt; {
+    const faltan = await prisma.aplicacion.findMany(...);
+    return faltan.length === 0;   // ← false = "datos inválidos" = 400
+  }, "La mascota no está al día");</div>
+          <p>
+            Zod lo permite, así que <strong>el código anda</strong> — que es justo lo que lo hace
+            peligroso. Rompe cuatro cosas de una vez: el schema consulta la base cada vez que valida
+            un body, el error sale como <span class="etiq">400</span> cuando el body está impecable,
+            se pierde la lista de faltantes porque un <span class="etiq">refine</span> devuelve un
+            booleano, y el archivo más fácil de testear del proyecto pasa a necesitar una base con
+            datos.
+          </p>
+          <p>
+            La señal para detectarlo en el code review es de una línea: <strong>si un archivo de
+            <span class="etiq">lib/schemas/</span> importa Prisma o algo de
+            <span class="etiq">lib/db/</span>, la regla está en la capa equivocada.</strong>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="taller">
+        <h2>10. Taller</h2>
+        <p class="lead">
+          Cinco fases. Las dos primeras no se delegan, y la tercera es la que va a hacer que las
+          otras cuatro salgan rápido.
+        </p>
+        <div class="esquema">   A. EL CATÁLOGO   la lista en papel → docs/api.md
+   B. LAS REGLAS    lib/&lt;dominio&gt;.ts, funciones puras
+                    en el caso de nuestro proyecto de referencia:
+                    lib/estado-sanitario.ts
+   C. LOS TESTS     vitest, npm test en verde
+   D. ENCHUFARLAS   se borran los TODO (clase 5)
+   E. PROBARLAS     api.http: cada error con su status</div>
+
+        <h3>Fase A — El catálogo de errores</h3>
+        <ol>
+          <li>
+            <strong>Abran <span class="etiq">docs/api.md</span> en la sección que dejaron vacía</strong>
+            —"Los errores, en detalle"— y vuelquen ahí la lista que trajeron, con estas columnas:
+            <div class="caja-codigo">| Operación                   | Situación                          | Status | Mensaje                                |
+|-----------------------------|------------------------------------|--------|----------------------------------------|
+| POST /api/mascotas          | Fecha de nacimiento futura         | 400    | "La fecha de nacimiento no puede ser…" |
+| POST /api/certificados      | Le falta una vacuna obligatoria    | 409    | "Faltan: …" + array `faltantes`        |
+| POST /api/certificados/:id/emision | Ya está emitido o anulado   | 409    | "El certificado ya fue emitido"        |</div>
+          </li>
+          <li>
+            <strong>Cada fila tiene que salir de un "caso de error" de <span class="etiq">docs/spec.md</span>.</strong>
+            Si una fila no tiene historia de origen, o sobra o la spec está incompleta — y las dos
+            cosas se arreglan hoy, no en noviembre. Al revés también: si un
+            <em>"caso de error"</em> de la spec no aparece en ninguna fila, es una regla que nadie
+            va a implementar.
+          </li>
+          <li>
+            <strong>Marquen cada fila con la capa que la agarra:</strong>
+            <span class="etiq">Zod</span>, <span class="etiq">regla</span>,
+            <span class="etiq">base</span> o <span class="etiq">sesión (clase 6)</span>. Las de Zod
+            ya están hechas desde la clase 2. Las de sesión quedan como
+            <span class="etiq">TODO (clase 6)</span>. Lo que queda en el medio es el trabajo de hoy,
+            y tienen que ser <strong>pocas</strong>: entre dos y cuatro reglas por equipo.
+          </li>
+        </ol>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Antes de seguir, miren lo que acaban de escribir</span>
+          <p>
+            Las filas que marcaron <span class="etiq">regla</span> son, una por una,
+            <strong>las funciones que van a escribir en la fase B</strong>. El catálogo no es
+            documentación previa al trabajo: es <em>la lista del trabajo</em>.
+          </p>
+          <p>
+            Y la columna <em>mensaje</em> ya decidió algo más. Si dice
+            <span class="etiq">"Faltan: antirrábica, quíntuple"</span>, esa función
+            <strong>no puede devolver un booleano</strong>: el mensaje le fijó el tipo de retorno
+            antes de que exista. Por eso esta fase va primero — el que arranca por el código elige
+            mal la firma y se entera recién en la fase D, con los tests ya escritos.
+          </p>
+        </div>
+
+        <h3>Fase B — Las reglas</h3>
+        <ol start="4">
+          <li>
+            <strong>Un archivo por concepto del dominio</strong>, en
+            <span class="etiq">lib/</span> y no en <span class="etiq">lib/db/</span>:
+            <span class="etiq">lib/estado-sanitario.ts</span>,
+            <span class="etiq">lib/disponibilidad.ts</span>,
+            <span class="etiq">lib/cupos.ts</span> — el nombre sale de su dominio, no del nuestro.
+          </li>
+          <li>
+            <strong>Funciones puras:</strong> no importan Prisma ni Next.
+          </li>
+          <li>
+            <strong>Que devuelvan el dato, no un booleano</strong>, cuando el criterio de aceptación
+            pide enumerar, informar cuál o mostrar cuánto falta.
+          </li>
+        </ol>
+
+        <h3>Fase C — Los tests</h3>
+        <ol start="7">
+          <li>
+            <strong>No hace falta que sepan testear: eso es la clase 12.</strong> Vitest ya está
+            instalado desde la clase 2, y en <span class="etiq">lib/schemas/mascota.test.ts</span>
+            tienen un archivo funcionando para copiar la forma. Se corre con
+            <span class="etiq">npm test</span>.
+          </li>
+          <li>
+            <strong>Lo que sí es de ustedes: la lista de casos</strong>, escrita en castellano antes
+            de abrir el editor. Mínimo tres por regla: el que funciona, el que tiene que fallar, y
+            <strong>el borde</strong> — el día exacto del vencimiento, la edad mínima justa, la
+            lista vacía. Ahí vive el bug.
+          </li>
+          <li>
+            <strong>La sintaxis pídansela a la IA.</strong> Le pasan el archivo de reglas y la
+            lista, y devuelve el <span class="etiq">.test.ts</span>. Que proponga casos que ustedes
+            no pensaron está bien —es lo que mejor hace— pero <strong>cuáles entran lo deciden
+            ustedes</strong>: si no pueden explicar por qué un caso está ahí, no cuenta.
+            Terminaron cuando <span class="etiq">npm test</span> pasa en verde.
+          </li>
+        </ol>
+
+        <h3>Fase D — Enchufarlas</h3>
+        <ol start="10">
+          <li>
+            <strong>En el handler, entre autorizar y delegar.</strong> Se leen los datos con
+            <span class="etiq">lib/db/</span>, se le pasan a la función, y el
+            <span class="etiq">if</span> traduce el resultado al status del catálogo. Si en el
+            handler queda un <span class="etiq">for</span> o un cálculo de fechas, algo se quedó en
+            la capa equivocada.
+          </li>
+          <li>
+            <strong>Se borran los <span class="etiq">TODO (clase 5)</span>.</strong> Los de la clase
+            6 se quedan donde están: siguen siendo decisiones postergadas, no olvidadas.
+          </li>
+          <li>
+            <strong>Un <span class="etiq">try/catch</span> por handler</strong>, al final, que
+            loguea con <span class="etiq">console.error</span> y devuelve un
+            <span class="etiq">500</span> sin detalles. Ningún <span class="etiq">throw</span>
+            propio adentro del <span class="etiq">try</span>.
+          </li>
+        </ol>
+
+        <h3>Fase E — Probarlas</h3>
+        <ol start="13">
+          <li>
+            <strong>Cada fila del catálogo tiene su request en <span class="etiq">docs/api.http</span></strong>,
+            con el status esperado escrito arriba. Ahí es donde se ve si el catálogo era real:
+            <div class="caja-codigo">### solicitar para una mascota SIN las obligatorias → 409 + faltantes
+POST {{base}}/api/certificados
+Content-Type: application/json
+
+{ "mascotaId": "{{sinVacunar}}", "motivo": "VIAJE" }
+
+### el mismo body, con la mascota al día → 201
+POST {{base}}/api/certificados
+Content-Type: application/json
+
+{ "mascotaId": "{{alDia}}", "motivo": "VIAJE" }</div>
+          </li>
+          <li>
+            <strong>Miren el status, no el body.</strong> El error de hoy es el
+            <span class="etiq">500</span> donde iba un <span class="etiq">409</span>: desde afuera se
+            ven igual de rotos y solo el número los distingue. Si aparece un 500, la traza está en la
+            terminal del <span class="etiq">npm run dev</span>.
+          </li>
+          <li>
+            <strong>Contra producción también</strong>, después del merge: descomentan la
+            <span class="etiq">@base</span> de Vercel y corren el archivo entero. Igual que la clase
+            pasada — un 409 que solo funciona en <span class="etiq">localhost</span> no existe.
+          </li>
+          <li>
+            <strong>PR y code review.</strong> El que revisa mira estas seis cosas:
+            <div class="caja-codigo">[ ] ¿Alguna regla de negocio quedó adentro de un route.ts?
+[ ] ¿Algún archivo de lib/schemas/ importa prisma o lib/db/ ?
+[ ] ¿Hay un `new Date()` adentro de una función de reglas?
+[ ] ¿Hay algún `throw` propio adentro de un `try`?
+[ ] ¿Cada fila de docs/api.md tiene su request en api.http?
+[ ] ¿`npm test`, `npm run typecheck` y `npm run lint` en verde?</div>
+          </li>
+        </ol>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Cómo se le pide esto a un asistente</span>
+          <div class="caja-codigo">✗ "Agregá las validaciones que faltan"
+
+✓ "Escribí lib/estado-sanitario.ts. Exportá vacunasFaltantes(plan,
+   aplicaciones, fechaNacimiento, hoy): string[], que devuelve el nombre
+   de las vacunas OBLIGATORIAS del plan que no están al día. Una vacuna
+   está al día si tiene una aplicación cuya proximaDosis es posterior a
+   `hoy`, o si no tiene refuerzo. Si la mascota no alcanzó los
+   edadMinimaMeses de esa vacuna, NO cuenta como faltante: todavía no le
+   corresponde. No importes prisma ni next, y no llames a new Date():
+   los datos llegan por parámetro. Después escribí los tests con vitest,
+   incluido el caso del cachorro que todavía no tiene edad para la
+   antirrábica."</div>
+          <p>
+            La diferencia entre los dos prompts no es el largo: es que en el segundo
+            <strong>las reglas del dominio están escritas</strong>, y salieron de la spec. Ese
+            párrafo lo tienen que poder escribir ustedes antes de abrir el chat — y si no lo pueden
+            escribir, no es un problema de prompt: es que la regla todavía no está decidida.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Si el equipo no usa Next</span>
+          <p>
+            No cambia nada de esta clase. Las tres capas, la función pura, los status y el catálogo
+            de errores son independientes del framework: en Express se llama middleware de errores,
+            en Django son las <span class="etiq">ValidationError</span> y los serializers, y el
+            archivo de reglas se sigue llamando igual. Lo único de Next acá es dónde queda el
+            <span class="etiq">try/catch</span>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="entregable">
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li><span class="etiq">docs/api.md</span> con la sección de errores completa: operación, situación, status y mensaje. Cada fila trazable a un <em>"caso de error"</em> de la spec.</li>
+          <li>Las reglas de negocio del flujo principal en <span class="etiq">lib/&lt;dominio&gt;.ts</span>, <strong>sin Prisma, sin Next y sin <span class="etiq">new Date()</span></strong>.</li>
+          <li>Sus tests con Vitest, con el caso que pasa, el que no y <strong>el borde</strong>. <span class="etiq">npm test</span> en verde.</li>
+          <li>Los <span class="etiq">TODO (clase 5)</span> borrados y reemplazados por código. Los de la clase 6, intactos.</li>
+          <li>Los <span class="etiq">409</span> reales, con el <strong>dato estructurado</strong> que el criterio de aceptación pide enumerar.</li>
+          <li>Un <span class="etiq">try/catch</span> por handler, que loguea el detalle y devuelve un <span class="etiq">500</span> genérico. Ningún error esperado pasando por ahí.</li>
+          <li><span class="etiq">docs/api.http</span> con una request por cada fila del catálogo, verificada <strong>en local y en producción</strong>.</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>
+            Lectura del eje metodológico (<strong>Monolitos vs. SOA</strong>) + entrega del
+            cuestionario en UAI Online Ultra. Es la primera lectura sobre <em>arquitectura</em> y no
+            sobre proceso: van a reconocer en ella la discusión de las capas de hoy, un nivel más
+            arriba.
+          </li>
+          <li>
+            Traer, de <span class="etiq">docs/api.md</span>, <strong>la columna Rol convertida en una
+            matriz de permisos</strong>. Es el mismo movimiento que hicieron la semana pasada con la
+            columna Errores: el dato ya está, lo que falta es la vista que permite discutirlo.
+            <div class="caja-codigo">| Operación                          | Dueño | Veterinario | Admin | Sin sesión |
+|------------------------------------|-------|-------------|-------|------------|
+| GET  /api/mascotas                 | ✓ las suyas | ✗     | ✗     | 401        |
+| POST /api/mascotas/:id/aplicaciones| ✗ 403 | ✓           | ✗     | 401        |
+| POST /api/certificados/:id/emision | ✗ 403 | ✓           | ✗     | 401        |
+| GET  /api/verificacion/:codigo     | ✓     | ✓           | ✓     | ✓ público  |</div>
+            <p>
+              Y con la matriz, <strong>dos preguntas contestadas por escrito</strong>, que son las
+              que abren la clase 6:
+            </p>
+            <ol>
+              <li>
+                <strong>¿Cómo se crea una cuenta de cada rol?</strong> El registro público
+                seguramente cree uno solo de sus roles. Los otros, ¿quién los crea? En la libreta
+                sanitaria, un veterinario <strong>no puede auto-registrarse</strong> —si cualquiera
+                pudiera declararse veterinario, podría emitir certificados falsos y el sistema
+                entero perdería su valor—. Casi todos los dominios tienen una regla así, y casi
+                ningún equipo la tiene escrita.
+              </li>
+              <li>
+                <strong>¿Cuándo es 403 y cuándo es 404?</strong> Ya tomaron esta decisión en la
+                clase 4 para las mascotas ajenas. Revísenla fila por fila: la regla que veníamos
+                usando es <span class="etiq">404</span> cuando el problema es la
+                <em>pertenencia</em> y <span class="etiq">403</span> cuando el problema es el
+                <em>rol</em>.
+              </li>
+            </ol>
+            <p>
+              <strong>Va en papel</strong>, como la vez pasada, y por la misma razón: la información
+              ya vive en <span class="etiq">api.md</span> y copiarla a un archivo nuevo la deja en
+              dos lugares. En la clase 6 esta matriz sí aterriza en el código —una función por
+              regla— y ahí es donde los <span class="etiq">TODO (clase 6)</span> que vienen
+              arrastrando desde la 4 finalmente desaparecen.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 05 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
