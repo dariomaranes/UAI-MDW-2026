@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 06 - Autenticación y autorización</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 06 — MDW 2026</h1>
+      <p class="fecha-clase">martes 15/09/2026</p>
+      <h2>Autenticación y autorización</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          La API de la clase pasada ya rechaza lo que está mal escrito y lo que está mal según el
+          negocio. Lo que todavía no sabe es <strong>quién le está hablando</strong>: hoy cualquiera
+          lista las mascotas de cualquiera, y un dueño emite su propio certificado desde Postman. Al
+          final de la clase hay <strong>login real andando en producción</strong>, cada endpoint sabe
+          quién llama y con qué rol, y los <span class="etiq">TODO (clase 6)</span> que vienen
+          arrastrando desde la clase 4 desaparecen.
+        </p>
+        <ul class="agenda">
+          <li><a href="#matriz">La matriz que trajeron: la lista del trabajo de hoy</a></li>
+          <li><a href="#soa">Metodología: Monolitos vs. SOA · diez minutos</a></li>
+          <li><a href="#dos-preguntas">Autenticación y autorización: dos preguntas que se confunden</a></li>
+          <li><a href="#tres-preguntas">Las tres preguntas del handler: 401, 403 y 404</a></li>
+          <li><a href="#sesion">La sesión, en concreto: Auth.js sin tablas nuevas</a></li>
+          <li><a href="#caso-completo">El caso completo: los TODO (clase 6) desaparecen</a></li>
+          <li><a href="#decisiones">Decisiones: qué se gana, qué se resigna y qué hoy no hacemos</a></li>
+          <li><a href="#ia">Qué le pedimos a la IA (y qué no)</a></li>
+          <li><a href="#taller">Taller</a></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura es <strong>Monolitos vs. SOA</strong>, y es la primera sobre
+            <em>arquitectura</em> y no sobre proceso. Buena parte del PDF habla de
+            <strong>CORBA</strong>, que tiene más de treinta años y que no van a usar nunca. Está ahí
+            porque es el abuelo directo de dos cosas que sí tocaron: el <em>stub</em> de las Server
+            Actions de la clase 4 y el servicio de identidad al que hoy le van a delegar el login.
+          </p>
+          <p>
+            <strong>La sección 2 son diez minutos y nada más.</strong> El resto de la clase es
+            autorización, que es lo que se defiende en el parcial dentro de tres semanas.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-06.pdf">📄 Material de la clase 06 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="matriz">
+        <h2>1. La matriz que trajeron</h2>
+        <p class="lead">
+          Otra vez traen una hoja, y otra vez es el temario. La matriz de permisos que armaron para
+          hoy no es un ejercicio de documentación: <strong>cada celda es una línea de código que
+          van a escribir en el taller</strong>, y las que quedaron en blanco son las decisiones que
+          nadie del equipo tomó todavía.
+        </p>
+        <div class="caja-codigo">| Operación                          | Dueño       | Veterinario | Admin | Sin sesión |
+|------------------------------------|-------------|-------------|-------|------------|
+| GET  /api/mascotas                 | ✓ las suyas | ✗           | ✗     | 401        |
+| POST /api/mascotas/:id/aplicaciones| ✗ 403       | ✓           | ✗     | 401        |
+| POST /api/certificados             | ✓ las suyas | ✗           | ✗     | 401        |
+| POST /api/certificados/:id/emision | ✗ 403       | ✓           | ✗     | 401        |
+| GET  /api/verificacion/:codigo     | ✓           | ✓           | ✓     | ✓ público  |</div>
+
+        <p>
+          Si su <span class="etiq">docs/api.md</span> quedó bien de la clase 4, esta matriz no es
+          información nueva: <strong>es la columna "Rol" puesta a lo ancho</strong>, que es
+          justamente lo que la hace discutible. Una columna se completa fila por fila sin mirar el
+          conjunto; la matriz muestra los huecos.
+        </p>
+        <p>
+          Mírenla de nuevo y van a ver que <strong>las celdas no son todas del mismo tipo</strong>.
+          Hay tres, y cada una se resuelve en un lugar distinto del código — es la sección 4 de hoy:
+        </p>
+        <div class="esquema">   "401"          →  no sé quién sos          →  una función, al principio
+   "✗ 403"        →  sé quién sos y no podés  →  la misma función, con el rol
+   "✓ las suyas"  →  podés, pero no con todo  →  el WHERE de la consulta
+
+   Y esa última es la que casi siempre se escribe mal.</div>
+
+        <h3>Las dos preguntas que había que contestar</h3>
+        <p>
+          <strong>¿Cómo se crea una cuenta de cada rol?</strong> La respuesta correcta es casi
+          siempre la misma: <strong>el registro público crea el rol de menor privilegio, y todos
+          los demás los crea alguien que ya tiene más privilegio que el que reparte</strong>. En la
+          libreta sanitaria, quien entra por primera vez es <span class="etiq">DUENO</span>, y la
+          cuenta de veterinario la crea un admin — porque si cualquiera pudiera declararse
+          veterinario podría emitir certificados falsos, y ahí se cae el sistema entero. Esa regla ya
+          está escrita en la sección 6 de la spec, y hoy pasa a estar en el código.
+        </p>
+        <p>
+          <strong>¿Cuándo es 403 y cuándo es 404?</strong> La regla la vienen usando desde la clase
+          4: <span class="etiq">403</span> cuando el problema es el <em>rol</em>,
+          <span class="etiq">404</span> cuando el problema es la <em>pertenencia</em>. La mascota
+          del vecino, para ustedes, no existe.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">La fila que casi nadie escribe</span>
+          <p>
+            La última: el endpoint <strong>público a propósito</strong>. En la libreta es la
+            verificación del certificado (H6), que la tiene que poder abrir una aerolínea sin
+            cuenta. Casi todos los dominios tienen una, y casi ningún equipo la declara — queda
+            pública porque nadie la protegió, no porque alguien lo haya decidido.
+          </p>
+          <p>
+            La diferencia entre las dos cosas es una línea en <span class="etiq">docs/api.md</span>,
+            y es exactamente lo que se pregunta en la defensa: <em>"¿este endpoint es abierto o se
+            les olvidó?"</em>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="soa">
+        <h2>2. Metodología: Monolitos vs. SOA</h2>
+        <p class="lead">
+          Un <strong>monolito</strong> es un solo programa, con un solo deploy y una sola base.
+          El proyecto de ustedes es eso, y <strong>está bien que lo sea</strong>: es lo que se
+          defiende en el parcial y lo que va a estar andando en el Demo Day.
+        </p>
+        <p>
+          Lo primero que conviene sacar del medio es la lectura fácil del PDF, que sería "monolito
+          viejo, servicios moderno". SOA no nació para partir <em>una</em> aplicación en pedazos:
+          nació para que <strong>sistemas de distintos dueños, distintas tecnologías y distintos
+          años se pudieran hablar</strong> — el ERP con el CRM, la facturación con el sistema del
+          banco. Ese es otro problema, y es el que van a tener en la clase 7.
+        </p>
+
+        <h3>Qué hay que llevarse de CORBA</h3>
+        <p>
+          CORBA —<strong>C</strong>ommon <strong>O</strong>bject <strong>R</strong>equest
+          <strong>B</strong>roker <strong>A</strong>rchitecture— fue el intento serio anterior: un
+          <strong>ORB</strong> (<em>Object Request Broker</em>, el intermediario que lleva y trae los
+          pedidos) en el medio, interfaces declaradas en <strong>IDL</strong> (<em>Interface
+          Definition Language</em>), un <em>stub</em> del lado del cliente y un <em>skeleton</em> del
+          lado del servidor. Dos ideas de ahí siguen vivas y ya las usaron sin
+          que nadie las nombrara:
+        </p>
+        <ul>
+          <li>
+            <strong>El contrato antes que la implementación.</strong> El IDL declaraba las
+            operaciones disponibles sin decir cómo estaban hechas. Su
+            <span class="etiq">docs/api.md</span> es un IDL en markdown.
+          </li>
+          <li>
+            <strong>El stub.</strong> La función que parece local y en realidad manda un mensaje por
+            la red. Es literalmente lo que Next hace con una Server Action, y lo vieron en la clase
+            4 con el ejemplo del control remoto.
+          </li>
+        </ul>
+        <p>
+          Y lo que se murió, que es igual de instructivo: el ORB era un producto que había que
+          comprar e instalar en los dos extremos, y cliente y servidor quedaban acoplados a él.
+          <strong>Ganó HTTP + JSON por ser más tonto</strong> — cualquier lenguaje, cualquier
+          máquina, sin intermediario propietario. La lección no es "CORBA era malo": es que
+          <em>en integración, lo simple y ubicuo le gana a lo sofisticado</em>.
+        </p>
+
+        <h3>La línea completa, para ubicarse</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Año</th><th>Intento</th><th>Idea</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>80s</td><td><strong>RPC</strong></td><td>Llamar un procedimiento remoto como si fuera local</td></tr>
+              <tr><td>1991</td><td><strong>CORBA</strong> / DCOM</td><td>Lo mismo, pero con objetos. ORB, IDL, stub y skeleton</td></tr>
+              <tr><td>1996</td><td><strong>SOA</strong>, nombrada por Gartner</td><td>Deja de ser un mecanismo y pasa a ser una forma de organizar</td></tr>
+              <tr><td>~2000</td><td><strong>SOAP</strong> + WSDL + UDDI</td><td>SOA llevada a la web, con mensajes XML sobre HTTP</td></tr>
+              <tr><td>2000</td><td><strong>REST</strong> <span style="font-weight:normal">(tesis de Roy Fielding)</span></td><td>Un estilo, no un producto</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>SOA es la idea; CORBA, SOAP y REST son tres intentos de llevarla a la práctica, y
+          el que ganó fue el que menos pretendió.</strong>
+        </p>
+        <p>
+          Con eso se entiende por qué REST <strong>no es la evolución de CORBA sino una
+          reacción</strong>. CORBA y SOAP parten de la misma premisa —<em>hagamos que la red sea
+          invisible, que llamar a otra máquina se sienta como llamar a una función</em>—, y el stub
+          existe justamente para sostener esa ilusión. REST dice lo contrario: <strong>la red existe,
+          es lenta y se cae, diseñá para eso</strong>. Por eso no ofrece funciones remotas sino
+          recursos, verbos y códigos de estado — los mismos que vienen usando desde la clase 4.
+        </p>
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>A favor</th><th>En contra</th><th>Qué hacemos</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Monolito</strong> — una app, un deploy</td>
+                <td>Una sola base con transacciones reales, un solo deploy, se depura entero desde el editor</td>
+                <td>Todo escala junto y un error puede tirar todo abajo</td>
+                <td><strong>Esto.</strong> Con cuatro personas y un cuatrimestre, cualquier otra cosa es coleccionar problemas</td>
+              </tr>
+              <tr>
+                <td><strong>Servicios</strong> — varios sistemas hablándose</td>
+                <td>Cada parte se despliega y escala sola; equipos independientes</td>
+                <td>La red falla, no hay transacción que abarque a dos, y hace falta versionar contratos</td>
+                <td>No hoy. <strong>Sí un pedazo</strong>: la identidad, en la sección 5 de hoy</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Hoy su monolito deja de estar solo</span>
+          <p>
+            En la sección 5 de esta misma clase no van a escribir un sistema de login: le van a <strong>delegar la
+            prueba de identidad a un servicio de otro</strong> (en nuestro caso, Google). Eso es, en chiquito,
+            la decisión que discute la lectura — <em>consumir un servicio ajeno en lugar de
+            construirlo</em>.
+          </p>
+          <p>
+            Lo que ganan: nunca guardan una contraseña, y por lo tanto nunca la pueden filtrar. Lo
+            que resignan: <strong>si ese servicio se cae, nadie entra a su sistema</strong>. Esa
+            segunda parte —qué hace su app cuando el de al lado no responde— es la clase 7 entera.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="dos-preguntas">
+        <h2>3. Autenticación y autorización: dos preguntas que se confunden</h2>
+        <p class="lead">
+          Se nombran juntas, empiezan igual y hasta se abrevian igual (<em>auth</em>), pero son dos
+          preguntas distintas, se resuelven en lugares distintos y solo una de las dos se evalúa en
+          esta materia.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th></th><th>Autenticación</th><th>Autorización</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>La pregunta</strong></td>
+                <td>¿Quién sos?</td>
+                <td>¿Esto lo podés hacer?</td>
+              </tr>
+              <tr>
+                <td><strong>Quién la contesta</strong></td>
+                <td>Una librería y un proveedor. Es un problema resuelto</td>
+                <td><strong>Ustedes.</strong> Sale de su spec y de ningún otro lado</td>
+              </tr>
+              <tr>
+                <td><strong>Dónde vive</strong></td>
+                <td><span class="etiq">lib/auth.ts</span>, se configura una vez</td>
+                <td>En <strong>cada</strong> endpoint y en <strong>cada</strong> consulta</td>
+              </tr>
+              <tr>
+                <td><strong>Cuando falla</strong></td>
+                <td><span class="etiq">401</span></td>
+                <td><span class="etiq">403</span> o <span class="etiq">404</span></td>
+              </tr>
+              <tr>
+                <td><strong>Cuánto dura hoy</strong></td>
+                <td>Veinte minutos, una sola vez en el cuatrimestre</td>
+                <td>El resto de la clase, y se revisa en las dos defensas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Por eso el orden de la clase es este y no el inverso. La autenticación es un trámite:
+          se instala, se configura, se prueba y no se vuelve a tocar. <strong>La autorización es
+          diseño de su dominio</strong>, no se copia de ningún tutorial, y es donde están los
+          agujeros que un tercero puede aprovechar.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Esconder el botón no es autorizar</span>
+          <p>
+            En la clase 5 dijimos que el <span class="etiq">required</span> del input no es una capa
+            de validación. Hoy es la misma frase con más consecuencias: <strong>el botón "Emitir"
+            que no se le muestra al dueño no impide nada</strong>. La ruta existe, está publicada, y se la
+            llama con <strong>una request de <span class="etiq">docs/api.http</span></strong> —la
+            misma con la que vienen probando desde la clase 4— sin pasar jamás por la pantalla.
+            Fuera del editor es todavía más corto: <span class="etiq">curl</span> es un programa de
+            terminal que manda un request HTTP en una línea, y está instalado en cualquier máquina.
+          </p>
+          <p>
+            La diferencia entre los dos casos es el daño. Ahí el riesgo era guardar un dato feo;
+            acá es que alguien lea la libreta de otra persona o emita un certificado trucho. Y vale
+            igual para las Server Actions, por lo que vieron en la clase 4:
+            <strong>una Server Action es una ruta pública con otro nombre</strong>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="tres-preguntas">
+        <h2>4. Las tres preguntas del handler: 401, 403 y 404</h2>
+        <p class="lead">
+          El esquema de las capas de la clase 5 no cambia: le crecen dos escalones arriba. Todo
+          handler del proyecto, de acá hasta noviembre, contesta estas preguntas en este orden.
+        </p>
+        <div class="esquema">   request
+     │
+     ├─ 1. ¿hay sesión?          no → 401    requerirUsuario()
+     │
+     ├─ 2. ¿el rol alcanza?      no → 403    requerirUsuario("VETERINARIO")
+     │
+     ├─ 3. ¿este dato es suyo?   no → 404    el where de la consulta
+     │
+     ├─ 4. ¿el body está bien?   no → 400    Zod            (clase 2)
+     │
+     ├─ 5. ¿la regla lo deja?    no → 409    función pura   (clase 5)
+     │
+     └─ hacer el trabajo                     lib/db/        (clase 3)</div>
+
+        <h3>El orden no es cosmético</h3>
+        <p>
+          Es tentador validar el body primero, porque es lo más barato. Pero fíjense qué pasa si la
+          regla de negocio contesta antes que la sesión: un desconocido manda un
+          <span class="etiq">mascotaId</span> cualquiera y recibe un
+          <span class="etiq">409 "Faltan: antirrábica, quíntuple"</span>. <strong>Ese mensaje es
+          información sanitaria de una mascota ajena</strong>, y se la acaban de contar a alguien
+          que ni siquiera tiene cuenta. Un error bien escrito, respondido a la persona equivocada,
+          es una filtración.
+        </p>
+        <p>
+          <strong>Primero quién, después qué.</strong> Y por eso la línea de la sesión es
+          <em>siempre</em> la primera del <span class="etiq">try</span>.
+        </p>
+
+        <h3>La tercera pregunta no es un <span class="etiq">if</span></h3>
+        <p>
+          Acá está el error más caro de la clase, y en el proyecto de referencia ya está
+          esquivado desde la clase 4 — con el dueño puesto a mano, esperando la sesión de hoy. La
+          pertenencia —"esta mascota es suya"— <strong>parece un chequeo y se escribe como una
+          consulta</strong>.
+        </p>
+        <div class="grid-apilada">
+          <div class="tarjeta tarjeta-no">
+            <h4>Así no</h4>
+            <div class="caja-codigo">// traer cualquier cosa y después fijarse
+const mascota = await obtenerMascota(id);
+
+if (mascota.duenoId !== usuario.id) {
+  return NextResponse.json(
+    { error: "No es tuya" },
+    { status: 403 },
+  );
+}</div>
+            <p>
+              Tres problemas. El dato de otra persona <strong>ya salió de la base</strong> y está en
+              memoria del servidor, así que cualquier <span class="etiq">return</span> que se cuele
+              antes lo filtra. El <span class="etiq">403</span> confirma que el recurso existe, que
+              en un listado de ids es información gratis. Y sobre todo:
+              <strong>este <span class="etiq">if</span> hay que acordarse de escribirlo en cada
+              endpoint</strong>, y el día que uno falte no se rompe nada — funciona de más.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Así sí</h4>
+            <div class="caja-codigo">// lib/db/mascotas.ts
+export async function obtenerMascotaDeDueno(
+  id: string,
+  duenoId: string,
+) {
+  return prisma.mascota.findFirst({
+    where: { id, duenoId },   // ← las dos, siempre
+  });
+}
+
+// en el handler
+const mascota = await obtenerMascotaDeDueno(id, usuario.id);
+
+if (!mascota) {
+  return NextResponse.json(
+    { error: "No encontrada" }, { status: 404 });
+}</div>
+            <p>
+              La consulta <strong>no puede devolver</strong> la fila de otro: no es que se rechace
+              después, es que no existe para esa llamada. El <span class="etiq">404</span> sale
+              solo, sin decidir nada, y no distingue "no existe" de "no es tuya" — que es justo lo
+              que queremos. Y si mañana aparece otro endpoint, <strong>reusa esta función y hereda
+              la protección</strong>.
+            </p>
+            <p>
+              La versión de <span class="etiq">PATCH</span> lleva el argumento un paso más lejos y
+              conviene mirarla: <span class="etiq">actualizarMascota</span> usa
+              <span class="etiq">updateMany</span> en vez de <span class="etiq">update</span>
+              justamente porque <span class="etiq">update</span> exige un
+              <span class="etiq">where</span> único —el id— y dejaría al dueño para un chequeo
+              aparte. Con <span class="etiq">updateMany</span> los dos van juntos:
+              <strong>no hay forma de olvidarse el chequeo, porque es la misma consulta</strong>.
+            </p>
+          </div>
+        </div>
+        <p>
+          La regla, para el code review, entra en un renglón: <strong>si una consulta puede devolver
+          datos de un usuario y no lleva el id del usuario de la sesión en el
+          <span class="etiq">where</span>, está mal escrita</strong> — no importa qué
+          <span class="etiq">if</span> venga después.
+        </p>
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Por eso los handlers tenían un dueño de mentira</span>
+          <p>
+            Todo <span class="etiq">lib/db/</span> del proyecto de referencia recibe el
+            <span class="etiq">duenoId</span> por parámetro desde la clase 4, y los handlers se lo
+            pasan puesto a mano: <span class="etiq">const duenoId = "duena-de-ejemplo"</span>, con
+            su <span class="etiq">TODO (clase 6)</span> arriba. Hasta el
+            <span class="etiq">seed</span> tiene los ids fijos y legibles para que eso funcione.
+          </p>
+          <p>
+            <strong>Ese andamio se cae hoy, y es todo lo que se cae.</strong> La forma de las
+            consultas no cambia ni una línea: lo único que cambia es de dónde sale ese id.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Los tres status, en una línea cada uno</span>
+          <div class="caja-codigo">401  "no sé quién sos"          → falta la sesión. Volvé a entrar
+403  "sé quién sos y no podés" → tu ROL no alcanza. Volver a entrar no cambia nada
+404  "no existe"               → existe, pero no para vos</div>
+          <p>
+            El <span class="etiq">401</span> le dice al cliente <em>andá a loguearte</em>; el
+            <span class="etiq">403</span>, <em>no insistas</em>. Devolver uno por el otro manda a la
+            pantalla de login a alguien que ya está logueado, en un loop que no termina nunca.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="sesion">
+        <h2>5. La sesión, en concreto: Auth.js sin tablas nuevas</h2>
+        <p class="lead">
+          Veinte minutos de configuración, un archivo, ninguna migración y ninguna contraseña
+          guardada. Es el pedazo de la clase que sí conviene delegar en la IA — pero antes hay que
+          entender qué hace, porque la parte que se puede escribir mal está en dos líneas.
+        </p>
+        <p>
+          Usamos <strong>Auth.js</strong> (el ex NextAuth) con un <strong>proveedor OAuth</strong>.
+          En el proyecto de referencia es <strong>Google</strong> —está anotado en el
+          <span class="etiq">.env.example</span> desde la clase 1—, pero sirve cualquiera: cambiar de
+          proveedor son dos líneas. La idea es la de la sección 2 de hoy — <em>no construimos lo que podemos
+          consumir</em>:
+        </p>
+        <div class="callout">
+          <span class="callout-titulo">Qué quiere decir OAuth</span>
+          <p>
+            <strong>O</strong>pen <strong>Auth</strong>orization: el protocolo que permite que una
+            aplicación acceda a algo de un usuario en otro servicio <strong>sin que el usuario le
+            entregue su contraseña a esa aplicación</strong>. Lo usaron mil veces:
+          </p>
+          <div class="esquema">  aprieta "Entrar con Google"  →  escribe su contraseña EN GOOGLE
+  →  Google pregunta "¿le dejás ver tu mail a esta app?"
+  →  lo devuelve con un código de un solo uso, a la CALLBACK URL
+  →  nuestro servidor lo canjea por los datos y crea la sesión</div>
+          <p>
+            La contraseña <strong>nunca pasa por nuestro sistema</strong>: no la podemos guardar mal
+            ni filtrar. Y una precisión que en esta clase vale doble: <strong>OAuth autoriza, no
+            autentica</strong> —dice <em>qué puede ver esta app</em>, no <em>quién sos</em>—. La capa
+            que agrega la identidad se llama <strong>OpenID Connect</strong>, y es la que devuelve el
+            mail.
+          </p>
+        </div>
+
+        <div class="esquema">   el proveedor  →  prueba que sos el dueño de ese mail   (autenticación)
+   su base      →  dice qué sos adentro del sistema       (autorización)
+
+   Y son dos cosas separadas a propósito: Google sabe tu mail,
+   no sabe si sos veterinario. Eso no lo puede saber nadie
+   más que la base de ustedes.</div>
+
+        <div class="callout">
+          <span class="callout-titulo">Si ya tienen su propio login, o prefieren otra herramienta</span>
+          <p>
+            <strong>Auth.js no es obligatorio y lo construido no hay que tirarlo.</strong> Las
+            alternativas son válidas y <strong>van declaradas en un ADR</strong>, igual que la
+            elección de base de la clase 3. Lo que cambia es qué se pregunta en la defensa: con
+            <strong>login propio</strong>, cómo se hashea la contraseña —bcrypt o argon2, nunca texto
+            plano—, qué pasa con un mail repetido y cuánto dura la sesión. Con <strong>otro
+            servicio</strong> —Firebase, Clerk, Supabase Auth— una sola cosa, y es la de toda la
+            clase: <strong>¿dónde se verifica el token, en el servidor o en el cliente?</strong>
+            Varios trabajan desde el navegador y es facilísimo terminar con un usuario "logueado" en
+            la pantalla y un endpoint que no verifica nada.
+          </p>
+          <p>
+            <strong>Lo que no cambia con ninguna</strong>: las tres preguntas, los tres status y el
+            id del usuario de la sesión adentro del <span class="etiq">where</span>. La autenticación es
+            intercambiable; la autorización es de ustedes y es lo que se evalúa.
+          </p>
+        </div>
+
+        <h3>La decisión, que son diez líneas</h3>
+        <p>
+          <span class="etiq">lib/auth.ts</span> es en su mayor parte configuración que se copia y no
+          se vuelve a mirar: el proveedor, la estrategia de sesión y la ruta
+          <span class="etiq">[...nextauth]</span> de tres líneas que la publica. Está entero en el
+          proyecto de referencia. Lo único que hay que <em>decidir</em> es esto:
+        </p>
+        <div class="caja-codigo">// lib/auth.ts — el callback que corre UNA vez, al entrar
+async jwt({ token, user }) {
+  if (user?.email) {
+    const usuario = await prisma.usuario.upsert({
+      where: { email: user.email },
+      update: {},              // ← si ya existe, el proveedor NO pisa nuestra base
+      create: {
+        email: user.email,
+        nombre: user.name ?? user.email,
+        rol: "DUENO",          // ← SIEMPRE el rol de menor privilegio
+      },
+    });
+
+    token.usuarioId = usuario.id;
+    token.rol = usuario.rol;   // ← el rol viaja en el token, no se consulta de nuevo
+  }
+  return token;
+}</div>
+        <p>
+          Las tres líneas marcadas son la clase entera en miniatura. El
+          <span class="etiq">update</span> vacío no es un descuido: <strong>si la persona ya existe,
+          lo que dice Google no pisa lo que dice nuestra base</strong> — con
+          <span class="etiq">rol: "DUENO"</span> ahí, un veterinario perdería su rol en el login
+          siguiente. Y el <span class="etiq">create</span> asigna siempre el privilegio más bajo,
+          que es como se cumple la regla de la spec de que un veterinario no se auto-registra.
+        </p>
+
+        <h3>Las dos funciones que ya estaban escritas</h3>
+        <p>
+          <span class="etiq">lib/auth.ts</span> viene del template con el contrato declarado y el
+          cuerpo vacío desde la clase 1. Hoy se completa, y de paso se corrigen dos cosas que
+          quedaron del andamio:
+        </p>
+        <div class="caja-codigo">// ✗ como venía: los roles del ejemplo, escritos a mano
+export type Rol = "ADMIN" | "USUARIO";
+
+// ✓ los roles del dominio, los mismos que la base
+import type { Rol } from "@prisma/client";   // DUENO | VETERINARIO | ADMIN
+
+export class NoAutenticado extends Error {}   // → 401
+export class NoAutorizado  extends Error {}   // → 403
+
+export async function obtenerUsuario(): Promise&lt;UsuarioSesion | null&gt; {
+  const sesion = await auth();
+  return sesion?.user ? sesion.user : null;
+}
+
+export async function requerirUsuario(rol?: Rol): Promise&lt;UsuarioSesion&gt; {
+  const usuario = await obtenerUsuario();
+  if (!usuario) throw new NoAutenticado();
+  if (rol &amp;&amp; usuario.rol !== rol) throw new NoAutorizado();
+  return usuario;
+}</div>
+        <p>
+          El tipo escrito a mano no es un detalle de prolijidad: una unión que dice
+          <span class="etiq">"USUARIO"</span> cuando la base dice
+          <span class="etiq">"DUENO"</span> compila igual y compara contra un valor que no existe,
+          así que la condición del rol da <span class="etiq">false</span> siempre. Es un
+          <span class="etiq">403</span> para todo el mundo, sin ningún error a la vista.
+        </p>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Por qué acá sí se lanza, si en la clase 5 dijimos que no</span>
+          <p>
+            En la clase 5 la regla fue: lo esperado se <strong>devuelve</strong>, lo inesperado se
+            <strong>lanza</strong>. <span class="etiq">requerirUsuario</span> lanza, y es la
+            excepción anunciada.
+          </p>
+          <p>
+            El motivo es que esta pregunta aparece <strong>en la primera línea de los treinta
+            endpoints</strong>. Si devolviera un valor, cada handler tendría que abrirse con un
+            <span class="etiq">if</span> de tres líneas — y el día que uno falte, el endpoint queda
+            abierto sin que nada avise. Lanzando, <strong>olvidarse rompe el request</strong> en vez
+            de dejarlo pasar: el error se va para el lado seguro.
+          </p>
+          <p>
+            Y es <em>una</em> excepción, con nombre propio y en un solo módulo. Si aparece un
+            <span class="etiq">throw</span> nuevo en una regla de negocio, esa regla está mal
+            escrita.
+          </p>
+        </div>
+
+        <h3>El catch de la clase 5, ahora traduce</h3>
+        <p>
+          Aquel <span class="etiq">try/catch</span> al final del handler que logueaba y devolvía
+          <span class="etiq">500</span> ya no alcanza: si se traga un
+          <span class="etiq">NoAutenticado</span>, el usuario ve "error interno" cuando lo que
+          pasaba es que no había entrado. Se escribe una vez, en un lugar:
+        </p>
+        <div class="caja-codigo">// lib/errores.ts
+export function responderError(endpoint: string, error: unknown) {
+  if (error instanceof NoAutenticado) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+  if (error instanceof NoAutorizado) {
+    return NextResponse.json(
+      { error: "No podés realizar esta operación" }, { status: 403 });
+  }
+  // Lo de siempre: el detalle va al log del servidor, que es de ustedes;
+  // la respuesta la lee un desconocido.
+  console.error(endpoint, error);
+  return NextResponse.json({ error: "Error interno" }, { status: 500 });
+}</div>
+        <p>
+          Los dos mensajes no los inventamos hoy: están escritos en el catálogo de errores de
+          <span class="etiq">docs/api.md</span> desde la clase pasada, en las dos filas que decían
+          <em>"<span class="etiq">requerirUsuario</span> — clase 6"</em>. Y el
+          <span class="etiq">endpoint</span> que entra por parámetro es para no perder lo que ya
+          tenían: <strong>el <span class="etiq">console.error</span> de cada handler lleva adelante
+          el nombre de la ruta</strong>, que es lo que hace utilizable un log de Vercel a las once
+          de la noche.
+        </p>
+        <p>
+          Con eso, el <span class="etiq">catch</span> de los ocho handlers pasa a ser una línea:
+          <span class="etiq">catch (error) { return responderError("POST /api/mascotas", error); }</span>
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El rol del token es una foto</span>
+          <p>
+            Con <span class="etiq">strategy: "jwt"</span> el rol viaja adentro de una cookie cifrada
+            y no se consulta la base en cada request. Es rápido y es lo que conviene en Vercel, pero
+            tiene una consecuencia que hay que saber contestar en la defensa:
+            <strong>si un admin promueve a alguien a veterinario, esa persona sigue siendo dueño
+            hasta que cierre sesión y vuelva a entrar.</strong>
+          </p>
+          <p>
+            La alternativa es guardar la sesión en la base y leerla en cada request: el cambio es
+            instantáneo y se puede revocar, al precio de una consulta por request. Las dos son
+            defendibles; <strong>lo que no es defendible es no saber cuál eligieron</strong>. Va en
+            un ADR de dos párrafos.
+          </p>
+        </div>
+
+      </section>
+
+
+      <section id="caso-completo">
+        <h2>6. El caso completo: los TODO (clase 6) desaparecen</h2>
+        <p class="lead">
+          En el proyecto de referencia hay <strong>catorce <span class="etiq">TODO (clase 6)</span>
+          repartidos en ocho archivos</strong>, escritos desde la clase 4. Cada uno marca el mismo
+          agujero: una línea que inventa un usuario porque todavía no había sesión. Hoy se borran
+          los catorce, y en cada lugar entra una línea.
+        </p>
+
+        <h3>1 y 2 · El listado y los dueños de mentira</h3>
+        <p>
+          El patrón es el mismo en los siete archivos, así que alcanza con verlo una vez:
+        </p>
+        <div class="caja-codigo">// app/api/mascotas/route.ts — ANTES
+// TODO (clase 6): listar solo las mascotas del dueño de la sesión.
+const mascotas = await listarMascotas();          // ← todas, de todos
+...
+console.error("GET /api/mascotas", error);
+return NextResponse.json({ error: "Error interno" }, { status: 500 });
+
+// DESPUÉS
+const usuario  = await requerirUsuario();                    // 401
+const mascotas = await listarMascotasDeDueno(usuario.id);    // el where
+...
+return responderError("GET /api/mascotas", error);</div>
+        <p>
+          <span class="etiq">listarMascotasDeDueno</span> está escrita desde la clase 3, con su
+          índice y su comentario diciendo que es la consulta de la H1. Esperaba esto.
+        </p>
+        <p>
+          Y la línea que se repite en casi todos los handlers, con dos valores distintos, es la del
+          usuario inventado. Los ids no eran casuales: <strong>son los del <span class="etiq">seed</span></strong>,
+          que los fijaba a mano para que la API funcionara sin sesión.
+        </p>
+        <div class="caja-codigo">const duenoId  = "duena-de-ejemplo";          // ANTES, en siete archivos
+const emisorId = "veterinario-de-ejemplo";
+
+const usuario     = await requerirUsuario();                 // DESPUÉS
+const veterinario = await requerirUsuario("VETERINARIO");</div>
+        <p>
+          Con eso el <span class="etiq">seed</span> vuelve a lo normal: los ids fijos fueron un
+          andamio de tres clases, no una decisión de diseño.
+        </p>
+
+        <h3>3 · La emisión: las cinco preguntas, en orden</h3>
+        <p>
+          El handler más importante del proyecto ya tiene los pasos 1, 3, 4 y 5 escritos desde la
+          clase pasada. Lo único que le falta es el 2, y su <span class="etiq">TODO</span> ya venía
+          diciendo, palabra por palabra, lo que hay que hacer:
+        </p>
+        <div class="caja-codigo">// app/api/certificados/[id]/emision/route.ts
+
+// 2. AUTORIZAR — ANTES
+// TODO (clase 6): el emisor sale de la sesión, 401 si no hay sesión y 403
+// si el rol no es VETERINARIO. Acá el 403 SÍ corresponde —a diferencia del
+// 404 de las mascotas ajenas— porque el problema es el rol, no la
+// pertenencia: el certificado existe y quien pide sabe que existe.
+const emisorId = "veterinario-de-ejemplo";
+
+// 2. AUTORIZAR — DESPUÉS
+const veterinario = await requerirUsuario("VETERINARIO");
+
+// ...y al final, el emisor que se guarda es el de la sesión
+const emitido = await emitirCertificado(
+  id,
+  veterinario.id,                              // ← acá estaba el agujero
+  generarCodigoVerificacion(),
+  calcularVencimiento(hoy, vencimientoDeVacunas),
+);</div>
+        <p>
+          Miren ese segundo argumento, porque es la clase entera en una línea. Es el dato que hace
+          cumplir la regla de la spec <em>"solo el veterinario que lo emitió puede anularlo"</em>:
+          <strong>queda registrado porque bajó de la sesión, no porque alguien lo haya mandado en
+          el body</strong>. Con el valor puesto a mano, esa regla era decorativa.
+        </p>
+
+        <h3>4 · La anulación: el endpoint que no se podía escribir</h3>
+        <p>
+          <span class="etiq">POST /api/certificados/:id/anulacion</span> está en
+          <span class="etiq">docs/api.md</span> desde la clase 4 y es la
+          <strong>única operación del contrato que todavía no tiene código</strong>. No es que
+          faltó tiempo: <em>no se podía escribir</em>, porque su regla de negocio no es un cálculo
+          ni una validación, es <strong>quién la ejecuta</strong>.
+        </p>
+        <div class="caja-codigo">// lib/db/certificados.ts — ya estaba escrita, esperando
+export async function anularCertificado(id: string, emisorId: string) {
+  const { count } = await prisma.certificado.updateMany({
+    where: { id, estado: "EMITIDO", emisorId },   // ← las tres juntas
+    data: { estado: "ANULADO", anuladoEn: new Date() },
+  });
+
+  if (count === 0) return null;
+  return obtenerCertificado(id);
+}</div>
+        <p>
+          Fíjense en ese <span class="etiq">where</span>, que tiene las tres preguntas de hoy
+          adentro de una sola consulta: el certificado, su estado y <strong>el veterinario que lo
+          emitió</strong>. Otro veterinario <em>tiene el rol correcto</em> y no matchea igual —
+          <span class="etiq">requerirUsuario("VETERINARIO")</span> lo deja pasar, y la consulta lo
+          frena. Son dos permisos distintos, y por eso hacen falta los dos.
+        </p>
+        <div class="caja-codigo">// app/api/certificados/[id]/anulacion/route.ts — el archivo nuevo del día
+export async function POST(_request: Request, { params }: Contexto) {
+  try {
+    const { id } = await params;
+    const veterinario = await requerirUsuario("VETERINARIO");   // 401 / 403
+
+    const anulado = await anularCertificado(id, veterinario.id);
+
+    // null = no existe, no está emitido, o lo emitió otro. Las tres se
+    // responden igual a propósito: quien no lo emitió no tiene por qué
+    // enterarse de en qué estado está.
+    if (!anulado) {
+      return NextResponse.json(
+        { error: "El certificado no está emitido" }, { status: 409 });
+    }
+
+    return NextResponse.json(anulado);
+  } catch (error) {
+    return responderError("POST /api/certificados/:id/anulacion", error);
+  }
+}</div>
+        <p>
+          Trece líneas. <strong>Ese es el tamaño real de lo que hoy se desbloquea</strong>, y es la
+          mejor respuesta a la pregunta de por qué la autorización se diseña antes de escribirla:
+          con la matriz hecha y las consultas ya filtrando, el endpoint que faltaba salió de un
+          archivo nuevo y ningún cambio en los otros.
+        </p>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Y el endpoint público, que también es una decisión</span>
+          <p>
+            <span class="etiq">GET /api/verificacion/:codigo</span> es el único que no lleva
+            <span class="etiq">requerirUsuario</span>, a propósito: la aerolínea no tiene cuenta.
+            Y ya está resuelto como corresponde desde la clase 4 —
+            <span class="etiq">verificarCertificado</span> tiene su propio
+            <span class="etiq">select</span>, más chico: mascota, estado y fechas,
+            <strong>sin el dueño, sin su mail y sin el id interno</strong>.
+          </p>
+          <p>
+            El comentario de esa función dice por qué está separada de las demás, y vale releerlo
+            hoy: <em>reusar el select de las pantallas propias sería el bug</em>, porque el día que
+            alguien le agregue un campo, ese campo se publica en internet sin que nadie lo decida.
+            <strong>Un endpoint público no es uno que devuelve todo: es uno que decidió, campo por
+            campo, qué se puede ver sin sesión.</strong>
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">El <span class="etiq">middleware</span> es comodidad, no seguridad</span>
+          <p>
+            Next permite proteger rutas enteras con un <span class="etiq">middleware.ts</span> que
+            redirige al login. Está bien tenerlo, y sirve para que el usuario no vea una pantalla
+            vacía. Pero <strong>protege páginas, no datos</strong>: quien llama al endpoint desde
+            <span class="etiq">api.http</span>, desde Postman o con <span class="etiq">curl</span> no
+            pasa por ninguna redirección que le importe.
+          </p>
+          <p>
+            Dicho de una vez: <strong>la autorización va en el handler, siempre, aunque el
+            middleware ya haya mirado</strong>. El middleware es la puerta del edificio; el chequeo
+            del handler es la cerradura del departamento.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="decisiones">
+        <h2>7. Decisiones: qué se gana, qué se resigna y qué hoy no hacemos</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>A favor</th><th>En contra</th><th>Qué hacemos</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>OAuth</strong> vs. usuario y contraseña propios</td>
+                <td>No guardan contraseñas, así que no las pueden filtrar. Cero pantallas de registro, recuperación y verificación</td>
+                <td>Depende de un tercero, y obliga al usuario a tener cuenta ahí</td>
+                <td><strong>OAuth.</strong> Si el equipo prefiere contraseñas propias, va en un ADR y el hash es problema de ustedes: se pregunta en la defensa</td>
+              </tr>
+              <tr>
+                <td><strong>Token</strong> vs. sesión guardada en la base</td>
+                <td>Cero consultas por request; escala sin estado compartido</td>
+                <td>El rol es una foto: cambiarlo exige volver a entrar, y no se puede revocar al instante</td>
+                <td><strong>Token</strong>, y escrito en el ADR con esa limitación</td>
+              </tr>
+              <tr>
+                <td>El rol como <strong>columna</strong> vs. una tabla de permisos</td>
+                <td>Una columna se lee de un vistazo y no hay nada que administrar</td>
+                <td>Con muchos roles y permisos finos se vuelve un <span class="etiq">if</span> gigante</td>
+                <td><strong>Columna.</strong> Con dos o tres roles, cualquier otra cosa es sobreingeniería</td>
+              </tr>
+              <tr>
+                <td>Pertenencia: <span class="etiq">where</span> vs. <span class="etiq">if</span></td>
+                <td>El <span class="etiq">if</span> se lee más explícito</td>
+                <td>Hay que acordarse de escribirlo siempre, y olvidarlo no rompe nada visible</td>
+                <td><strong><span class="etiq">where</span>.</strong> Que la consulta no pueda traer lo ajeno</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Lo que hoy NO hacemos</span>
+          <p>
+            Es una lista de cosas que suenan a "seguridad" y que <strong>no están en la spec de
+            nadie</strong>: recuperación de contraseña, verificación de mail, segundo factor,
+            permisos granulares por recurso, refresh tokens, pantalla de administración de usuarios.
+          </p>
+          <p>
+            La única regla de este tipo que sí está en la spec —<em>un veterinario no puede
+            auto-registrarse</em>— se cumple hoy con una columna y un
+            <span class="etiq">upsert</span> que siempre crea el rol más bajo. Para probar el rol
+            de veterinario, <strong>se cambia a mano en la base</strong> (Prisma Studio o el seed) y
+            se anota la decisión. Lo que se evalúa no es que exista un panel: es que
+            <strong>no haya forma de auto-asignarse un rol desde la API</strong>.
+          </p>
+          <p>
+            Un truco para la demo: si en <span class="etiq">prisma/seed.ts</span> cargan el
+            veterinario con <em>su propio</em> mail de Google, entran con ese usuario y pueden
+            emitir sin tocar nada más.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="ia">
+        <h2>8. Qué le pedimos a la IA (y qué no)</h2>
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Hoy la IA sabe la mitad exacta de la clase</span>
+          <p>
+            La configuración de Auth.js la escribe mejor y más rápido que ustedes, y está bien que
+            la escriba: es código que aparece igual en diez mil proyectos.
+            <strong>La otra mitad —quién puede hacer qué en su sistema— no está en ningún
+            proyecto del mundo</strong>, está en la matriz que trajeron en papel.
+          </p>
+          <p>
+            El síntoma de que la escribió sin esa matriz es fácil de reconocer:
+            <strong>aparece <span class="etiq">if (session)</span> en todos lados y ni un solo
+            <span class="etiq">where</span> con el id del usuario</strong>. Es un sistema donde
+            todos los que entraron ven todo — que es más o menos el peor lugar posible, porque
+            <em>parece</em> protegido.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Sí, deléguenlo</h4>
+            <ul>
+              <li><strong>La configuración entera de Auth.js</strong> y la ruta del <span class="etiq">[...nextauth]</span></li>
+              <li>Los tipos de <span class="etiq">session.user</span> para que TypeScript conozca <span class="etiq">rol</span></li>
+              <li><span class="etiq">responderError</span> y reemplazar el <span class="etiq">catch</span> de cada handler</li>
+              <li>Las requests de <span class="etiq">api.http</span> para los tres casos: sin cookie, con el rol equivocado y con el recurso ajeno</li>
+              <li><strong>Cruzar su matriz contra <span class="etiq">docs/api.md</span>:</strong> pasarle las dos y pedirle que liste las operaciones del contrato que no figuran en la matriz y los casilleros que quedaron sin decidir. <strong>Encuentra los huecos; qué va en cada uno lo deciden ustedes</strong></li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>No, es de ustedes</h4>
+            <ul>
+              <li><strong>La matriz.</strong> Qué rol puede llamar a cada operación</li>
+              <li>Qué endpoint es <strong>público a propósito</strong>, y qué campos devuelve</li>
+              <li><strong>Qué consultas llevan el id del usuario de la sesión</strong> en el <span class="etiq">where</span></li>
+              <li>Cuál es el rol de menor privilegio y quién crea los otros</li>
+              <li>403 o 404 en cada fila</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El antipatrón de esta clase: el rol que viaja en el request</span>
+          <p>
+            Es el primo directo del <span class="etiq">data: body</span> de la clase 4, y sale solo
+            cuando se le pide a un asistente "que el endpoint sepa qué rol tiene el usuario":
+          </p>
+          <div class="caja-codigo">// ✗ tres formas de la misma vulnerabilidad
+const { usuarioId, rol } = await request.json();       // en el body
+const rol = request.headers.get("x-rol");              // en un header
+const rol = searchParams.get("rol");                   // en la query
+
+if (rol === "VETERINARIO") { /* emitir */ }</div>
+          <p>
+            Anda perfecto desde la interfaz propia, porque la interfaz manda el rol correcto. Y
+            <strong>cualquiera puede mandar otro</strong>: es un campo de texto que viaja por la
+            red, no una credencial. Con dos palabras en Postman, un dueño emite certificados.
+          </p>
+          <p>
+            La señal en el code review es de un renglón, como la de la clase pasada:
+            <strong>si <span class="etiq">rol</span> o <span class="etiq">usuarioId</span> aparecen
+            en un schema de Zod, en un header propio o en la query, hay un agujero</strong>. La
+            identidad baja de la sesión y de ningún otro lado.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="taller">
+        <h2>9. Taller</h2>
+        <p class="lead">
+          Tres fases. La primera es la más corta del cuatrimestre y la única que se delega entera;
+          la segunda es la clase.
+        </p>
+        <div class="esquema">   A. QUE SE PUEDA INICIAR SESIÓN   Auth.js andando en local y en producción
+   B. LA MATRIZ AL CÓDIGO           requerirUsuario + el where, fila por fila
+   C. PROBAR COMO LOS OTROS         sin sesión, con el rol equivocado, con lo ajeno</div>
+
+        <h3>Fase A — Que se pueda iniciar sesión</h3>
+        <p>
+          La fase más larga en minutos y la más corta en decisiones: casi todo es trámite, y los
+          tres primeros pasos se hacen <strong>una sola vez por equipo</strong>.
+        </p>
+        <ol>
+          <li>
+            <strong>Instalar.</strong> <span class="etiq">npm install next-auth@5.0.0-beta.32</span>
+            — con el número exacto, por lo de la sección 5 de hoy. Sin el número, cada integrante puede
+            terminar con una beta distinta; sin el <span class="etiq">@</span>, con la versión 4,
+            que tiene otra API.
+          </li>
+          <li>
+            <strong>Crear la aplicación en Google</strong>, en
+            <span class="etiq">console.cloud.google.com</span>. Es gratis: <strong>si aparece un
+            cartel pidiendo habilitar la facturación, están en la sección equivocada</strong>. El
+            recorrido:
+            <div class="caja-codigo">Google Auth Platform → Comenzar
+    nombre visible de la app (lo ve el usuario), mail, público EXTERNO
+
+Público → pasar de "Prueba" a "En producción"
+    si queda en prueba, solo entran las cuentas cargadas a mano
+
+Clientes → Crear cliente → Aplicación web
+    Orígenes de JavaScript ........... SE DEJAN VACÍOS
+    URIs de redireccionamiento ....... las dos, con la ruta completa:
+        http://localhost:3000/api/auth/callback/google
+        https://&lt;su-dominio&gt;.vercel.app/api/auth/callback/google
+                ▲
+                └─ NO se escribe así: va el dominio real del equipo,
+                   copiado del panel de Vercel. &lt;su-dominio&gt; es un
+                   marcador de posición.
+
+    → devuelve ID de cliente y secreto de cliente</div>
+          </li>
+          <li>
+            <strong>Las tres variables en <span class="etiq">.env.local</span></strong>, que están
+            ahí comentadas desde la clase 1:
+            <div class="caja-codigo">AUTH_SECRET=""          ← lo genera y lo escribe `npx auth secret`
+AUTH_GOOGLE_ID=""       ← termina en .apps.googleusercontent.com
+AUTH_GOOGLE_SECRET=""   ← empieza con GOCSPX-</div>
+            Para comprobar que quedaron bien, con <span class="etiq">npm run dev</span> corriendo
+            abran <span class="etiq">/api/auth/providers</span>: si devuelve un JSON con
+            <span class="etiq">google</span>, está listo.
+          </li>
+          <li>
+            <strong>El código:</strong> <span class="etiq">lib/auth.ts</span>, la ruta
+            <span class="etiq">[...nextauth]</span> y el <span class="etiq">jwt</span> con el
+            <span class="etiq">upsert</span>. Pídanselo a la IA con el nombre real de su modelo y de
+            su enum de roles.
+          </li>
+          <li>
+            <strong>Terminaron cuando entran con su cuenta y aparece la fila</strong> en la base con
+            el rol de menor privilegio. Mírenla en Prisma Studio: si el rol que quedó no es el más
+            bajo, el <span class="etiq">create</span> está mal.
+          </li>
+          <li>
+            <strong>Las mismas tres variables en Vercel</strong> —<span class="etiq">Settings →
+            Environment Variables</span>— y prueben ahí también. <span class="etiq">.env.local</span>
+            está en el <span class="etiq">.gitignore</span> y no se sube nunca, así que este paso es
+            a mano y es el que más se olvida. El síntoma: en local anda y en producción no entra
+            nadie.
+          </li>
+          <li>
+            <strong>Creen a mano un usuario de cada uno de los otros roles</strong> (seed o Prisma
+            Studio). Sin eso no pueden probar la fase C. Truco: si el mail que siembran es el de la
+            cuenta con la que inician sesión, entran directamente con ese rol.
+          </li>
+        </ol>
+
+
+        <h3>Fase B — La matriz al código</h3>
+        <ol start="5">
+          <li>
+            <strong>Recorran <span class="etiq">docs/api.md</span> fila por fila</strong>, con la
+            matriz al lado. Cada endpoint arranca con <span class="etiq">requerirUsuario()</span> o
+            <span class="etiq">requerirUsuario("&lt;ROL&gt;")</span>, o con un comentario que diga
+            <strong>por qué es público</strong>.
+          </li>
+          <li>
+            <strong>Toda consulta que devuelve datos de un usuario lleva su id en el
+            <span class="etiq">where</span></strong>, adentro de <span class="etiq">lib/db/</span>.
+            Si les quedó un <span class="etiq">if</span> comparando ids en un
+            <span class="etiq">route.ts</span>, muévanlo a la consulta.
+          </li>
+          <li>
+            <strong>Un solo <span class="etiq">responderError</span></strong> para todo el proyecto,
+            y el <span class="etiq">catch</span> de cada handler en una línea.
+          </li>
+          <li>
+            <strong>Se borran los <span class="etiq">TODO (clase 6)</span>.</strong> Son los últimos
+            que quedaban del andamio: si sobrevive alguno, es una fila de la matriz que nadie
+            implementó. Con ellos se va el usuario inventado de cada handler y los ids fijos del
+            <span class="etiq">seed</span>, que existían solo para sostenerlo.
+          </li>
+          <li>
+            <strong>Escriban la operación que no podían escribir.</strong> Casi todos los dominios
+            tienen una: la que solo puede hacer <em>quien hizo</em> otra cosa antes —anular lo que
+            uno emitió, editar lo que uno publicó, cerrar lo que uno abrió—. En la libreta es
+            <span class="etiq">POST /api/certificados/:id/anulacion</span>, estaba en el contrato
+            desde la clase 4 sin código, y hoy son trece líneas. <strong>Si en su contrato no hay
+            ninguna fila así, vuelvan a leer su spec</strong>: probablemente esté y no la
+            escribieron.
+          </li>
+        </ol>
+
+        <h3>Fase C — Probar como los otros</h3>
+        <ol start="9">
+          <li>
+            <strong>Tres requests nuevas en <span class="etiq">docs/api.http</span></strong>, con el
+            status esperado escrito arriba. Son las tres que en la defensa se piden primero:
+            <div class="caja-codigo">### sin cookie de sesión → 401
+GET {{base}}/api/mascotas
+
+### con la cookie del DUEÑO, emitiendo un certificado → 403
+POST {{base}}/api/certificados/{{certificadoId}}/emision
+Cookie: {{cookieDueno}}
+
+### con la cookie del dueño B, pidiendo la mascota del dueño A → 404
+GET {{base}}/api/mascotas/{{mascotaDeOtro}}
+Cookie: {{cookieDuenoB}}</div>
+          </li>
+          <li>
+            <strong>El 404 es el que importa.</strong> Si esa tercera request devuelve
+            <span class="etiq">200</span> con la mascota de otro, tienen una filtración de datos —
+            y es exactamente lo que se prueba en el Parcial I.
+          </li>
+          <li>
+            <strong>Contra producción también</strong>, después del merge, con las cookies del
+            dominio de Vercel.
+          </li>
+          <li>
+            <strong>PR y code review.</strong> El que revisa mira estas seis cosas:
+            <div class="caja-codigo">[ ] ¿Algún endpoint quedó sin requerirUsuario y sin decir que es público?
+[ ] ¿Alguna consulta devuelve datos de un usuario sin su id en el where?
+[ ] ¿Aparece `rol` o `usuarioId` en un schema, un header o la query?
+[ ] ¿Quedó algún `if` de pertenencia adentro de un route.ts?
+[ ] ¿El registro público puede crear un rol que no sea el más bajo?
+[ ] ¿Quedó algún id de usuario escrito a mano en un handler o en el seed?
+[ ] ¿`npm test`, `npm run typecheck` y `npm run lint` en verde?</div>
+          </li>
+        </ol>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Cómo se le pide esto a un asistente</span>
+          <div class="caja-codigo">✗ "Agregá autenticación con Auth.js"
+
+✓ "En app/api/certificados/[id]/emision/route.ts, la primera línea del try
+   llama a requerirUsuario("VETERINARIO"), que ya está en lib/auth.ts y
+   lanza NoAutenticado o NoAutorizado. El certificado se busca con
+   obtenerCertificado(id) y si es null se responde 404. El emisor que se
+   guarda es el id de ese veterinario, nunca un dato del body. El catch
+   devuelve responderError(error). No agregues chequeos de rol adentro de
+   lib/db/ ni leas el rol del request."</div>
+          <p>
+            La diferencia con el primer prompt no es el largo: es que el segundo
+            <strong>ya decidió la fila de la matriz</strong>. Si no la pueden escribir antes de
+            abrir el chat, el problema no es el prompt — es que el permiso todavía no está decidido.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Si el equipo no usa Next</span>
+          <p>
+            No cambia nada de la clase. Las tres preguntas, los tres status y el
+            <span class="etiq">where</span> con el id del usuario de la sesión son iguales en todos lados: en
+            Express es un middleware de autenticación más el mismo filtro en la consulta, en Django
+            son los <span class="etiq">permission_classes</span> y un
+            <span class="etiq">get_queryset</span> que filtra por
+            <span class="etiq">request.user</span>. Lo único propio de Next acá es Auth.js, que se
+            reemplaza por la librería equivalente del stack de ustedes.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="entregable">
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li><strong>Login andando en producción</strong>, no solo en <span class="etiq">localhost</span>, con la URL pública del equipo.</li>
+          <li>El usuario que se registra queda con el <strong>rol de menor privilegio</strong>, y no hay ninguna forma de auto-asignarse otro desde la API.</li>
+          <li><span class="etiq">lib/auth.ts</span> completo: <span class="etiq">obtenerUsuario</span>, <span class="etiq">requerirUsuario</span> y los dos errores con nombre.</li>
+          <li>Cada endpoint de <span class="etiq">docs/api.md</span> con su rol verificado en el servidor, o declarado público a propósito.</li>
+          <li>Las consultas de <span class="etiq">lib/db/</span> que devuelven datos de un usuario, <strong>filtradas por el id del usuario de la sesión</strong>.</li>
+          <li>Un solo <span class="etiq">responderError</span> traduciendo <span class="etiq">401</span>, <span class="etiq">403</span> y <span class="etiq">500</span>, con el nombre del endpoint en el log.</li>
+          <li><strong>La operación que dependía de la sesión, escrita</strong> — la que solo puede hacer quien hizo otra cosa antes. En la referencia, la anulación del certificado.</li>
+          <li>Los <span class="etiq">TODO (clase 6)</span> borrados, y el <span class="etiq">seed</span> sin los ids puestos a mano que los sostenían. No queda nada del andamio inicial.</li>
+          <li><span class="etiq">docs/api.http</span> con los tres casos —sin sesión, rol equivocado y recurso ajeno— verificados <strong>en local y en producción</strong>.</li>
+          <li>Un ADR corto con las dos decisiones: <strong>proveedor de identidad</strong> y <strong>token o sesión en base</strong>.</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Para la próxima</h3>
+        <ul>
+          <li>
+            Lectura del eje metodológico (<strong>SOA</strong>) + entrega del cuestionario en UAI
+            Online Ultra. Es la continuación directa de la de hoy: hoy vieron por qué su app es un
+            monolito, la semana que viene por qué igual va a depender de sistemas que no controlan.
+          </li>
+          <li>
+            <strong>Traer elegido el servicio externo de la sección 8 de su spec</strong>, con la
+            cuenta ya creada y la API key conseguida <em>antes</em> de la clase. Storage de
+            archivos, mail, pagos, mapas, lo que su dominio necesite.
+          </li>
+          <li>
+            Y una pregunta contestada por escrito, que es la que abre la clase 7:
+            <strong>¿qué hace su sistema cuando ese servicio no responde?</strong> Hoy ya tienen un
+            caso para practicar: si se cae el proveedor de identidad, nadie entra. Escriban qué
+            pasa —y qué debería pasar— con cada operación del flujo principal.
+          </li>
+        </ul>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Dónde estamos parados</span>
+          <p>
+            Después de la clase 7 el backend está completo, y esa es la fecha del hito:
+            <strong>al 22/09 tiene que haber CRUD, validaciones, reglas de negocio, auth con dos
+            roles y un servicio externo integrado</strong>, todo en producción.
+          </p>
+          <p>
+            El <strong>29/09 es el Parcial I</strong>, y se toma sobre la URL pública. La primera
+            pregunta de esa defensa, casi siempre, es la de hoy: <em>"mostrame qué pasa si le pido
+            esto con la cuenta de otro"</em>.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 06 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
