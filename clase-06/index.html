@@ -1060,18 +1060,41 @@ AUTH_GOOGLE_SECRET=""   ← empieza con GOCSPX-</div>
         <h3>Fase C — Probar como los otros</h3>
         <ol start="9">
           <li>
+            <strong>La cookie de sesión, fuera del repositorio.</strong> Desde hoy casi todas las
+            requests de <span class="etiq">api.http</span> la necesitan, y <strong>es una sesión
+            viva</strong>: quien la tenga entra al sistema como ustedes durante 30 días. Como
+            <span class="etiq">api.http</span> se sube, la cookie va en un archivo ignorado —
+            <span class="etiq">docs/.env</span>, al lado— y se lee con <span class="etiq">$dotenv</span>:
+            <div class="caja-codigo"># docs/.env  (está en el .gitignore)
+SESION_DUENA=eyJhbGciOiJkaXIi...
+SESION_VETERINARIO=eyJhbGciOiJkaXIi...
+
+# docs/api.http
+@sesionDuena = authjs.session-token={{$dotenv SESION_DUENA}}
+@sesionVeterinario = authjs.session-token={{$dotenv SESION_VETERINARIO}}</div>
+            El valor se copia de <span class="etiq">Application → Cookies</span> en las herramientas de
+            desarrollo —<span class="etiq">document.cookie</span> no la muestra, porque es
+            <em>httpOnly</em> a propósito— y va <strong>solo el valor</strong>: el nombre lo pone
+            <span class="etiq">api.http</span>. Suban un <span class="etiq">docs/.env.example</span>
+            vacío para que los compañeros sepan qué completar.
+          </li>
+          <li>
             <strong>Tres requests nuevas en <span class="etiq">docs/api.http</span></strong>, con el
             status esperado escrito arriba. Son las tres que en la defensa se piden primero:
             <div class="caja-codigo">### sin cookie de sesión → 401
 GET {{base}}/api/mascotas
 
-### con la cookie del DUEÑO, emitiendo un certificado → 403
-POST {{base}}/api/certificados/{{certificadoId}}/emision
-Cookie: {{cookieDueno}}
+### con la cookie del DUEÑO, registrando una aplicación → 403
+POST {{base}}/api/mascotas/laika/aplicaciones
+Cookie: {{sesionDuena}}
 
-### con la cookie del dueño B, pidiendo la mascota del dueño A → 404
-GET {{base}}/api/mascotas/{{mascotaDeOtro}}
-Cookie: {{cookieDuenoB}}</div>
+### con la cookie de un dueño, pidiendo la mascota de OTRO → 404
+GET {{base}}/api/mascotas/id-de-una-mascota-ajena
+Cookie: {{sesionDuena}}</div>
+            Y ojo con lo que pasa apenas terminen la fase B: <strong>todas las requests que venían
+            escribiendo desde la clase 4 empiezan a responder 401</strong>, porque ninguna mandaba
+            cookie. No es que se rompió la API: es que ahora pide sesión. Hay que agregarle a cada
+            una la línea <span class="etiq">Cookie</span> del rol que corresponde.
           </li>
           <li>
             <strong>El 404 es el que importa.</strong> Si esa tercera request devuelve
