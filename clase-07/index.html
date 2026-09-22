@@ -28,13 +28,13 @@
           servicio no responde</strong>.
         </p>
         <ul class="agenda">
-          <li><a href="#inventario">Lo que trajeron: el inventario de lo que puede fallar</a></li>
+          <li><a href="#que-falla">Lo que trajeron: el servicio externo y qué puede fallar</a></li>
           <li><a href="#soa">Metodología: SOA · diez minutos</a></li>
           <li><a href="#limite">El límite del sistema y las tres cosas que pasan al cruzarlo</a></li>
           <li><a href="#esencial">Esencial o accesorio: lo decide el negocio, no el <span class="etiq">catch</span></a></li>
           <li><a href="#como">Cómo se le habla a un tercero</a></li>
           <li><a href="#caso">El caso completo: el PDF del certificado</a></li>
-          <li><a href="#decisiones">Decisiones: qué se gana, qué se resigna y qué hoy no hacemos</a></li>
+          <li><a href="#decisiones">Decisiones: qué se gana y qué se resigna</a></li>
           <li><a href="#ia">Qué le pedimos a la IA (y qué no)</a></li>
           <li><a href="#taller">Taller</a></li>
         </ul>
@@ -64,12 +64,22 @@
       </section>
 
 
-      <section id="inventario">
-        <h2>1. Lo que trajeron: el inventario de lo que puede fallar</h2>
+      <section id="que-falla">
+        <h2>1. Lo que trajeron: el servicio externo y qué puede fallar</h2>
         <p class="lead">
-          Traen dos cosas: una cuenta creada con su API key, y la respuesta por escrito a la
-          pregunta de la clase pasada — <em>¿qué hace su sistema cuando ese servicio no
-          responde?</em>. Esa respuesta es el temario de hoy.
+          Deberían tener dos cosas. La primera es <strong>el proveedor elegido y listo para usar
+          desde afuera</strong>: la cuenta creada, el recurso que haga falta —un bucket, un dominio
+          de envío, una aplicación— y <strong>la credencial a mano</strong>, que según el proveedor
+          se va a llamar <em>API key</em>, <em>token</em> o <em>clave secreta</em>. Cuál es el
+          servicio <strong>no se elige hoy</strong>: la sección 8 de su spec tiene ese hueco desde la
+          clase 2 —almacenamiento de archivos, correo, pagos, mapas—, con <em>"qué pasa si se
+          cae"</em> incluido. <strong>Si lo completaron de apuro, hoy es el día de mirarlo en
+          serio.</strong>
+        </p>
+        <p class="lead">
+          La segunda es la respuesta por escrito a la pregunta de la clase pasada —<em>¿qué hace su
+          sistema cuando ese servicio no responde?</em>—, y <strong>esa respuesta es el temario de
+          hoy</strong>.
         </p>
         <div class="caja-codigo">| Operación del flujo      | Servicio externo | Si no responde…        | ¿El usuario se entera? |
 |--------------------------|------------------|------------------------|------------------------|
@@ -89,7 +99,49 @@
         <p>
           <strong>Casi siempre hay una de cada una</strong>, y casi ningún equipo lo tiene decidido:
           lo decide el <span class="etiq">try/catch</span> por accidente, el día que el servicio se
-          cae de verdad.
+          cae de verdad. Y lo decide siempre del mismo modo: la excepción del proveedor llega al
+          <span class="etiq">catch</span> del handler, sale como un <span class="etiq">500</span>
+          <em>"Error interno"</em> —el genérico de <span class="etiq">responderError</span>, el que
+          existe para los bugs— y el usuario ve el sistema roto por algo que ni siquiera tenía que
+          impedirle la operación.
+        </p>
+
+        <h3>Qué cuenta como servicio externo, y qué no</h3>
+        <p>
+          Una <strong>librería</strong> es código que se traen a su casa: la instalan con
+          <span class="etiq">npm</span>, corre adentro de su servidor, no tiene cuenta ni credencial
+          y <strong>anda sin internet</strong>. Si falla, es un bug de ustedes: falla siempre igual.
+          Un <strong>servicio</strong> es la computadora de otro, a la que le piden cosas por la red:
+          tiene cuenta, credencial y alguien que decide sus precios y sus horarios.
+        </p>
+        <div class="esquema">   ¿Anda sin internet?   SÍ → es una LIBRERÍA, y su falla es un bug suyo
+                         NO → es un SERVICIO, y hoy hablamos de eso</div>
+        <p>
+          En la libreta hay una de cada una, y por eso viven en archivos separados:
+          <span class="etiq">pdf-lib</span> <strong>genera</strong> el PDF y es una librería;
+          el storage lo <strong>guarda</strong> y es un servicio. Solo el segundo puede fallar por
+          razones ajenas.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Para qué</th><th>Ejemplos</th><th>¿Esencial o accesorio?</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Archivos</strong></td><td>Supabase Storage, Cloudinary, Vercel Blob</td><td>Casi siempre <strong>accesorio</strong></td></tr>
+              <tr><td><strong>Correo</strong></td><td>Resend, Brevo, Mailgun</td><td><strong>Accesorio</strong>, salvo que sea el único modo de entregar algo</td></tr>
+              <tr><td><strong>Mensajería</strong></td><td>Kapso (WhatsApp), Twilio</td><td><strong>Accesorio</strong>, mismo criterio</td></tr>
+              <tr><td><strong>Pagos</strong></td><td>Mercado Pago, Stripe</td><td><strong>Esencial.</strong> Sin confirmación no hay operación</td></tr>
+              <tr><td><strong>Mapas y direcciones</strong></td><td>Google Maps, Mapbox</td><td><strong>Depende</strong>: mostrar un mapa es accesorio; calcular el costo de un envío, esencial</td></tr>
+              <tr><td><strong>Datos de afuera</strong></td><td>El clima, la cotización del dólar, los feriados</td><td><strong>Depende de qué se decida con ese dato</strong></td></tr>
+              <tr><td><strong>Inteligencia artificial</strong></td><td>OpenAI, Anthropic, Gemini</td><td>Casi siempre <strong>accesorio</strong>: una sugerencia que no llega no rompe nada</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La tercera columna es el trabajo, no la segunda. <strong>Elegir proveedor lleva diez
+          minutos; decidir qué pasa cuando no responde es lo que se evalúa</strong> — y fijate que
+          la misma categoría cambia de lado según para qué la usen.
         </p>
 
         <div class="callout">
@@ -160,15 +212,13 @@ es el registro, no el archivo.</div>
           No pasó nunca, y la razón está en la propia lectura: el proveedor define
           <em>"precios, disponibilidad y seguridad"</em>. <strong>Eso no es un dato técnico, es un
           contrato comercial</strong>, y elegirlo es una decisión con consecuencias que ninguna
-          máquina toma por vos. Ustedes acaban de hacerlo a mano esta semana, leyendo planes y
-          creando una cuenta.
+          máquina toma por vos. Ustedes lo van a estar haciendo esta semana, leyendo planes y creando cuentas.
         </p>
 
         <h3>Qué quedó de la implementación</h3>
         <p>
-          El material nombra <strong>SOAP</strong>, Jini, REST y —escrito "COBRA", con la erre
-          cambiada de lugar— el <strong>CORBA</strong> de la clase pasada. De esa lista, la que ganó
-          es la que menos pretendía:
+          El material nombra <strong>SOAP</strong>, Jini, REST y el <strong>CORBA</strong> de la
+          clase pasada. De esa lista, la que ganó es la que menos pretendía:
         </p>
         <div class="tabla-scroll">
           <table>
@@ -201,17 +251,6 @@ es el registro, no el archivo.</div>
           en todos lados. <strong>La tecnología que ganó no era la mejor: era la que no había que
           pedirle permiso a nadie para usar.</strong>
         </p>
-
-        <div class="callout">
-          <span class="callout-titulo">Una para leer con desconfianza</span>
-          <p>
-            El material dice <em>"cada elemento tiene tres roles"</em> y a continuación enumera
-            <strong>cinco</strong>. No es un detalle: el modelo clásico son tres —proveedor,
-            registro y consumidor— y las otras dos entradas son variantes del registro. Vale como
-            ejercicio de lectura: <strong>cuando un texto se contradice consigo mismo en un renglón,
-            hay que ir al modelo y no a la enumeración.</strong>
-          </p>
-        </div>
 
         <div class="callout callout-puente">
           <span class="callout-titulo">Lo que sí quedó, y es el tema de hoy</span>
@@ -270,7 +309,7 @@ es el registro, no el archivo.</div>
               <tr>
                 <td><strong>Cambia</strong></td>
                 <td>Andaba y un martes dejó de andar, sin que ustedes tocaran nada</td>
-                <td>Fijar la versión del SDK y leer los avisos del proveedor</td>
+                <td>Fijar la versión del <strong>SDK</strong> —<em>software development kit</em>: la librería que publica el proveedor para hablarle sin armar los requests a mano— y leer sus avisos</td>
               </tr>
             </tbody>
           </table>
@@ -279,8 +318,8 @@ es el registro, no el archivo.</div>
         <div class="callout callout-alerta">
           <span class="callout-titulo">El que tarda es peor que el que falla</span>
           <p>
-            Un servicio que responde "error" en 50 milisegundos es un buen día: su código se entera
-            y decide. Un servicio que <strong>no responde nunca</strong> deja el request de ustedes
+            Un servicio que responde "error" en 50 milisegundos es <strong>lo mejor que les puede
+            pasar</strong>: su código se entera y decide. Un servicio que <strong>no responde nunca</strong> deja el request de ustedes
             colgado, ocupando una conexión, hasta que el navegador del usuario se cansa.
           </p>
           <p>
@@ -308,10 +347,16 @@ es el registro, no el archivo.</div>
               La operación <strong>se completa igual</strong>. Lo del servicio se resuelve después, o
               no se resuelve.
             </p>
+            <p>
+              <strong>No quiere decir «poco importante» ni «opcional».</strong> El PDF importa —es lo
+              que el dueño muestra en el aeropuerto—. Quiere decir que <strong>la operación queda
+              completa y correcta sin él</strong>: un certificado sin PDF es un certificado válido y
+              verificable, y el archivo se regenera después.
+            </p>
             <ul>
               <li>El <strong>PDF</strong> del certificado: el certificado ya está emitido y es verificable online</li>
               <li>El <strong>mail</strong> de aviso: la vacuna vence igual, con mail o sin mail</li>
-              <li>Una miniatura, un aviso interno, una métrica</li>
+              <li>Un aviso interno al equipo, una métrica, un registro de auditoría</li>
             </ul>
             <p>
               <strong>La falla no se propaga al usuario como error.</strong> A lo sumo, se le informa
@@ -341,13 +386,35 @@ es el registro, no el archivo.</div>
             Cuando la decisión no se toma antes, la toma el código por accidente, y siempre de una de
             estas dos formas:
           </p>
-          <div class="caja-codigo">// ✗ tratar lo accesorio como esencial
-const url = await subirPdf(pdf);   // si esto falla, lanza
-await emitirCertificado(...);      // y el certificado NUNCA se emite
+          <div class="caja-codigo">// ✗ TRATAR LO ACCESORIO COMO ESENCIAL   (la libreta sanitaria)
+const url = await subirPdf(pdf);   // si acá hubiera un throw...
+await emitirCertificado(...);      // ...esta línea no se ejecuta NUNCA
+                                   // → el storage estaba caído y el
+                                   //   certificado no existe
 
-// ✗ tratar lo esencial como accesorio
-try { await cobrar(monto); } catch { /* seguimos igual */ }
-await confirmarPedido();           // pedido confirmado, plata no cobrada</div>
+// ✗ TRATAR LO ESENCIAL COMO ACCESORIO   (otro dominio: una tienda)
+try {
+  await cobrar(monto);
+} catch {
+  // vacío: se atrapa el error y no se hace nada con él
+}
+
+await confirmarPedido();           // se ejecuta igual
+                                   // → pedido confirmado, plata sin cobrar</div>
+          <p>
+            <em>Lanzar</em> es <span class="etiq">throw</span>, la palabra que vienen usando desde la
+            clase 5. Lo que hace es <strong>cortar la función ahí mismo</strong>: ninguna línea
+            posterior se ejecuta, y el error sube hasta el <span class="etiq">catch</span> más
+            cercano —y si no hay, hasta el del handler, que responde 500—. Por eso la regla del
+            módulo es devolver <span class="etiq">null</span>: así la falla es un valor que se puede
+            ignorar, en vez de una interrupción que arrastra todo lo que venía después.
+          </p>
+          <p>
+            El segundo ejemplo es de <strong>otro dominio</strong> —una tienda, no la libreta—
+            porque en la libreta no hay nada esencial que mostrar: todos sus servicios externos son
+            accesorios. <span class="etiq">cobrar</span> y <span class="etiq">confirmarPedido</span>
+            no existen en el proyecto.
+          </p>
           <p>
             El primero es el que más van a ver hoy: <strong>un servicio accesorio que voltea la
             operación principal</strong>. Un certificado que no se emite porque un storage estaba
@@ -356,6 +423,33 @@ await confirmarPedido();           // pedido confirmado, plata no cobrada</div>
           <p>
             El segundo es más raro y más caro. Ese <span class="etiq">catch</span> vacío es cómo se
             pierde plata de verdad.
+          </p>
+          <p>
+            <strong>Lo correcto, en el caso esencial</strong>, es la simetría del otro: si lo
+            accesorio va <em>después</em> de la operación, <strong>lo esencial va antes de
+            confirmarla</strong>. Así, cuando falla, no queda nada a medias.
+          </p>
+          <div class="caja-codigo">// ✓ lo esencial, ANTES de confirmar
+const cobro = await cobrar(monto);   // devuelve el resultado, no lanza
+
+if (!cobro) {
+  return NextResponse.json(
+    { error: "No pudimos cobrar. Probá de nuevo en unos minutos" },
+    { status: 502 },                 // falló el de al lado, no ustedes
+  );
+}
+
+await confirmarPedido();             // recién ahora, y solo si cobró</div>
+          <p>
+            El <span class="etiq">502</span> es nuevo y vale la pena el renglón:
+            <span class="etiq">500</span> (<em>Internal Server Error</em>) significa <em>"se rompió
+            algo nuestro"</em> y <span class="etiq">502</span> (<em>Bad Gateway</em>, literalmente
+            "puerta de enlace defectuosa"), <em>"falló un servicio del que dependo"</em> — el nombre
+            viene de que su servidor está actuando de intermediario y el de más arriba le respondió
+            mal. La
+            diferencia le importa a quien lee los logs, y al usuario le cambia el mensaje: en un
+            caso hay un bug que alguien tiene que arreglar, en el otro conviene volver a intentar
+            en un rato.
           </p>
         </div>
       </section>
@@ -435,38 +529,15 @@ export async function subirPdf(nombre: string, contenido: Uint8Array) {
           con cualquier SDK que use <span class="etiq">fetch</span> por debajo. Ponerlo al crear el
           cliente y no en cada llamada es deliberado — así no existe la posibilidad de olvidarlo.
         </p>
+        <p>
+          Y el cliente se crea <strong>adentro de una función, no arriba del archivo</strong>: el SDK
+          lanza en el acto si le falta la URL, así que con un <span class="etiq">const</span> a nivel
+          de módulo la sola falta de configuración impediría <em>importar</em> el archivo — y con él
+          se caería el handler que lo usa. Creándolo al llamarlo, no tener credenciales es un caso
+          más de "el servicio no está disponible" y devuelve <span class="etiq">null</span> como
+          cualquier otra falla.
+        </p>
 
-        <div class="callout callout-alerta">
-          <span class="callout-titulo">El error que casi nadie ve: el cliente creado al importar</span>
-          <p>
-            Lo natural es crear el cliente arriba de todo del archivo, una sola vez:
-          </p>
-          <div class="caja-codigo">// ✗ se ejecuta en el momento en que alguien importa el archivo
-const cliente = createClient(process.env.STORAGE_URL!, process.env.STORAGE_KEY!);</div>
-          <p>
-            El problema es que <strong>el SDK lanza en el acto si le falta la URL</strong>. Sin la
-            variable cargada, el archivo no se puede ni importar — y con él se cae el handler que lo
-            importa. En la libreta, eso significa que <strong>ningún certificado se puede emitir
-            porque falta configurar un PDF que la spec dice que es prescindible</strong>.
-          </p>
-          <p>
-            Es el antipatrón de la sección 4 de hoy, un servicio accesorio que voltea la operación
-            principal, pero escondido en un lugar donde el <span class="etiq">try/catch</span> no llega:
-            fuera de cualquier función. Por eso <span class="etiq">obtenerCliente</span> lo crea recién
-            cuando se usa, y la falta de configuración pasa a ser un caso más de "el servicio no está
-            disponible".
-          </p>
-        </div>
-
-        <div class="callout">
-          <span class="callout-titulo">Por qué envolverlo y no llamar al SDK desde el handler</span>
-          <p>
-            Por tres razones, y ninguna es la prolijidad. <strong>Se puede cambiar de proveedor</strong>
-            tocando un archivo. <strong>Se puede simular la falla</strong> sin desconectar internet,
-            que es como se prueba esto. Y <strong>el timeout y el manejo de error se escriben una vez</strong>:
-            esparcidos en cinco handlers, el día que falte en uno nadie lo nota hasta que se cae.
-          </p>
-        </div>
       </section>
 
 
@@ -545,25 +616,11 @@ return NextResponse.json({ ...emitido, urlPdf }, { status: 201 });</div>
           </p>
         </div>
 
-        <div class="callout callout-alerta">
-          <span class="callout-titulo">Lo que NO se guarda: una URL que expira</span>
-          <p>
-            Muchos storages ofrecen <em>URLs firmadas</em>, que funcionan una hora y después mueren.
-            Son útiles, pero <strong>guardar una de esas en la columna sería guardar un dato que
-            miente</strong>: mañana la fila sigue diciendo una URL que ya no abre.
-          </p>
-          <p>
-            Es la misma distinción de la clase 3 entre lo que se guarda y lo que se calcula. Si usan
-            URLs firmadas, lo que va a la base es <strong>la ubicación del archivo</strong>, y la URL
-            se genera al leer. Nosotros usamos una URL estable con nombre no adivinable, y por eso sí
-            se puede guardar.
-          </p>
-        </div>
       </section>
 
 
       <section id="decisiones">
-        <h2>7. Decisiones: qué se gana, qué se resigna y qué hoy no hacemos</h2>
+        <h2>7. Decisiones: qué se gana y qué se resigna</h2>
         <div class="tabla-scroll">
           <table>
             <thead>
@@ -579,8 +636,8 @@ return NextResponse.json({ ...emitido, urlPdf }, { status: 201 });</div>
               <tr>
                 <td>Subir <strong>dentro del request</strong> vs. en segundo plano</td>
                 <td>En segundo plano el usuario no espera por algo que no le importa</td>
-                <td>Necesita una cola, un proceso que la atienda y una forma de ver qué falló</td>
-                <td><strong>Dentro del request</strong>, con timeout. La cola llega cuando el sistema la necesite</td>
+                <td>Hay que anotar la tarea en algún lado, tener un proceso aparte que la ejecute, y una forma de ver cuáles fallaron</td>
+                <td><strong>Dentro del request</strong>, con timeout. El segundo plano llega cuando el sistema lo necesite</td>
               </tr>
               <tr>
                 <td>Proveedor <strong>que ya usan</strong> vs. el mejor de cada cosa</td>
@@ -588,29 +645,10 @@ return NextResponse.json({ ...emitido, urlPdf }, { status: 201 });</div>
                 <td>Cada proveedor es una cuenta, una credencial, una factura y un contrato que puede cambiar</td>
                 <td><strong>El que ya usan</strong>, si alcanza. Menos proveedores es menos superficie de falla</td>
               </tr>
-              <tr>
-                <td>URL <strong>estable no adivinable</strong> vs. URL firmada que expira</td>
-                <td>La firmada caduca sola, así que un link filtrado deja de servir</td>
-                <td>No se puede guardar: hay que generarla en cada lectura</td>
-                <td><strong>Estable</strong>, con el código de verificación como nombre</td>
-              </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="callout callout-alerta">
-          <span class="callout-titulo">Lo que hoy NO hacemos</span>
-          <p>
-            <strong>Colas de trabajos, reintentos automáticos con espera creciente, webhooks y
-            circuit breakers.</strong> Todo eso existe, es lo correcto a cierta escala, y no está en
-            la spec de nadie.
-          </p>
-          <p>
-            Lo que sí tiene que estar hoy es mucho más chico y es lo que se pregunta en la defensa:
-            <strong>un timeout, una decisión escrita sobre si el servicio es esencial o accesorio, y
-            la demostración de que el sistema sobrevive cuando el servicio no responde.</strong>
-          </p>
-        </div>
       </section>
 
 
@@ -626,10 +664,12 @@ return NextResponse.json({ ...emitido, urlPdf }, { status: 201 });</div>
             servicio falla.
           </p>
           <p>
-            El síntoma es fácil de reconocer en el code review: <strong>un
-            <span class="etiq">await</span> a un servicio externo sin timeout y sin
-            <span class="etiq">catch</span>, en el medio de la función principal</strong>. Anda
-            perfecto hasta el día que el proveedor tenga un mal rato.
+            El síntoma es fácil de reconocer, y son <strong>tres preguntas en dos archivos</strong>:
+            en <span class="etiq">lib/servicios/</span>, <strong>¿la llamada tiene timeout?</strong>
+            y <strong>¿devuelve en vez de lanzar?</strong>; en el handler, <strong>¿está del lado
+            correcto de la operación?</strong> Con que falle una, el servicio accesorio pasó a ser
+            esencial sin que nadie lo decidiera — y anda perfecto hasta el día que el proveedor
+            tenga un mal rato.
           </p>
         </div>
         <div class="grid-2">
