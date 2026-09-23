@@ -6,7 +6,7 @@
 
 | Instancia | Cuándo | Tipo |
 |---|---|---|
-| **Parcial I** — defensa del backend | Clase 8 | Del proyecto, ajustada por integrante |
+| **Parcial I** — defensa del backend | Clase 9 | Del proyecto, ajustada por integrante |
 | **Parcial II** — defensa de la aplicación | Clase 15 | Del proyecto, ajustada por integrante |
 | Demo Day — cierre de la cursada | Clase 16 | Del proyecto. Presentación, sin preguntas individuales |
 | Eje metodológico | Todas | Individual |
@@ -14,7 +14,7 @@
 
 Las tres primeras se califican sobre la nota del proyecto, ajustada por integrante (ver *La nota individual*).
 
-Los parciales de las clases 8 y 15 **no son un examen escrito**: son la demo y la defensa del proyecto. La teoría se evalúa aplicada, dentro de esas preguntas (ver `eje-metodologico.md`).
+Los parciales de las clases 9 y 15 **no son un examen escrito**: son la demo y la defensa del proyecto. La teoría se evalúa aplicada, dentro de esas preguntas (ver `eje-metodologico.md`).
 
 ---
 
@@ -56,7 +56,7 @@ Ejemplo del Parcial I: un equipo con modelo de datos destacado (90%), API acepta
 
 ---
 
-## Parcial I — Clase 8
+## Parcial I — Clase 9
 
 Entrega **grupal**: presentan los cuatro integrantes juntos, 10 minutos de demo del backend en producción + preguntas. La defensa se toma **solo con el docente**, no frente al curso.
 

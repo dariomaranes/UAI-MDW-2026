@@ -11,9 +11,9 @@
 | 5 | mar 08/09 | Validación, errores y capas | Ágil | Cuestionario clase 4 |
 | 6 | mar 15/09 | Autenticación y autorización | Monolitos vs. SOA | Cuestionario clase 5 |
 | 7 | mar 22/09 | Servicios externos: consumir e integrar | SOA | Cuestionario clase 6 |
-| 8 | **mar 29/09** | **PARCIAL I — defensa del backend** | — | Cuestionario clase 7 |
-| 9 | mar 06/10 | React moderno dentro de Next.js | MVC | — |
-| 10 | mar 13/10 | UI, design system y consumo de la API | APIs, API First, REST | Cuestionario clase 9 |
+| 8 | mar 29/09 | React moderno dentro de Next.js | MVC | Cuestionario clase 7 |
+| 9 | **mar 06/10** | **PARCIAL I — defensa del backend** | — | Cuestionario clase 8 |
+| 10 | mar 13/10 | UI, design system y consumo de la API | APIs, API First, REST | — |
 | 11 | mar 20/10 | Formularios, mutaciones y mobile-first | Programación para móviles | Cuestionario clase 10 |
 | 12 | mar 27/10 | Testing y calidad | Pruebas | Cuestionario clase 11 |
 | 13 | mar 03/11 | IA dentro del producto | Agentes de software | Cuestionario clase 12 |
@@ -26,7 +26,7 @@
 - **Asistencia:** se requiere el **70%** de las clases para aprobar la cursada.
 
 - **Cuestionarios:** se entregan en **UAI Online Ultra**, al **inicio** de la clase siguiente a la lectura, y se siguen clase a clase. **Al 24/11 tienen que estar todos entregados**; los que falten inciden en la nota de concepto.
-- **Parciales (clases 8 y 15):** se evalúa sobre **producción**. Si la URL pública no responde, el parcial no se toma y pasa a la recuperación del 24/11.
+- **Parciales (clases 9 y 15):** se evalúa sobre **producción**. Si la URL pública no responde, el parcial no se toma y pasa a la recuperación del 24/11.
 - **Recuperatorios:** única instancia, el 24/11, **al cierre del Demo Day** y solo con el docente. Se puede recuperar uno o los dos parciales.
 - **Demo Day:** es una presentación, no un examen. Se puede presentar en cualquier clase anterior; al 24/11 todos los equipos tienen que haber presentado al menos una vez.
 - **El final:** se rinde en las mesas de diciembre, aparte de la cursada. Ahí sí hay preguntas individuales sobre el código, con el equipo y el docente solos.
@@ -38,7 +38,7 @@
 | 11/08 | Repo creado y URL pública funcionando |
 | 25/08 | Modelo de datos migrado en la base cloud |
 | 22/09 | Backend completo: CRUD, validaciones, auth con 2 roles, servicio externo |
-| **29/09** | **Parcial I** |
+| **06/10** | **Parcial I** |
 | 20/10 | Flujo principal navegable desde la UI |
 | 10/11 | Testing, performance y seguridad revisados |
 | **17/11** | **Parcial II** |

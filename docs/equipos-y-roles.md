@@ -11,7 +11,7 @@
 
 **Lo decide cada equipo.** No hay roles asignados por la cátedra.
 
-Repartir roles fijos —arquitectura, datos, frontend, devops— no funciona con esta secuencia: el cuatrimestre es backend hasta la clase 8 y frontend después, así que quien fuera "el del frontend" se pasaría media cursada sin trabajo propio. Un rol que no mapea a trabajo real es papel.
+Repartir roles fijos —arquitectura, datos, frontend, devops— no funciona con esta secuencia: el cuatrimestre es backend hasta la clase 7 y frontend después, así que quien fuera "el del frontend" se pasaría media cursada sin trabajo propio. Un rol que no mapea a trabajo real es papel.
 
 Que el entregable de cada clase esté y que el equipo no se disperse es responsabilidad de **los cuatro**, y cualquiera puede hablar con el docente cuando haga falta.
 
