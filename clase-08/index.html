@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 08 - React moderno dentro de Next.js</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 08 — MDW 2026</h1>
+      <p class="fecha-clase">martes 29/09/2026</p>
+      <h2>React moderno dentro de Next.js</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          Durante siete clases la interfaz de su sistema fue Postman. Hoy aparece la de verdad. Al
+          terminar la clase su proyecto tiene <strong>pantallas propias que leen datos reales con
+          los permisos de quien mira</strong>, y ustedes pueden contestar la única pregunta que
+          importa de este tema: <strong>¿esto corre en el servidor o en el navegador?</strong>
+        </p>
+        <ul class="agenda">
+          <li><a href="#donde-estamos">Dónde estamos: la letra que faltaba</a></li>
+          <li><a href="#mvc">Metodología: MVC y AJAX · diez minutos</a></li>
+          <li><a href="#donde-corre">Qué corre dónde, y el <span class="etiq">fetch</span> que no va</a></li>
+          <li><a href="#cliente">Cuándo un componente se vuelve de cliente</a></li>
+          <li><a href="#caso">El caso completo: la pantalla de una mascota</a></li>
+          <li><a href="#decisiones">Decisiones: qué se gana y qué se resigna</a></li>
+          <li><a href="#ia">Qué le pedimos a la IA (y qué no)</a></li>
+          <li><a href="#taller">Taller</a></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Esto que leyeron, hoy lo hacen así</span>
+          <p>
+            La lectura trae dos cosas: <strong>MVC</strong> y <strong>AJAX</strong>. La primera la
+            vienen aplicando desde la clase 4 sin haberla nombrado. La segunda describe un problema
+            —cómo pedirle datos al servidor sin recargar la página— que hoy se resuelve al revés de
+            como lo cuenta el PDF.
+          </p>
+          <p>
+            Es material viejo, y por eso sirve: <strong>el patrón sobrevivió y las herramientas
+            no</strong>. Ninguno de los tres frameworks que el texto recomienda elegir sigue siendo
+            una opción razonable, y sin embargo la separación entre modelo, vista y controlador está
+            adentro de su repositorio ahora mismo.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="donde-estamos">
+        <h2>1. Dónde estamos: la letra que faltaba</h2>
+        <p class="lead">
+          La semana pasada cerró el backend. Ese hito está cumplido: CRUD, validaciones, reglas de
+          negocio, autenticación con dos roles y un servicio externo, todo en producción. Hoy
+          empieza otra cosa.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El Parcial I sigue siendo del backend</span>
+          <p>
+            Es el <strong>06/10</strong>, y se defiende lo de las clases 1 a 7. Lo que construyan
+            hoy <strong>no suma en la rúbrica</strong> — pero sí puede restar, si al agregar
+            pantallas rompen algo que andaba. La regla de la semana: que la URL pública siga
+            respondiendo todos los días.
+          </p>
+        </div>
+
+        <h3>Ustedes ya escribieron React y no se enteraron</h3>
+        <p>
+          Abran <span class="etiq">app/page.tsx</span>. Eso es un componente de React: una función
+          que devuelve algo parecido a HTML. Está ahí desde la clase 1 y en la clase 6 pasó a
+          mostrar el listado de mascotas de quien inicia sesión.
+        </p>
+        <p>
+          Lo que cambia hoy no es empezar a usar React. Es <strong>entender dónde se ejecuta cada
+          componente</strong>, que es lo único de este tema que se puede hacer mal en serio.
+        </p>
+
+        <h3>Todo React que hace falta hoy</h3>
+        <p>
+          Son cuatro cosas, y las cuatro están en archivos que ya tienen abiertos. El resto de React
+          aparece cuando haga falta.
+        </p>
+
+        <p><strong>1. Un componente es una función que devuelve JSX.</strong> No hay clases ni nada
+          más. Los tres del proyecto son iguales:</p>
+        <div class="caja-codigo">app/page.tsx                       export default async function Home()
+app/mascotas/[id]/page.tsx         export default async function DetalleMascota({ params })
+components/buscador-mascotas.tsx   export function BuscadorMascotas({ mascotas })</div>
+        <p>
+          El <span class="etiq">default</span> de los dos primeros no es un capricho: Next exige que
+          el archivo de una página exporte su componente así. Los componentes sueltos se exportan
+          como cada uno quiera.
+        </p>
+
+        <p><strong>2. Las props son los parámetros de esa función.</strong> Se pasan como si fueran
+          atributos de HTML y llegan como un objeto. Las dos puntas:</p>
+        <div class="caja-codigo">// app/page.tsx — quién las manda
+&lt;BuscadorMascotas mascotas={mascotas} /&gt;
+
+// components/buscador-mascotas.tsx — quién las recibe
+export function BuscadorMascotas({ mascotas }) { ... }</div>
+
+        <p><strong>3. Las llaves quieren decir "acá adentro va JavaScript".</strong> Esta línea sola
+          explica JSX entero —texto suelto, valores entre llaves, y un ternario adentro—:</p>
+        <div class="caja-codigo">{usuario.nombre} · {esVeterinario ? "Veterinario" : "Dueño"}</div>
+
+        <p><strong>4. Y el <span class="etiq">key</span>, que van a ver y conviene despachar.</strong>
+          Cuando se pinta una lista, React pide un valor distinto por elemento para saber cuál es
+          cuál. Se usa el id y se sigue:</p>
+        <div class="caja-codigo">&lt;li key={mascota.id}&gt;</div>
+
+        <div class="callout">
+          <span class="callout-titulo">React y Next.js, de una vez</span>
+          <p>
+            <strong>React</strong> es una librería para escribir componentes. No sabe de URLs, ni de
+            servidor, ni de base de datos.
+          </p>
+          <p>
+            <strong>Next.js</strong> es un framework construido <em>encima</em> de React que pone
+            todo eso.
+          </p>
+          <p>
+            <strong>No se elige entre los dos: ustedes escriben React, y Next decide dónde
+            corre.</strong> Es lo mismo que se dijo en la clase 1, y hoy recién se ve para qué
+            servía saberlo.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="mvc">
+        <h2>2. Metodología: MVC y AJAX <span class="etiq">diez minutos</span></h2>
+
+        <h3>Las tres letras, y dónde viven en su repositorio</h3>
+        <p>
+          El material define MVC como un patrón que separa una aplicación en tres componentes
+          lógicos. La definición es correcta y no hace falta discutirla. Lo que sí vale la pena es
+          ubicarla:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Letra</th><th>Qué dice el material</th><th>Dónde está en su proyecto</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Modelo</strong></td>
+                <td>Toda la lógica relacionada con los datos</td>
+                <td><span class="etiq">prisma/schema.prisma</span>, <span class="etiq">lib/db/</span>, <span class="etiq">lib/schemas/</span></td>
+              </tr>
+              <tr>
+                <td><strong>Vista</strong></td>
+                <td>Toda la lógica de la interfaz de usuario</td>
+                <td><strong>Postman.</strong> Hasta hoy, literalmente</td>
+              </tr>
+              <tr>
+                <td><strong>Controlador</strong></td>
+                <td>Interfaz entre modelo y vista; procesa las solicitudes</td>
+                <td><span class="etiq">app/api/**/route.ts</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La fila del medio es el chiste de las últimas siete clases y también la razón por la que
+          el backend les salió bien: <strong>construir el modelo y el controlador sin vista obliga a
+          que las reglas estén del lado correcto</strong>. Un sistema que se probó con Postman no
+          puede tener la validación escondida en un formulario.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Dónde el material se queda corto</span>
+          <p>
+            En el texto, el controlador <em>"procesa toda la lógica comercial"</em>. En su proyecto
+            eso no es cierto, y a propósito: el handler valida, autoriza, delega y responde, pero
+            <strong>no decide</strong>. Las reglas viven en <span class="etiq">lib/estado-sanitario.ts</span>
+            y en los schemas. Es la separación de la clase 5, y son cuatro capas donde MVC nombra
+            tres. El patrón es una guía, no un molde.
+          </p>
+        </div>
+
+        <h3>AJAX, y por qué hoy se hace al revés</h3>
+        <p>
+          La segunda mitad del material describe AJAX sin decir nunca qué quiere decir la sigla:
+          <strong>Asynchronous JavaScript And XML</strong>. Código JavaScript incrustado en la
+          página que le manda solicitudes al servidor con
+          <span class="etiq">XMLHttpRequest</span> y sigue andando mientras espera la respuesta,
+          para no tener que recargar todo. En 2005 eso era una revolución. La secuencia era:
+        </p>
+        <div class="esquema">   AJAX (2005)     el servidor manda una página VACÍA
+                   el navegador la dibuja
+                   el navegador pide los datos          ← un segundo viaje
+                   el navegador vuelve a dibujar        ← y acá recién se ve algo</div>
+        <p>
+          Ese segundo viaje es el precio. Se paga siempre, y se paga en el peor momento: cuando la
+          persona ya está mirando una pantalla vacía. Durante quince años la industria lo dio por
+          inevitable, y la discusión pasó a ser <strong>cuál librería lo disimulaba mejor</strong>
+          —el material propone elegir entre jQuery, Mootools y Ext JS—. Ninguna de las tres sacaba
+          el viaje: lo hacían más cómodo de escribir.
+        </p>
+        <p>
+          Los <strong>Server Components</strong> dan vuelta la pregunta. Si el componente ya corre
+          en el servidor, no tiene a quién pedirle nada: la base está ahí al lado.
+        </p>
+        <div class="esquema">   HOY            el servidor lee la base
+                  el servidor manda la página CON los datos adentro
+                  el navegador la dibuja                ← y ya está</div>
+        <p>
+          Volvimos a lo de 1999: el servidor manda la página hecha. Con una diferencia que no es
+          menor —la navegación sigue sin recargar—, y ahí está toda la historia en un renglón:
+          <strong>quedó lo que AJAX buscaba y se fue lo que cobraba a cambio</strong>. Y la
+          pregunta del material —<em>¿qué framework Ajax elegir?</em>— dejó de existir dos veces:
+          primero porque ganó React, después porque para leer datos ya no hace falta pedirlos desde
+          el navegador.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">La X de AJAX es mentira</span>
+          <p>
+            XML perdió contra JSON casi enseguida, así que durante veinte años la industria le dijo
+            <em>"AJAX"</em> a una técnica donde <strong>la X no se usaba</strong>. Lo que ustedes
+            hacen con <span class="etiq">res.json()</span> es exactamente eso.
+          </p>
+          <p>
+            Dos datos más, que dicen algo sobre cómo se mueve esta industria. La sigla la inventó
+            <strong>Jesse James Garrett</strong> —el "JJ Garrett" que nombra el PDF— en un ensayo de
+            febrero de 2005. No inventó la técnica: <strong>le puso nombre a algo que ya se estaba
+            haciendo</strong>, y por eso explotó. Y el objeto que lo hacía posible,
+            <span class="etiq">XMLHttpRequest</span>, lo había hecho Microsoft en 1999 para que
+            Outlook anduviera en el navegador: <strong>la herramienta era seis años más vieja que el
+            nombre</strong>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="donde-corre">
+        <h2>3. Qué corre dónde, y el <span class="etiq">fetch</span> que no va</h2>
+        <p class="lead">
+          En el App Router <strong>todo componente es un Server Component</strong> salvo que digan
+          lo contrario. No hay que escribir nada para que lo sea: es el default, y el default es el
+          bueno.
+        </p>
+
+        <h3>Qué significa "corre en el servidor"</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Puede</th><th>No puede</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ser <span class="etiq">async</span> y esperar a la base</td>
+                <td>Acordarse de algo entre un click y el siguiente</td>
+              </tr>
+              <tr>
+                <td>Leer <span class="etiq">process.env</span> con secretos</td>
+                <td>Responder a <span class="etiq">onClick</span> o <span class="etiq">onChange</span></td>
+              </tr>
+              <tr>
+                <td>Leer la sesión y llamar a <span class="etiq">lib/db/</span></td>
+                <td>Tocar <span class="etiq">window</span>, <span class="etiq">localStorage</span> o el DOM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La columna de la izquierda tiene una consecuencia de seguridad que conviene decir en voz
+          alta: <strong>el código de un Server Component nunca llega al navegador</strong>. Lo que
+          viaja es el resultado. Por eso puede leer una credencial sin exponerla, y por eso el
+          <span class="etiq">STORAGE_KEY</span> de la clase pasada sigue estando a salvo.
+        </p>
+
+        <h3>El error que van a cometer esta semana</h3>
+        <p>
+          Ustedes tienen <span class="etiq">GET /api/mascotas/:id</span> andando. El reflejo es
+          usarlo desde la página:
+        </p>
+        <div class="caja-codigo">// ✗ la página pidiéndose los datos a sí misma
+const res = await fetch("https://mi-app.vercel.app/api/mascotas/" + id);
+const mascota = await res.json();</div>
+        <p>
+          Compila, anda, y está mal. Este componente <strong>ya está en el servidor</strong>: salir
+          por HTTP para volver a entrar es salir por la puerta y volver por la ventana.
+        </p>
+        <div class="esquema">   con fetch     página (servidor) ──red──→ su propia API ──→ base
+   sin fetch     página (servidor) ─────────────────────────→ base</div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>Lo que cuesta el viaje del medio</h4>
+            <ul class="compacta">
+              <li>Una ida y vuelta de red que no le sirve a nadie.</li>
+              <li>La cookie de sesión <strong>no viaja sola</strong>: un <span class="etiq">fetch</span> que sale del servidor no lleva las del navegador, y hay que reenviarla a mano.</li>
+              <li>Hay que escribir la URL absoluta, que cambia entre <span class="etiq">localhost</span> y producción.</li>
+              <li>El error deja de ser un <span class="etiq">null</span> y pasa a ser un status que hay que interpretar.</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>Lo que se hace en cambio</h4>
+            <div class="caja-codigo">const mascota = await obtenerMascotaVisiblePara(
+  id, usuario.id, usuario.rol
+);</div>
+            <p>
+              La misma función que usa el endpoint. Sin red, sin cookie que reenviar, sin URL, y
+              con los tipos de Prisma intactos.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">¿Y entonces para qué queda la API?</span>
+          <p>
+            Para <strong>quien no es esta página</strong>: la aerolínea que verifica un certificado,
+            Postman, la app móvil que quizás exista, el equipo que integre con ustedes. Un endpoint
+            público y un Server Component son <strong>dos consumidores del mismo modelo</strong>, no
+            dos capas apiladas. Los dos llaman a <span class="etiq">lib/db/</span>; ninguno llama al
+            otro.
+          </p>
+          <p>
+            Esa es también la respuesta a "¿tiro la API entonces?". No: es lo que se defiende el
+            06/10, y es lo único que un tercero puede consumir.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="cliente">
+        <h2>4. Cuándo un componente se vuelve de cliente</h2>
+        <p class="lead">
+          La regla entra en un renglón, y no tiene excepciones interesantes:
+        </p>
+        <div class="esquema">   ¿necesita ESTADO, EVENTOS o APIs del navegador?
+        NO  →  Server Component. No se escribe nada, es el default.
+        SÍ  →  "use client", y lo más chico posible.</div>
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Qué quieren hacer</th><th>¿Cliente?</th><th>Por qué</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Listar mascotas</td><td>No</td><td>Se dibuja una vez y no cambia</td></tr>
+              <tr><td>Un link a otra pantalla</td><td>No</td><td><span class="etiq">&lt;Link&gt;</span> ya resuelve la navegación</td></tr>
+              <tr><td>Un buscador que filtra mientras se escribe</td><td><strong>Sí</strong></td><td>Tiene que recordar lo escrito entre una tecla y la otra</td></tr>
+              <tr><td>Un menú que se abre y se cierra</td><td><strong>Sí</strong></td><td>Abierto o cerrado es estado</td></tr>
+              <tr><td>Un formulario que manda datos</td><td>Depende</td><td>Con Server Actions, no hace falta. Lo ven en la clase 11</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3><span class="etiq">"use client"</span> no es "solo navegador": es "también navegador"</h3>
+        <p>
+          El nombre engaña. Un componente de cliente <strong>también se ejecuta en el
+          servidor</strong>, una primera vez, para generar el HTML inicial. Recién después viaja al
+          navegador, donde React lo vuelve a ejecutar y le engancha la interactividad encima del
+          HTML que ya estaba dibujado.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th></th><th>¿Corre en el servidor?</th><th>¿Corre en el navegador?</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Server Component</strong></td>
+                <td>Sí, una vez</td>
+                <td><strong>Nunca.</strong> El código ni siquiera viaja</td>
+              </tr>
+              <tr>
+                <td><strong>Client Component</strong></td>
+                <td><strong>Sí, una vez</strong></td>
+                <td>Sí, y otra vez cada vez que cambia el estado</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Por eso la pantalla no aparece en blanco mientras se descarga el JavaScript. Y por eso
+          existe el error que está unos párrafos más abajo: <strong>si el componente corre dos veces
+          y las dos no dan lo mismo, React se da cuenta y avisa</strong>.
+        </p>
+
+        <h3><span class="etiq">"use client"</span> marca una frontera, no un archivo</h3>
+        <p>
+          La otra parte que se entiende mal. La directiva no afecta solo al archivo donde está
+          escrita: <strong>todo lo que ese archivo importe se va al navegador con él</strong>, y lo
+          que esos archivos importen también. La frontera la corren los
+          <span class="etiq">import</span>.
+        </p>
+        <p>
+          Al revés no pasa nada: <strong>el archivo que <em>usa</em> un componente de cliente no se
+          vuelve de cliente</strong>. La home sigue siendo de servidor aunque renderice el buscador,
+          y puede seguir poniendo componentes de servidor antes y después de él.
+        </p>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-no">
+            <h4>La frontera arriba de todo</h4>
+            <div class="caja-codigo">// app/page.tsx
+"use client";   // ← por un &lt;input&gt;</div>
+            <p>
+              El listado, el encabezado, el pie y todo lo que importen se van al navegador. Y la
+              página ya no puede ser <span class="etiq">async</span> ni leer la base: habría que
+              volver al <span class="etiq">fetch</span> del punto anterior.
+            </p>
+          </div>
+          <div class="tarjeta tarjeta-si">
+            <h4>La frontera lo más abajo posible</h4>
+            <div class="caja-codigo">// components/buscador-mascotas.tsx
+"use client";</div>
+            <p>
+              Solo el buscador viaja. La página sigue siendo de servidor, sigue leyendo la base
+              directo, y le pasa los datos ya resueltos.
+            </p>
+          </div>
+        </div>
+
+        <h3>Qué puede cruzar la frontera</h3>
+        <p>
+          Las props van del servidor al navegador serializadas, así que tienen que ser
+          <strong>datos</strong>: strings, números, booleanos, arrays, objetos planos. Una función no
+          cruza. Una instancia de una clase, tampoco.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El error de las fechas, que van a ver sí o sí</span>
+          <p>
+            En la base no dice "1 de septiembre": dice un <strong>instante universal</strong>. Qué
+            día es ese instante depende de dónde estés parado. Esta es la fecha de nacimiento de
+            Laika, la del proyecto de referencia, formateada en los dos lugares donde el componente
+            va a correr:
+          </p>
+          <div class="caja-codigo">valor en la base : 2023-09-01T02:41:52.085Z
+
+servidor (UTC)   : 1 de septiembre de 2023
+navegador (AR)   : 31 de agosto de 2023     ← UTC−3: todavía es el día anterior</div>
+          <p>
+            <strong>Las dos están bien.</strong> El problema es que el mismo componente las calculó
+            a las dos: React generó el HTML en el servidor con <em>1 de septiembre</em>, y al
+            volver a ejecutarse en el navegador le dio <em>31 de agosto</em>. No coinciden, y avisa.
+          </p>
+          <p>
+            Y el aviso es lo de menos: <strong>el usuario ve la fecha cambiar delante de los
+            ojos</strong> cuando termina de cargar el JavaScript.
+          </p>
+          <p>
+            La solución no es pelear con el aviso: es <strong>formatear una sola vez, del lado del
+            servidor</strong>, y mandar el texto ya armado. Si el navegador no tiene ninguna cuenta
+            que rehacer, no puede darle distinto. Por eso en el código de hoy la fila lleva
+            <span class="etiq">nacimiento: string</span> y no <span class="etiq">fechaNacimiento: Date</span>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="caso">
+        <h2>5. El caso completo: la pantalla de una mascota</h2>
+        <p class="lead">
+          Dos archivos nuevos y una modificación. El repositorio de referencia los tiene, y el
+          recorrido de la clase es por ahí.
+        </p>
+        <div class="esquema">   app/mascotas/[id]/page.tsx        ← Server Component. La pantalla nueva.
+   components/buscador-mascotas.tsx  ← "use client". El primero del proyecto.
+   app/page.tsx                      ← ahora delega el listado al buscador.</div>
+
+        <h3>Dónde va cada archivo, y por qué casi nada es nuevo</h3>
+        <p>
+          La ruta de la pantalla nueva les tiene que sonar, porque vienen escribiendo la misma
+          convención desde la clase 4:
+        </p>
+        <div class="esquema">   app/api/mascotas/[id]/route.ts    →   /api/mascotas/laika     (clase 4)
+   app/mascotas/[id]/page.tsx        →   /mascotas/laika         (hoy)</div>
+        <p>
+          <strong>La carpeta es la URL, y los corchetes son la parte que cambia.</strong> Eso no
+          cambió. Lo único distinto es el nombre del archivo, y con él quién está del otro lado:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Archivo</th><th>Devuelve</th><th>Lo consume</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="etiq">route.ts</span></td><td>JSON</td><td>Un programa</td></tr>
+              <tr><td><span class="etiq">page.tsx</span></td><td>Una pantalla</td><td>Una persona</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Los dos pueden convivir en la misma carpeta y no se pisan. De hecho conviven:
+          <span class="etiq">/api/mascotas/laika</span> y <span class="etiq">/mascotas/laika</span>
+          leen la misma fila, cada uno para su público.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">¿Y por qué el buscador no va en <span class="etiq">app/</span>?</span>
+          <p>
+            Porque <strong>no es una pantalla, es un pedazo de pantalla</strong>. Todo lo que vive
+            en <span class="etiq">app/</span> tiene una dirección web; el buscador no tiene por qué
+            tener una, nadie va a escribir <span class="etiq">/buscador</span> en el navegador.
+          </p>
+          <p>
+            Por eso aparece <span class="etiq">components/</span>, que es la carpeta nueva de hoy:
+            <strong>piezas que se importan, sin URL propia</strong>. La regla para saber dónde va
+            algo es esa: <em>¿esto es una dirección a la que alguien entra, o una parte de otra
+            cosa?</em>
+          </p>
+        </div>
+
+        <h3>La pantalla de detalle</h3>
+        <p>
+          Tres líneas son toda la clase. El resto es JSX.
+        </p>
+        <div class="caja-codigo">const usuario = await obtenerUsuario();
+if (!usuario) redirect("/");
+
+const mascota = await obtenerMascotaVisiblePara(id, usuario.id, usuario.rol);
+if (!mascota) notFound();</div>
+
+        <p>
+          <strong>La segunda línea es la misma función que usa <span class="etiq">GET /api/mascotas/:id</span>.</strong>
+          No se copió la regla ni se volvió a escribir: la autorización nunca vivió en el endpoint,
+          vive en <span class="etiq">lib/db/</span>. Por eso la pantalla la hereda completa, y para
+          un dueño la mascota del vecino devuelve <span class="etiq">null</span> exactamente igual
+          que en la API.
+        </p>
+        <p>
+          Y la primera muestra algo que conviene tener claro: <strong>la misma pregunta se contesta
+          distinto según el borde</strong>. Un endpoint responde 401 y corta, porque del otro lado
+          hay un programa. Una pantalla manda al login, porque del otro lado hay una persona. La
+          regla es una sola; la traducción, dos. Es el mismo criterio de
+          <span class="etiq">responderError</span> en la clase 6.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Qué respondió de verdad, medido</span>
+          <p>
+            No son los códigos que uno espera: son los que devolvió el servidor.
+          </p>
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr><th>Situación</th><th><span class="etiq">/api/mascotas/:id</span></th><th><span class="etiq">/mascotas/:id</span></th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Con sesión, mascota propia</td><td>200</td><td>200</td></tr>
+                <tr><td>Sin sesión</td><td>401</td><td><strong>307</strong> → <span class="etiq">/</span></td></tr>
+                <tr><td>No existe</td><td>404</td><td>404</td></tr>
+                <tr><td>De otro dueño</td><td>404</td><td>404</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Las dos últimas filas son iguales a propósito, y eso ya lo decidieron en la clase 6:
+            responder distinto confirmaría que el recurso existe.
+          </p>
+        </div>
+
+        <h3>El buscador, que sí es de cliente</h3>
+        <p>
+          Acá aparece lo único de React que no vieron nunca. Cuando alguien
+          escribe una letra, el componente tiene que <strong>acordarse</strong> de lo que lleva
+          escrito y <strong>volver a dibujarse</strong> con la lista filtrada. Una variable común no
+          alcanza para eso: se pierde en cuanto la función termina, y cambiarla no avisa a nadie.
+        </p>
+        <div class="caja-codigo">const [texto, setTexto] = useState("");
+//     ↑        ↑                    ↑
+//     |        |                    el valor inicial: vacío
+//     |        la función para cambiarlo
+//     el valor actual</div>
+        <p>
+          <span class="etiq">useState</span> devuelve siempre ese par: <strong>el valor y la única
+          forma de cambiarlo</strong>. La regla es que el valor no se toca a mano
+          —<span class="etiq">texto = "otra cosa"</span> no hace nada—: se llama a
+          <span class="etiq">setTexto(...)</span>, y React vuelve a ejecutar el componente con el
+          valor nuevo y redibuja lo que haya cambiado.
+        </p>
+        <p>
+          Eso es todo lo que necesitan hoy. El resto de React —los otros hooks, los efectos— aparece
+          cuando haga falta, y una buena parte no va a hacer falta nunca: en el App Router muchas
+          cosas que antes se resolvían con hooks ahora se resuelven en el servidor.
+        </p>
+        <div class="caja-codigo">const termino = texto.trim().toLowerCase();
+const visibles = termino
+  ? mascotas.filter((m) =&gt; m.nombre.toLowerCase().includes(termino))
+  : mascotas;</div>
+        <p>
+          <strong>El filtro no le pregunta nada al servidor.</strong> Las mascotas ya están ahí:
+          llegaron con el HTML, en el mismo viaje. Escribir una letra no genera ningún request, y
+          por eso responde al instante.
+        </p>
+        <p>
+          Es el contraejemplo perfecto del reflejo AJAX. Con la mentalidad del material, cada tecla
+          dispararía un <span class="etiq">XMLHttpRequest</span> a
+          <span class="etiq">/api/mascotas?buscar=...</span>. Abran la pestaña <em>Network</em> del
+          navegador mientras escriben: <strong>no pasa nada</strong>. Eso es lo que hay que mirar.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Hasta dónde vale filtrar en el cliente</span>
+          <p>
+            Vale porque la lista entera cabe en la pantalla: <span class="etiq">lib/db/</span> trae
+            como mucho 50 filas. <strong>Con diez mil, la decisión se invierte</strong>: no se le
+            mandan diez mil filas al navegador para que descarte 9.990. Ahí filtrar vuelve a ser
+            trabajo del servidor.
+          </p>
+          <p>
+            No es una regla de React: es la misma pregunta de siempre, <em>¿quién tiene los datos y
+            cuántos son?</em>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="decisiones">
+        <h2>6. Decisiones: qué se gana y qué se resigna</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>Se gana</th><th>Se resigna</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Server Components por defecto</strong></td>
+                <td>Un viaje de red menos, la base y los secretos a mano, menos JavaScript en el navegador</td>
+                <td>Hay que tener presente dónde corre cada cosa. El error se ve recién al compilar</td>
+              </tr>
+              <tr>
+                <td><strong>La frontera lo más abajo posible</strong></td>
+                <td>Al navegador viaja solo lo que necesita interactuar</td>
+                <td>Más archivos chicos, y hay que decidir dónde va el corte</td>
+              </tr>
+              <tr>
+                <td><strong>Formatear en el servidor</strong></td>
+                <td>Una sola verdad para la fecha, y ningún aviso de React por HTML que no coincide</td>
+                <td>La fila deja de tener los tipos del dominio y pasa a ser texto para mostrar</td>
+              </tr>
+              <tr>
+                <td><strong>Filtrar en el cliente</strong></td>
+                <td>Respuesta instantánea, cero requests</td>
+                <td>Solo sirve mientras la lista sea chica</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section id="ia">
+        <h2>7. Qué le pedimos a la IA (y qué no)</h2>
+        <p>
+          Este es el tema donde la IA más se equivoca de toda la materia, y por una razón concreta:
+          <strong>fue entrenada con años de React anterior al App Router</strong>. En ese React todo
+          corría en el navegador, así que la única forma de conseguir datos era pedirlos por la red.
+          El modelo escribe lo que más vio, y lo que más vio es eso.
+        </p>
+        <p>
+          Por eso van a recibir mucho código que trae los datos desde el navegador aunque el
+          componente ya esté en el servidor. No siempre se reconoce a simple vista, así que acá está
+          la forma que tiene:
+        </p>
+        <div class="caja-codigo">// ✗ lo que les va a proponer la IA
+"use client";                          // ← 1. la página entera al navegador
+
+export default function Pagina() {
+  const [mascotas, setMascotas] = useState([]);   // ← 2. una lista vacía
+
+  useEffect(() =&gt; {                    // ← 3. "cuando la página aparezca..."
+    fetch("/api/mascotas")             //        ...pedile los datos al servidor
+      .then((r) =&gt; r.json())
+      .then(setMascotas);
+  }, []);
+
+  return &lt;ul&gt;{/* ... */}&lt;/ul&gt;;
+}</div>
+        <p>
+          <span class="etiq">useEffect</span> es otro hook, y no lo vimos ni hace falta que lo vean
+          hoy. Alcanza con reconocer el dibujo: <strong>la pantalla arranca vacía y después sale a
+          buscar los datos</strong>. Eso es el AJAX de la lectura, veinte años después. Su versión
+          son dos líneas y no necesita ninguna de las tres cosas de arriba:
+        </p>
+        <div class="caja-codigo">// ✓ lo que corresponde
+const mascotas = await listarMascotasDeDueno(usuario.id);</div>
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Pedile</h4>
+            <ul class="compacta">
+              <li>El JSX repetitivo de una tabla o una lista.</li>
+              <li>Clases de Tailwind para algo que ya sabés cómo tiene que quedar.</li>
+              <li>Estados vacíos: "no hay resultados", "todavía no cargaste ninguna".</li>
+              <li>Que te explique un error de React que no entendés, con el archivo a la vista.</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>No le delegues</h4>
+            <ul class="compacta">
+              <li>Decidir qué componente es de cliente. Es <em>la</em> decisión de la clase.</li>
+              <li>Dónde va la frontera <span class="etiq">"use client"</span>.</li>
+              <li>Cómo llegan los datos a la pantalla.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Tres chequeos antes de aceptar código de pantalla</span>
+          <ol class="compacta">
+            <li>
+              <strong>¿Los datos se piden con un <span class="etiq">fetch</span>, en vez de con un
+              <span class="etiq">await</span> a <span class="etiq">lib/db/</span>?</strong>
+              Es el error del punto 3, escrito por otro. Si además el <span class="etiq">fetch</span>
+              apunta a la API de ustedes, es el viaje de ida y vuelta que no va.
+            </li>
+            <li>
+              <strong>¿Puso <span class="etiq">"use client"</span> arriba de la página entera?</strong>
+              Preguntate qué necesita acordarse de algo o reaccionar a un click. Casi siempre es un
+              solo elemento, y la directiva va en ese, no en la página.
+            </li>
+            <li>
+              <strong>¿La consulta lleva el id de la sesión?</strong> Una pantalla que muestra datos
+              de otro no falla: se ve perfecta. Es el error más caro y el único que no avisa.
+            </li>
+          </ol>
+        </div>
+      </section>
+
+
+      <section id="taller">
+        <h2>8. Taller</h2>
+        <p class="lead">
+          Dos pantallas sobre el sistema de ustedes. Nada de diseño todavía —eso es la clase 10—:
+          hoy importa que los datos lleguen bien y con los permisos correctos.
+        </p>
+        <ol>
+          <li>
+            <strong>El listado de su entidad principal</strong>, como Server Component, leyendo de
+            <span class="etiq">lib/db/</span> con el id de la sesión adentro de la consulta. Si ya
+            lo tenían de la clase 6, revisen que no haya ningún <span class="etiq">fetch</span> a su
+            propia API.
+          </li>
+          <li>
+            <strong>La pantalla de detalle</strong> en <span class="etiq">app/&lt;entidad&gt;/[id]/page.tsx</span>,
+            reusando la misma función de autorización que usa su endpoint. Con
+            <span class="etiq">notFound()</span> cuando no corresponde, y sin inventar un mensaje
+            distinto para "no existe" y "no es tuya".
+          </li>
+          <li>
+            <strong>Un solo componente de cliente</strong>, el más chico que puedan. Un buscador, un
+            filtro por estado, un ordenamiento. Con <span class="etiq">"use client"</span> en ese
+            archivo y en ninguno más.
+          </li>
+          <li>
+            <strong>Probar el caso que importa:</strong> copien la URL de detalle de un registro
+            propio, abran una ventana de incógnito y péguenla. Tiene que mandarlos al login, no
+            mostrar el dato. Después inicien sesión con otra cuenta y péguenla de nuevo: tiene que
+            dar 404.
+          </li>
+        </ol>
+      </section>
+
+
+      <section id="entregable">
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li>Dos pantallas propias —listado y detalle— <strong>leyendo de <span class="etiq">lib/db/</span></strong>, sin ningún <span class="etiq">fetch</span> a la API propia.</li>
+          <li>La consulta del listado y la del detalle <strong>llevan el id de la sesión</strong>, igual que en los endpoints.</li>
+          <li><span class="etiq">notFound()</span> y redirección al login resueltos, con el mismo criterio que la API.</li>
+          <li><strong>Un</strong> componente con <span class="etiq">"use client"</span>, justificable en una frase.</li>
+          <li>Todo funcionando en <strong>producción</strong>, no solo en <span class="etiq">localhost</span>.</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Para la próxima: el Parcial I</h3>
+        <p>
+          El <strong>martes 06/10</strong> se defiende el backend en producción. No hay que preparar
+          nada nuevo: hay que tener terminado lo de las clases 1 a 7 y poder explicarlo.
+        </p>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 08 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
