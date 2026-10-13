@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 10 - UI, design system y consumo de la API</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 10 — MDW 2026</h1>
+      <p class="fecha-clase">martes 13/10/2026</p>
+      <h2>UI, design system y consumo de la API</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Objetivo</h2>
+        <p class="lead">
+          El backend está aprobado. Hoy empieza la otra mitad del trabajo, y es la que nadie
+          defiende en un parcial porque se ve sola: <strong>que el sistema se entienda</strong>.
+          Al terminar la clase su proyecto tiene pantallas que no obligan a adivinar —componentes
+          compartidos, los cinco estados resueltos y una navegación que dice dónde estás— y ustedes
+          pueden contestar la pregunta del tema: <strong>¿esta pantalla qué hace cuando no hay
+          datos, cuando todavía no llegaron y cuando la consulta falla?</strong>
+        </p>
+        <ul class="agenda">
+          <li><a href="#donde-estamos">Dónde estamos: funciona y no se entiende</a></li>
+          <li><a href="#api-first">La lectura de hoy: APIs, API First y REST</a></li>
+          <li><a href="#design-system">Un sistema visual mínimo</a></li>
+          <li><a href="#estados">Los cinco estados de una pantalla</a></li>
+          <li><a href="#navegacion">Navegación, grupos de ruta y permisos</a></li>
+          <li><a href="#caso">El caso completo: de la home a la verificación pública</a></li>
+          <li><a href="#decisiones">Decisiones: qué se gana y qué se resigna</a></li>
+          <li><a href="#ia">Qué le pedimos a la IA (y qué no)</a></li>
+          <li><a href="#taller">Taller</a></li>
+        </ul>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">La lectura de hoy: ya la dimos</span>
+          <p>
+            La lectura es <strong>APIs, API First, REST y JSON</strong>, y es la única del
+            cuatrimestre que no trae nada nuevo: el tema lo dimos en la <strong>clase 4</strong> y lo
+            defendieron en el parcial. Por eso hoy se menciona y no se repite —el material está en
+            <strong>Ultra</strong>—.
+          </p>
+          <p>
+            <a href="../docs/metodologias/clase-10.pdf">📄 Material de la clase 10 (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="donde-estamos">
+        <h2>1. Dónde estamos: funciona y no se entiende</h2>
+        <p class="lead">
+          En el parcial del martes pasado el sistema de cada equipo hizo todo lo que tenía que
+          hacer. Y casi todos tuvieron que <strong>explicar la pantalla mientras la mostraban</strong>:
+          "esto es el listado, acá se ve el estado, esto todavía no tiene botón".
+        </p>
+        <p>
+          Esa explicación es el tema de hoy. Un sistema que necesita un traductor al lado no está
+          terminado, y el problema no es estético: es que <strong>la pantalla no dice lo que el
+          sistema sabe</strong>. Los datos están, las reglas están, los permisos están. Lo que falta
+          es que lleguen a la persona sin que nadie los interprete.
+        </p>
+
+        <h3>Las cuatro cosas que hoy obligan a adivinar</h3>
+        <p>
+          Son las mismas en casi todos los proyectos, y ninguna se arregla con colores:
+        </p>
+        <ol>
+          <li>
+            <strong>No se sabe dónde estás ni cómo volver.</strong> No hay una barra, el título de
+            la pantalla es el del navegador y el botón de atrás es la única navegación.
+          </li>
+          <li>
+            <strong>Cada pantalla se ve distinta.</strong> Un borde acá, una sombra allá, tres
+            tamaños de letra para el mismo nivel de título. No porque alguien lo haya decidido:
+            porque cada pantalla se escribió un día distinto.
+          </li>
+          <li>
+            <strong>La pantalla vacía no se distingue de la pantalla rota.</strong> "No hay
+            mascotas" puede querer decir que no cargaste ninguna, que tu búsqueda no coincide o que
+            la base no respondió. Son tres situaciones y un solo cartel.
+          </li>
+          <li>
+            <strong>No se sabe qué podés hacer.</strong> Un dueño y un veterinario ven la misma
+            pantalla sin ninguna señal de por qué ven cosas distintas.
+          </li>
+        </ol>
+
+        <div class="callout">
+          <span class="callout-titulo">Esto ya estaba escrito, en la clase 2</span>
+          <p>
+            Abran su <span class="etiq">docs/spec.md</span>, sección 7. Ahí hay cinco requisitos de
+            usabilidad y cinco de accesibilidad que escribieron en la segunda clase y que desde
+            entonces nadie volvió a leer. <strong>Hoy se usan.</strong> No son una lista de deseos:
+            son criterios verificables, uno por uno.
+          </p>
+          <p>
+            "El flujo principal está a un clic desde la home y siempre en el mismo lugar" es una
+            frase que se chequea en diez segundos. "Todo se puede operar con el teclado, y se ve
+            dónde está el foco" también.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Lo que hoy NO es</span>
+          <p>
+            Hoy no hay formularios. Nada de esta clase escribe en la base: todo lo que vamos a hacer
+            es <strong>mostrar mejor lo que el sistema ya sabe</strong>. Guardar, editar y que la
+            pantalla se actualice después de una mutación es la <strong>clase 11</strong>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="api-first">
+        <h2>2. La lectura de hoy: APIs, API First y REST</h2>
+        <p class="lead">
+          La lectura es sobre APIs, y es la única del cuatrimestre que <strong>no trae nada
+          nuevo</strong>: API First, REST, los cuatro verbos, la URI como identificador y JSON son el
+          tema de la <strong>clase 4</strong>, y lo defendieron en el parcial del martes pasado. Así
+          que hoy se menciona y no se repite.
+        </p>
+        <p>
+          El material completo está en <strong>UAI Online Ultra</strong>. Cualquier duda, ahí está.
+        </p>
+      </section>
+
+
+      <section id="design-system">
+        <h2>3. Un sistema visual mínimo</h2>
+        <p class="lead">
+          "Design system" suena a algo que tiene Google y ustedes no. En un proyecto de esta materia
+          es mucho más barato que eso: <strong>es que las decisiones visuales estén escritas en un
+          lugar y no repetidas en dieciocho</strong>.
+        </p>
+
+        <h3>El problema que resuelve, en concreto</h3>
+        <p>
+          Hoy, en su proyecto, el borde de una tarjeta está escrito así en cada pantalla que tiene
+          una:
+        </p>
+        <div class="esquema">   listado      className="rounded-lg border p-4"
+   detalle      className="rounded-md border p-6"
+   certificados className="rounded-xl border p-4 shadow-sm"</div>
+        <p>
+          Nadie decidió tres radios distintos: pasó. Y el costo real no es que se vea desparejo —que
+          también—: es que <strong>el día que quieran cambiarlo hay que encontrar las dieciocho
+          copias</strong>. Con un componente compartido esas tres líneas son una,
+          <span class="etiq">&lt;Card&gt;</span>, y el radio se decide una vez en
+          <span class="etiq">components/ui/card.tsx</span>.
+        </p>
+
+        <h3>Las dos capas, y por qué no se mezclan</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Capa</th><th>Qué vive ahí</th><th>Quién lo escribe</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiq">app/globals.css</span></td>
+                <td>Los <strong>tokens</strong>: colores, radio, tipografía. Variables CSS, nada más</td>
+                <td>Lo genera la CLI; ustedes cambian los valores</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">components/ui/</span></td>
+                <td>Los <strong>componentes base</strong>: <span class="etiq">Button</span>, <span class="etiq">Card</span>, <span class="etiq">Badge</span>, <span class="etiq">Input</span>, <span class="etiq">Skeleton</span>, <span class="etiq">Alert</span></td>
+                <td>Los trae shadcn/ui y quedan en su repo, para editar</td>
+              </tr>
+              <tr>
+                <td><span class="etiq">components/</span></td>
+                <td>Los componentes <strong>de su dominio</strong>: <span class="etiq">Navegacion</span>, <span class="etiq">EstadoSanitario</span>, <span class="etiq">SinDatos</span></td>
+                <td>Ustedes, y son los que importan</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          La frontera entre la segunda y la tercera fila es la que se borra sola y conviene cuidar:
+          <strong><span class="etiq">components/ui/</span> no sabe nada de mascotas</strong>. Un
+          <span class="etiq">Badge</span> que recibiera un <span class="etiq">EstadoDeVacuna</span>
+          dejaría de ser un componente base y pasaría a ser del dominio. Esa traducción —de
+          <span class="etiq">VENCIDA</span> a "Vencida", en rojo— vive en
+          <span class="etiq">components/estado-sanitario.tsx</span>, que sí sabe de vacunas.
+        </p>
+        <p>
+          Una pregunta que conviene contestar antes de tocar nada: <strong>¿dónde se definen los
+          colores del sistema?</strong> No en la spec. Se definen en
+          <span class="etiq">app/globals.css</span>, y ese archivo es la fuente de verdad: cambiar la
+          paleta es editar ahí, no modificar un documento de requisitos. Lo que la spec fija son las
+          dos <strong>restricciones</strong> que están en su lista de accesibilidad de la clase 2
+          —contraste de <strong>4,5:1</strong> y que el error <strong>nunca se comunique solo con
+          color</strong>—, y es la diferencia que importa: una spec define criterios verificables, no
+          valores. "4,5:1" se chequea y se discute; "el primario es violeta" no.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">shadcn/ui no es una librería de componentes</span>
+          <p>
+            Y la diferencia cambia cómo se trabaja. <strong>No se instala: se copia.</strong>
+            <span class="etiq">npx shadcn@latest add card</span> escribe un archivo en
+            <span class="etiq">components/ui/card.tsx</span> y se va. Ese archivo es de ustedes:
+            se edita, se commitea, aparece en el diff.
+          </p>
+          <p>
+            Qué cambia: cuando el componente no alcanza, se abre y se edita, sin pelearle props a su
+            autor. Y <strong>nadie les va a arreglar un bug</strong>: "actualizar shadcn" no existe
+            como operación. Las dos caras están en la tabla de decisiones.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">La regla que más se incumple esta semana</span>
+          <p>
+            <strong>Nada de CSS suelto.</strong> Está en el <span class="etiq">AGENTS.md</span> del
+            template desde la clase 1 y es la regla que va a romper el primer asistente al que le
+            pidan "mejorá el diseño": les va a crear un
+            <span class="etiq">estilos-listado.module.css</span> al lado del componente.
+          </p>
+          <p>
+            El problema no es de gusto. Con dos sistemas de estilos en el mismo proyecto, cambiar un
+            color hay que hacerlo en los dos, y la pregunta "¿de dónde sale este padding?" pasa a
+            tener dos respuestas posibles.
+          </p>
+        </div>
+
+        <h3>Una pantalla donde mirar los componentes: <span class="etiq">/sistema</span></h3>
+        <p>
+          Una práctica que conviene adoptar hoy: <strong>una ruta del propio proyecto que muestre
+          cada componente con todos sus estados</strong>, al lado. En el proyecto de referencia es
+          <span class="etiq">app/(app)/sistema/page.tsx</span>, y sirve para dos cosas que desde una
+          pantalla real son incómodas: <strong>ver un componente antes de usarlo</strong> —e iterarlo
+          ahí, sin tener que llegar hasta donde va— y <strong>ver los estados raros sin ensuciar la
+          base</strong>. Para ver una vacuna <span class="etiq">VENCIDA</span> en el sistema real hay
+          que cargar una aplicación de hace dos años; en la galería es una línea de datos fijos.
+        </p>
+        <p>
+          El que revisa el PR también la agradece: contraste, foco visible y "ningún estado solo con
+          color" se chequean de una vez en una sola pantalla, en vez de ir a buscar los cinco estados
+          por el sistema.
+        </p>
+      </section>
+
+
+      <section id="estados">
+        <h2>4. Los cinco estados de una pantalla</h2>
+        <p class="lead">
+          Una pantalla que lee datos tiene <strong>cinco</strong> estados posibles, no uno. Las
+          pantallas de sus proyectos hoy resuelven bien uno —el que tiene datos— y los otros cuatro
+          quedaron como salieron.
+        </p>
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Estado</th><th>Qué le pasó a la persona</th><th>Dónde se resuelve en Next.js</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cargando</strong></td>
+                <td>Pidió algo y todavía no llegó</td>
+                <td><span class="etiq">loading.tsx</span></td>
+              </tr>
+              <tr>
+                <td><strong>Con datos</strong></td>
+                <td>Lo normal</td>
+                <td><span class="etiq">page.tsx</span></td>
+              </tr>
+              <tr>
+                <td><strong>Vacío</strong></td>
+                <td>Nunca cargó nada: es su primer día</td>
+                <td>Un componente propio, <span class="etiq">SinDatos</span></td>
+              </tr>
+              <tr>
+                <td><strong>Sin resultados</strong></td>
+                <td>Hay datos, pero su búsqueda no coincide</td>
+                <td>El componente de cliente que tiene el filtro</td>
+              </tr>
+              <tr>
+                <td><strong>Error</strong></td>
+                <td>El sistema falló, y no es culpa suya</td>
+                <td><span class="etiq">error.tsx</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Vacío y sin resultados no son el mismo estado</h3>
+        <p>
+          Es la confusión más común y la más fácil de ver en una demo. Si alguien tiene ocho mascotas
+          cargadas, busca "fifi" y la pantalla dice <em>"Todavía no cargaste ninguna mascota"</em>,
+          el sistema le está <strong>mintiendo sobre el estado de sus propios datos</strong>.
+        </p>
+        <p>
+          Y se resuelven en lugares distintos, porque uno de los dos el servidor no lo puede saber:
+        </p>
+        <div class="esquema">   vacío            lo sabe el SERVIDOR   → la consulta trajo 0 filas
+   sin resultados   lo sabe el CLIENTE    → el término de búsqueda nunca salió del navegador</div>
+        <p>
+          En el proyecto de referencia eso es literal:
+          <span class="etiq">app/(app)/page.tsx</span> resuelve el vacío antes de renderizar el
+          buscador —no tiene sentido mostrar un campo de búsqueda de nada— y
+          <span class="etiq">components/buscador-mascotas.tsx</span> resuelve el sin-resultados,
+          porque es el único que sabe qué se escribió.
+        </p>
+
+        <h3><span class="etiq">loading.tsx</span>: nadie escribe un <span class="etiq">if (cargando)</span></h3>
+        <p>
+          Y ese es el punto. Un archivo llamado <span class="etiq">loading.tsx</span> al lado de una
+          página hace que Next.js la envuelva en un <span class="etiq">&lt;Suspense&gt;</span> con
+          eso como fallback. No hay estado, no hay <span class="etiq">useEffect</span>, no hay
+          bandera: hay un archivo.
+        </p>
+        <div class="esquema">   el servidor manda el esqueleto                      ← la persona ya ve algo
+   el servidor termina la consulta
+   el servidor manda el contenido por el mismo canal   ← y reemplaza al esqueleto</div>
+        <p>
+          Es el mismo HTML en dos entregas. Fíjense en la consecuencia: el navegador pinta algo
+          <strong>antes</strong> de que la base responda, y eso no se puede conseguir con una
+          pantalla que pide sus datos con <span class="etiq">fetch</span> desde el cliente.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Esqueleto, no spinner, y por una razón medible</span>
+          <p>
+            Un spinner centrado no reserva espacio: cuando llega el contenido,
+            <strong>la página salta</strong>. Si la consulta tardó poco, el salto es lo único que la
+            persona alcanza a percibir.
+          </p>
+          <p>
+            Un esqueleto con la misma forma que el contenido —un título, un campo, tres filas— no
+            tiene que ser exacto. Tiene que <strong>ocupar el mismo lugar</strong>.
+          </p>
+          <p>
+            Y la advertencia honesta: un esqueleto de más de dos o tres segundos es peor que nada,
+            porque promete algo que no llega. Si una pantalla tarda eso, el problema es la consulta,
+            y eso se mide en la clase 14.
+          </p>
+        </div>
+
+        <h3><span class="etiq">error.tsx</span>: el único archivo de hoy que es de cliente</h3>
+        <p>
+          Y no por capricho de Next.js. <span class="etiq">error.tsx</span> recibe una función
+          <span class="etiq">reset()</span> que vuelve a intentar el render
+          <strong>sin recargar la página</strong>, y para eso tiene que haber JavaScript corriendo
+          cuando la persona aprieta el botón. Un Server Component no puede ofrecer "reintentar"
+          porque ya terminó de existir.
+        </p>
+        <p>
+          Es la regla de la clase 8 aplicada sin excepción: <span class="etiq">"use client"</span>
+          solo si hay estado, eventos o APIs del navegador. Acá hay un evento.
+        </p>
+        <p>
+          Lo importante es lo que <strong>desapareció</strong> del proyecto de referencia cuando
+          apareció este archivo. Hasta la clase 8, <span class="etiq">app/page.tsx</span> tenía
+          esto:
+        </p>
+        <div class="caja-codigo">let mascotas: Fila[] | null = null;
+
+try {
+  mascotas = await listarMascotasDeDueno(usuario.id);
+} catch {
+  mascotas = null;          // ← y después un if en el JSX
+}</div>
+        <p>
+          Funcionaba, y tenía el defecto de siempre: <strong>cada página tenía que acordarse</strong>,
+          y la que se olvidara dejaba la pantalla en blanco. Dejando subir el error,
+          <span class="etiq">error.tsx</span> lo recibe una sola vez para toda la sección. Es la
+          misma idea de <span class="etiq">requerirUsuario</span> en la clase 6:
+          <strong>olvidarse rompe el request en vez de dejarlo pasar</strong>.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Qué NO va en la pantalla de error</span>
+          <p>
+            El mensaje de la excepción. <span class="etiq">Error: connect ECONNREFUSED
+            10.0.0.4:5432</span> no le sirve a nadie del otro lado y sí le sirve a alguien
+            averiguando cómo está armado el sistema por dentro.
+          </p>
+          <p>
+            Es la misma decisión del 500 de la clase 5: el detalle va a
+            <span class="etiq">console.error</span> —que en Vercel termina en los logs— y la persona
+            ve las tres cosas que necesita: <strong>que el problema es del sistema y no de lo que
+            hizo, que no se perdió nada, y qué apretar</strong>.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="navegacion">
+        <h2>5. Navegación, grupos de ruta y permisos</h2>
+
+        <h3>Las tres preguntas que una barra contesta</h3>
+        <p>
+          No hace falta un menú. Hace falta que, en cualquier pantalla del sistema, estas tres
+          preguntas tengan respuesta sin hacer nada:
+        </p>
+        <ul>
+          <li><strong>¿Dónde estoy?</strong> El nombre del sistema, y que sea un link a la home.</li>
+          <li><strong>¿Quién soy acá?</strong> El nombre y <strong>el rol</strong>.</li>
+          <li><strong>¿Cómo me voy?</strong> Un botón de salir, siempre en el mismo lugar.</li>
+        </ul>
+        <p>
+          El rol no está de adorno. Un veterinario y un dueño abren la misma URL y ven listas
+          distintas. <strong>Sin el rol a la vista, "me faltan mascotas" es un bug reportado; con el
+          rol a la vista, es una explicación.</strong>
+        </p>
+
+        <h3>Los grupos de ruta: dos layouts, una sola app</h3>
+        <p>
+          Esa barra no puede ir en el layout raíz, y la razón es la pantalla de verificación: la abre
+          una aerolínea que no tiene cuenta. <strong>Una barra que dice "Salir" en una pantalla sin
+          sesión es una promesa que el sistema no puede cumplir.</strong>
+        </p>
+        <p>
+          Un <strong>grupo de ruta</strong> resuelve justo eso. El paréntesis en el nombre de la
+          carpeta hace que <strong>no aparezca en la URL</strong>:
+        </p>
+        <div class="esquema">   app/(app)/page.tsx                       →  /
+   app/(app)/mascotas/[id]/page.tsx         →  /mascotas/:id
+   app/(public)/ingresar/page.tsx           →  /ingresar
+   app/(public)/verificacion/[codigo]/...   →  /verificacion/:codigo</div>
+        <p>
+          Ninguna dirección cambió. Lo único que cambió es que ahora hay dos layouts: el de
+          <span class="etiq">(app)</span> trae la barra con el rol, y el de
+          <span class="etiq">(public)</span> trae un encabezado y nada más.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El error de seguridad que esta clase puede inducir</span>
+          <p>
+            El layout de <span class="etiq">(app)</span> hace
+            <span class="etiq">redirect("/ingresar")</span> cuando no hay sesión, y es tentador leer
+            eso como "ya protegí todas las pantallas de adentro". <strong>No las protegió.</strong>
+          </p>
+          <p>
+            Un layout de Next.js <strong>no se vuelve a ejecutar en cada navegación del lado del
+            cliente</strong>: una vez montado, moverse entre dos páginas del grupo puede no volver a
+            pasar por ahí. Si la única verificación del sistema estuviera en ese archivo, habría un
+            agujero.
+          </p>
+          <p>
+            Por eso cada página sigue preguntando quién mira, y cada consulta sigue llevando el id de
+            la sesión adentro. La redirección del layout es <strong>experiencia de uso</strong>: que
+            nadie vea una pantalla vacía y rota. La autorización vive donde vivía.
+          </p>
+        </div>
+
+        <h3>La frase de la clase 6, otra vez</h3>
+        <div class="esquema">   la UI decide qué MOSTRAR      el servidor decide qué PERMITIR</div>
+        <p>
+          Esconder un botón es cortesía: le evita a alguien intentar algo que no va a poder. No es
+          una medida de seguridad, porque el botón escondido sigue teniendo un endpoint detrás y
+          <span class="etiq">curl</span> no mira la pantalla.
+        </p>
+
+        <h3>El 404 que no cuenta de más</h3>
+        <p>
+          <span class="etiq">notFound()</span> en el detalle de una mascota muestra
+          <span class="etiq">app/(app)/not-found.tsx</span>, y ahí hay una decisión de redacción que
+          es técnica: <strong>el texto no usa la palabra "permiso"</strong>.
+        </p>
+        <p>
+          "No tenés permiso para ver esta mascota" sería honesto y sería una filtración: cuenta que
+          la mascota existe. Es el mismo criterio del 404 de la clase 6 —"no existe" y "no es tuya"
+          se responden igual—, ahora escrito en castellano para una persona.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Y el 404 va adentro del grupo, no en la raíz</span>
+          <p>
+            Porque así se dibuja <strong>con la barra de navegación</strong>: quien llegó por un link
+            viejo sigue dentro del sistema y tiene a dónde ir. Un 404 que deja a la persona en una
+            página desnuda la obliga a apretar "atrás", que es la salida de emergencia, no una opción
+            de navegación.
+          </p>
+          <p>
+            La verificación pública tiene el suyo aparte —
+            <span class="etiq">app/(public)/verificacion/not-found.tsx</span>— porque el de
+            <span class="etiq">(app)</span> habla de "lo que te corresponde ver", que ahí no
+            significa nada: no hay nadie logueado.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="caso">
+        <h2>6. El caso completo: de la home a la verificación pública</h2>
+        <p class="lead">
+          Todo lo de arriba, en el proyecto de referencia. Son doce archivos y <strong>ninguno
+          toca el backend</strong>: el modelo, las reglas y los permisos quedaron exactamente como
+          los defendimos en el parcial.
+        </p>
+
+        <h3>Dónde va cada archivo</h3>
+        <div class="esquema">app/
+  layout.tsx                            la fuente y el &lt;body&gt;. NADA más
+  globals.css                           los tokens: color, radio, tipografía
+
+  (public)/                             ───── sin sesión ─────
+    layout.tsx                          encabezado, sin barra ni "Salir"
+    ingresar/page.tsx                   el login (salió de app/page.tsx)
+    verificacion/[codigo]/page.tsx      la H6, por fin con pantalla
+    verificacion/not-found.tsx          "no encontramos ese certificado"
+
+  (app)/                                ───── con sesión ─────
+    layout.tsx                          la barra + redirect al login
+    page.tsx                            el listado, según el rol
+    loading.tsx                         el esqueleto del listado
+    error.tsx                           "no pudimos cargar" + reintentar
+    not-found.tsx                       el 404 que no cuenta de más
+    mascotas/[id]/page.tsx              el detalle, con estado sanitario
+    mascotas/[id]/loading.tsx           su propio esqueleto
+    sistema/page.tsx                    la galería: todo, en todos sus estados
+
+components/
+  ui/                                   shadcn: Button, Card, Badge, Input…
+  navegacion.tsx                        quién sos, con qué rol, cómo salís
+  sin-datos.tsx                         el estado vacío, una sola vez
+  estado-sanitario.tsx                  el cálculo de la clase 5, pintado
+  buscador-mascotas.tsx                 el único "use client" del proyecto</div>
+
+        <div class="callout">
+          <span class="callout-titulo">¿Por qué <span class="etiq">estado-sanitario.tsx</span> en <span class="etiq">components/</span> y no en <span class="etiq">components/ui/</span>?</span>
+          <p>
+            Porque sabe qué es una vacuna. <span class="etiq">components/ui/</span> es el vocabulario
+            visual —<span class="etiq">Badge</span> sabe de colores y tamaños—, y
+            <span class="etiq">components/</span> es el de su dominio.
+          </p>
+          <p>
+            La prueba: <strong>¿este componente serviría en el proyecto de otro equipo?</strong> Si
+            sí, es <span class="etiq">ui/</span>. Si habla de mascotas, certificados o turnos, va
+            afuera.
+          </p>
+        </div>
+
+        <h3>La home: lo que se fue del archivo</h3>
+        <p>
+          <span class="etiq">app/(app)/page.tsx</span> hacía cuatro cosas y ahora hace una. Las otras
+          tres se mudaron a archivos que Next.js ya tenía reservados:
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Lo que hacía la home</th><th>Dónde está hoy</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>El login de quien no tiene sesión</td><td><span class="etiq">app/(public)/ingresar/page.tsx</span></td></tr>
+              <tr><td>El "todavía está cargando"</td><td><span class="etiq">app/(app)/loading.tsx</span></td></tr>
+              <tr><td>El <span class="etiq">try/catch</span> de la consulta</td><td><span class="etiq">app/(app)/error.tsx</span></td></tr>
+              <tr><td>El listado según el rol</td><td>Sigue ahí, y es lo único que quedó</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Y una línea cambió de función:
+          <span class="etiq">obtenerUsuario</span> pasó a ser
+          <span class="etiq">requerirUsuario</span>. Antes la página tenía que decidir qué hacer sin
+          sesión; ahora el layout ya redirigió, así que llegar sin usuario significa que algo se
+          rompió. <strong>Un error es la respuesta correcta a eso</strong>, y la versión que lanza es
+          la que lo produce.
+        </p>
+
+        <h3>El detalle: la pantalla por la que existe el sistema</h3>
+        <p>
+          Hasta hoy <span class="etiq">/mascotas/:id</span> mostraba cuatro campos. Lo que faltaba
+          —el estado sanitario— <strong>existía desde la clase 5, con sus dieciocho tests</strong>, y
+          solo lo podía ver quien supiera usar Postman.
+        </p>
+        <div class="caja-codigo">const [{ plan, aplicaciones }, historial] = await Promise.all([
+  datosDelEstadoSanitario(mascota.especie, mascota.id),
+  listarAplicacionesDeMascota(mascota.id),
+]);
+
+const items = estadoSanitario(plan, aplicaciones, mascota.fechaNacimiento, new Date());</div>
+        <p>
+          Una cosa de esas cuatro líneas: <span class="etiq">Promise.all</span> y no dos
+          <span class="etiq">await</span> seguidos. Las consultas no dependen una de la otra, así que
+          esperarlas en serie duplica el tiempo de la pantalla sin ninguna razón.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Un plan vacío no es "está todo al día"</span>
+          <p>
+            Si el catálogo de vacunas de esa especie no está cargado,
+            <span class="etiq">estadoSanitario</span> devuelve una lista vacía. Pintar eso sin
+            distinguirlo haría que la pantalla diga que no falta nada,
+            <strong>cuando en realidad el sistema no sabe nada</strong>.
+          </p>
+          <p>
+            Es el mismo tipo de confusión que vacío-vs-error, un nivel más adentro, y el que más
+            caro sale: un certificado emitido sobre "no falta ninguna vacuna" que en realidad era
+            "no hay vacunas con las que comparar".
+          </p>
+        </div>
+
+        <h3><span class="etiq">NO_CORRESPONDE</span> se muestra, no se filtra</h3>
+        <p>
+          Un cachorro de un mes no está "pendiente" de la antirrábica: todavía no le toca. Filtrar
+          esas filas parecería más limpio y sería peor: el dueño quedaría
+          <strong>sin saber que esa vacuna existe</strong> y que en dos meses se la van a pedir. Se
+          muestra, apagada, con la explicación adelante.
+        </p>
+      </section>
+
+
+      <section id="decisiones">
+        <h2>7. Decisiones: qué se gana y qué se resigna</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Decisión</th><th>Se gana</th><th>Se resigna</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Componentes copiados (shadcn/ui) y no una librería</strong></td>
+                <td>El código es suyo: se abre y se cambia cuando no alcanza</td>
+                <td>Nadie les arregla un bug, y "actualizar" no existe como operación</td>
+              </tr>
+              <tr>
+                <td><strong>Tokens en CSS y no valores en cada clase</strong></td>
+                <td>Cambiar el radio o el color del sistema es editar una línea</td>
+                <td>Hay una indirección más: el valor no está donde se usa</td>
+              </tr>
+              <tr>
+                <td><strong><span class="etiq">loading.tsx</span> en vez de una bandera</strong></td>
+                <td>Streaming gratis, sin estado y sin <span class="etiq">useEffect</span></td>
+                <td>Un archivo más por pantalla que tenga otra forma</td>
+              </tr>
+              <tr>
+                <td><strong><span class="etiq">error.tsx</span> en vez de <span class="etiq">try/catch</span> por página</strong></td>
+                <td>Nadie se puede olvidar, y hay un "reintentar" posible</td>
+                <td>El error se maneja lejos de donde ocurrió, y hay que mirar los logs</td>
+              </tr>
+              <tr>
+                <td><strong>Grupos de ruta para separar público de privado</strong></td>
+                <td>Dos layouts sin ensuciar las URLs, y el login con dirección propia</td>
+                <td>La carpeta ya no se corresponde con la URL: hay que leer el paréntesis</td>
+              </tr>
+              <tr>
+                <td><strong>Redirigir desde el layout</strong></td>
+                <td>Ninguna pantalla con sesión se dibuja vacía</td>
+                <td>Se puede confundir con seguridad, y no lo es</td>
+              </tr>
+              <tr>
+                <td><strong>Una pantalla pública que lee de <span class="etiq">lib/db/</span></strong></td>
+                <td>Una sola regla de vigencia para el JSON y para el HTML</td>
+                <td>Hay dos consumidores que hay que acordarse de probar juntos</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section id="ia">
+        <h2>8. Qué le pedimos a la IA (y qué no)</h2>
+        <p>
+          Esta es la clase donde la IA parece más útil y donde más barato sale aceptarle cualquier
+          cosa, por una razón concreta: <strong>el resultado se ve</strong>. Un endpoint mal escrito
+          no se nota mirando; una pantalla que quedó linda convence sola.
+        </p>
+
+        <div class="grid-2">
+          <div class="tarjeta tarjeta-si">
+            <h4>Sí, y rinde mucho</h4>
+            <ul>
+              <li>Convertir una pantalla con clases repetidas a los componentes de <span class="etiq">components/ui/</span>.</li>
+              <li>Escribir el esqueleto de <span class="etiq">loading.tsx</span> con la forma del contenido real.</li>
+              <li>Redactar los textos de los estados vacíos: qué pasa, por qué y qué hacer.</li>
+              <li>Revisar accesibilidad: <span class="etiq">label</span> sin asociar, contraste, foco invisible.</li>
+            </ul>
+          </div>
+          <div class="tarjeta tarjeta-no">
+            <h4>No, o lo rompe</h4>
+            <ul>
+              <li>Decidir <strong>cuál es el flujo principal</strong> de su sistema. Eso está escrito en <span class="etiq">docs/spec.md</span>, sección 5.</li>
+              <li>Decidir qué acción le corresponde a cada rol. Eso es la tabla de roles de <span class="etiq">docs/spec.md</span>, sección 2.</li>
+              <li>"Mejorá el diseño" sin más: ahí aparece el CSS suelto y la librería de gráficos.</li>
+              <li>Agregar un botón porque la pantalla "queda mejor con un botón ahí".</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout-ia">
+          <span class="callout-titulo">Cómo se le pide esto a un asistente</span>
+          <div class="caja-codigo">✗ "Mejorá el diseño del listado de mascotas"
+
+✓ "Reescribí app/(app)/page.tsx usando Card e Input de
+   components/ui/. NO crees archivos .css ni uses estilos
+   inline. La página sigue siendo un Server Component: no
+   agregues "use client". Resolvé el caso de lista vacía con
+   el componente SinDatos, y NO toques el caso de búsqueda
+   sin resultados, que vive en buscador-mascotas.tsx. No
+   cambies ninguna consulta de lib/db/ ni agregues un fetch."</div>
+          <p>
+            Todo lo que hace correcto a ese prompt son decisiones que ustedes ya habían tomado: qué
+            componentes existen, dónde está la frontera de cliente, y cuál de los dos vacíos resuelve
+            cada archivo. <strong>La IA no las puede tomar porque no sabe cuál de los dos vacíos está
+            mirando.</strong>
+          </p>
+        </div>
+      </section>
+
+
+      <section id="taller">
+        <h2>9. Taller</h2>
+        <p class="lead">
+          Sobre su propio sistema, y sin escribir en la base. Si su proyecto ya tiene una interfaz
+          avanzada, el taller es el mismo: <strong>los criterios se aplican sobre lo que ya
+          tienen</strong>.
+        </p>
+        <ol>
+          <li>
+            <strong>Recorran su sistema como alguien que nunca lo vio.</strong> Entren, lleguen a la
+            operación principal y anoten cada lugar donde tuvieron que adivinar. Cinco minutos,
+            anotando, sin arreglar nada todavía. Esa lista es el orden de trabajo del resto de la
+            clase.
+          </li>
+          <li>
+            <strong>Completen el mapa de pantallas</strong> en <span class="etiq">docs/spec.md</span>,
+            sección 5: una fila por paso del flujo principal, con <strong>la pantalla, la dirección y
+            quién la puede abrir</strong>. Los pasos que todavía no tienen pantalla se marcan —así el
+            mapa muestra cuánto falta del flujo—, y los que no son una pantalla, también.
+            <strong>Esto se escribe antes de pedirle una pantalla a un asistente</strong>: si las
+            direcciones las inventa él, el día que las cambien rompen los enlaces que ya mandaron. Es
+            lo mismo que hicieron con la API en la clase 4, ahora del lado de la pantalla.
+          </li>
+          <li>
+            <strong>Instalen el sistema visual.</strong>
+            <span class="etiq">npx shadcn@latest init</span> y después
+            <span class="etiq">add</span> de lo que vayan a usar hoy:
+            <span class="etiq">button card badge input skeleton alert</span>. Commiteen eso solo,
+            antes de usarlo: es un commit que no cambia ninguna pantalla y conviene que se lea así.
+          </li>
+          <li>
+            <strong>Armen su <span class="etiq">/sistema</span>.</strong> Una ruta adentro de
+            <span class="etiq">(app)</span> que muestre cada componente que van a usar, con
+            <strong>todos sus estados al lado</strong>: los botones con sus variantes, los badges de
+            su dominio con la palabra adentro, el esqueleto, el estado vacío y el de error. Mírenlos
+            ahí antes de meterlos en una pantalla, y si algo no les gusta, <strong>itérenlo
+            ahí</strong>. Incluyan a propósito un caso con un texto larguísimo.
+          </li>
+          <li>
+            <strong>Pasen listado y detalle a los componentes compartidos.</strong> Que no quede
+            ningún borde ni ningún radio escrito a mano en <span class="etiq">app/</span>.
+          </li>
+          <li>
+            <strong>Resuelvan los cinco estados</strong> de su pantalla principal:
+            <span class="etiq">loading.tsx</span>, <span class="etiq">error.tsx</span>, el vacío y el
+            sin-resultados. Con textos distintos para los dos vacíos.
+          </li>
+          <li>
+            <strong>Separen público de privado</strong> con <span class="etiq">(app)</span> y
+            <span class="etiq">(public)</span>, y pongan la barra de navegación con el rol a la vista
+            en el layout de <span class="etiq">(app)</span>.
+          </li>
+          <li>
+            <strong>Prueben las dos cosas que se rompen.</strong> Y se prueban, no se suponen:
+            <ul>
+              <li>
+                <strong>Teclado:</strong> recorran el flujo principal con
+                <span class="etiq">Tab</span> y <span class="etiq">Enter</span>, sin tocar el mouse.
+                Tiene que verse dónde está el foco en todo momento.
+              </li>
+              <li>
+                <strong>Pantalla angosta:</strong> 375px de ancho en el inspector. Nada se puede
+                cortar ni pedir scroll horizontal.
+              </li>
+            </ul>
+          </li>
+          <li>
+            <strong>Revisión cruzada.</strong> Un integrante que no escribió la pantalla la recorre
+            con el teclado y en 375px, pasa por <span class="etiq">/sistema</span> a chequear
+            contraste y foco, y abre el PR con lo que encontró.
+          </li>
+        </ol>
+
+        <div class="callout">
+          <span class="callout-titulo">Si el equipo no usa Next</span>
+          <p>
+            Los cinco estados, los tokens en un lugar, los componentes compartidos, el rol a la vista
+            y la autorización en el servidor <strong>son independientes del framework</strong>. Lo
+            único que cambia es el mecanismo: donde nosotros ponemos
+            <span class="etiq">loading.tsx</span>, ustedes van a tener un
+            <span class="etiq">&lt;Suspense&gt;</span> a mano o una bandera. El entregable es el
+            mismo.
+          </p>
+        </div>
+      </section>
+
+
+      <section id="entregable">
+        <h2>Entregable de la clase</h2>
+        <ul class="checklist">
+          <li><span class="etiq">components/ui/</span> instalado y <strong>usado</strong>: ningún borde ni radio escrito a mano en <span class="etiq">app/</span>.</li>
+          <li>Los <strong>cinco estados</strong> resueltos en la pantalla principal, con el vacío y el sin-resultados <strong>diciendo cosas distintas</strong>.</li>
+          <li>Una <strong>barra de navegación</strong> con el nombre del sistema, quién sos, <strong>tu rol</strong> y cómo salir.</li>
+          <li>El <strong>mapa de pantallas</strong> completo en <span class="etiq">docs/spec.md</span>, sección 5: pantalla, dirección y quién la ve, para cada paso del flujo principal.</li>
+          <li>Una ruta <span class="etiq">/sistema</span> —detrás de la sesión— con sus componentes y <strong>todos los estados de cada uno</strong>.</li>
+          <li><span class="etiq">(app)</span> y <span class="etiq">(public)</span> separados, con el login en su propia URL.</li>
+          <li>El <strong>404 que no cuenta de más</strong>: mismo texto para "no existe" y para "no es tuya".</li>
+          <li>El flujo principal <strong>operable con el teclado</strong>, con el foco visible, y legible en <strong>375px</strong>.</li>
+          <li>Todo funcionando en <strong>producción</strong>, no solo en <span class="etiq">localhost</span>.</li>
+          <li>PR revisado y aprobado por un integrante que no lo escribió.</li>
+        </ul>
+
+        <h3>Lo que viene</h3>
+        <p>
+          El <strong>martes 20/10</strong> la interfaz empieza a escribir: formularios, mutaciones y
+          mobile-first. Ahí se cierra el hito del proyecto —<strong>el flujo principal navegable
+          desde la UI</strong>—, así que lo de hoy es la mitad de abajo de esa entrega: hoy se
+          consulta y se entiende, la próxima se opera.
+        </p>
+        <p>
+          La <strong>lectura para la próxima es "Programación para móviles"</strong>, y el
+          <strong>cuestionario de esta clase se entrega al inicio del 20/10</strong>.
+        </p>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 10 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>
