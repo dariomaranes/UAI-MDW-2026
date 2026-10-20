@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clase 11 - Del prompt al harness: SDD y Harness Engineering</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+
+    <header>
+      <p class="marca"><strong>UAI</strong><span>Universidad Abierta Interamericana</span></p>
+      <a href="../index.html">← Volver al índice</a>
+      <h1>Clase 11 — MDW 2026</h1>
+      <p class="fecha-clase">martes 20/10/2026</p>
+      <h2>Del prompt al harness: SDD y Harness Engineering · y el TP N° 1</h2>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Qué pasa hoy</h2>
+        <p class="lead">
+          Esta clase tiene dos cosas y ninguna es la demo de siempre: la charla
+          <strong>"Del prompt al harness"</strong>, a cargo de <strong>Ignacio Cainelli</strong>
+          —líder técnico en <strong>Adhoc</strong>—, y la <strong>publicación del Trabajo Práctico
+          N° 1</strong>, que es la nota individual del eje teórico de la materia.
+        </p>
+        <ul class="agenda">
+          <li><a href="#charla">La charla: del prompt al harness</a></li>
+          <li><a href="#tp">El TP N° 1: qué es, cómo se entrega y cuándo</a></li>
+        </ul>
+
+        <p>
+          <a href="../docs/charla-del-prompt-al-harness.pdf">📄 La presentación de la charla (PDF, 24 láminas)</a>
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">El tema que estaba previsto para hoy se da la próxima</span>
+          <p>
+            <strong>Formularios, mutaciones y mobile-first</strong> —la mitad de la interfaz que
+            escribe en la base— pasa al <strong>martes 27/10</strong>, y es la
+            <strong>clase 12</strong>. Lo de la clase 10 sigue en pie: hoy el sistema de cada equipo
+            se consulta y se entiende; la semana que viene se opera.
+          </p>
+          <p>
+            La lectura <strong>"Programación para móviles"</strong> se corre con el tema: se lee
+            para el 27/10.
+          </p>
+        </div>
+      </section>
+
+      <section id="charla">
+        <h2>1. La charla: del prompt al harness</h2>
+        <p class="lead">
+          La da <strong>Ignacio Cainelli</strong>, líder técnico en <strong>Adhoc</strong>, y arranca
+          con dos preguntas a mano alzada: <em>¿quién usó un agente de IA esta semana para el
+          proyecto de la materia?</em> y <em>¿a quién le generó algo que compilaba, parecía
+          perfecto… y estaba mal?</em> Lo que sigue es qué se hace con esa segunda mano levantada.
+        </p>
+
+        <div class="esquema">   Agente  =  Modelo  +  Harness</div>
+        <p>
+          <strong>Harness</strong> es el arnés. El modelo es el caballo —aporta la fuerza—; el arnés
+          son las riendas y el carro, que dirigen esa fuerza hacia trabajo útil; y el que maneja y
+          elige la dirección sigue siendo ustedes. <strong>El caballo no cambió: mismo modelo,
+          distinto arnés, otro resultado.</strong>
+        </p>
+
+        <h3>El caso que abre la charla</h3>
+        <p>
+          Un agente borra una base de datos de producción en <strong>cinco pasos, y ninguno es una
+          locura</strong>: necesita una base auxiliar para revisar una migración, arma su dirección
+          a partir de <span class="etiq">DATABASE_URL</span> con <span class="etiq">sed</span>, el
+          patrón no coincide en macOS y termina apuntando a la base real, Prisma resetea esa base
+          "auxiliar"… y no había backup.
+        </p>
+        <p>
+          La pregunta que les va a hacer —y conviene tenerla pensada— es
+          <strong>¿en qué paso lo hubieran frenado?</strong> Porque el problema no fue un paso
+          malo: fue que <strong>nadie puso un freno en la cadena</strong>.
+        </p>
+
+        <h3>SDD: la spec como fuente de verdad</h3>
+        <p>
+          <em>Spec-Driven Development</em> es, en una línea, algo que ustedes ya tienen escrito
+          desde la clase 2: <strong>"si algo no está en la spec, no se implementa"</strong>. La spec
+          es la fuente de verdad y el código se deriva de ella o se verifica contra ella.
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Nivel de rigor</th><th>La spec…</th><th>Ejemplo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Spec-first</strong></td><td>se escribe antes y después puede quedar desactualizada</td><td>Un prompt bien pensado para una feature</td></tr>
+              <tr><td><strong>Spec-anchored</strong></td><td>vive junto al código y se mantiene sincronizada</td><td>BDD, OpenAPI + contract testing</td></tr>
+              <tr><td><strong>Spec-as-source</strong></td><td>es lo único que se edita; el código se regenera</td><td>El sueño de MDA —la clase 1—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>Su proyecto está en el nivel del medio</strong>, y se puede señalar con el dedo:
+          la regla de H3 vive en Zod, en el endpoint, en el formulario y en un test. La regla de oro
+          que propone es <strong>usar el mínimo rigor que elimine la ambigüedad</strong>, ni uno
+          más.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">"¿Esto no es waterfall otra vez?"</span>
+          <p>
+            Es la objeción obvia y la charla la toma de frente. La diferencia no está en cuánto se
+            escribe antes, sino en qué es ese documento: en waterfall <strong>la spec es un
+            documento de traspaso</strong> que se congela al cerrar una fase y cambiarla es
+            renegociar; en SDD bien hecho <strong>es un artefacto vivo</strong> que se corrige en el
+            mismo ciclo —cambiarla es editar y seguir—.
+          </p>
+          <p>
+            Y las críticas que cita son reales: sobreespecificar, convertirla en burocracia,
+            dejarla desactualizada. Hay equipos que terminaron con más de dos mil líneas de Markdown
+            en una sola fase de plan.
+          </p>
+        </div>
+
+        <h3>Harness Engineering: guías y sensores</h3>
+        <p>
+          El arnés tiene dos mitades, y la charla insiste en que hacen falta las dos:
+          <strong>guías</strong>, que orientan al agente <em>antes</em> de que actúe, y
+          <strong>sensores</strong>, que verifican <em>después</em> y permiten corregir.
+          <strong>Solo guías: nunca se entera si le salió bien. Solo sensores: repite los mismos
+          errores.</strong>
+        </p>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th></th><th>Computacional (determinístico)</th><th>Inferencial (otro LLM o un humano)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Guía</strong></td><td>Tipos de TypeScript, schemas de Zod, templates</td><td><span class="etiq">AGENTS.md</span>, <span class="etiq">docs/spec.md</span>, skills</td></tr>
+              <tr><td><strong>Sensor</strong></td><td>typecheck, lint —el <span class="etiq">any</span> que pone el CI en rojo—, tests</td><td>Agente revisor, code review del PR</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Ustedes ya tienen un harness, y es su repositorio</span>
+          <p>
+            Esta es la parte que más vale la pena escuchar con el repo abierto, porque la charla va
+            a nombrar sus propios archivos:
+          </p>
+          <div class="esquema">   AGENTS.md                 las reglas y convenciones          guía
+   docs/spec.md              qué tiene que hacer el sistema     guía
+   lib/schemas/ (Zod)        describe los datos y los verifica  las dos
+   typecheck + lint en CI    si aparece un any, no se mergea    sensor
+   review de PR              nada entra a main sin aprobación   sensor</div>
+          <p>
+            <strong>Lo que suele faltar</strong> —y es la tarea concreta que deja— es que
+            <strong>el agente corra esos sensores él mismo antes de entregarles algo</strong>.
+          </p>
+        </div>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">La frase para llevarse</span>
+          <p>
+            Cuando el agente del caso termina de borrar la base, escribe: <em>"guardé esto como
+            regla para mí"</em>. El instinto es correcto y llegó tarde, y además quedó en la memoria
+            del agente y no en el repo.
+          </p>
+          <p>
+            <strong>Una promesa no es un control. Un hook sí.</strong>
+          </p>
+        </div>
+
+        <h3>Dónde quedó el valor de un desarrollador</h3>
+        <p>
+          El cierre es el argumento de la materia dicho por alguien que trabaja con clientes: el
+          cuello de botella se movió. Antes era escribir código; hoy lo que vale es
+          <strong>entender el sistema</strong> —sintaxis, arquitectura, el lenguaje del stack, sin
+          eso no hay revisión posible— y <strong>saber armar un harness</strong>, que ahorra tiempo
+          al desarrollar y sobre todo al mantener.
+        </p>
+        <p>
+          Muestra además un caso real de punta a punta —un sistema de gestión para un gimnasio, de
+          la reunión con el cliente al deploy— y una <strong>feature en vivo</strong>, del pedido a
+          producción, señalando en cada paso qué es guía, qué es sensor y qué es control humano.
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Los nombres van a seguir cambiando</span>
+          <p>
+            <em>Prompt engineering</em>, <em>context engineering</em>, <em>harness engineering</em>
+            (feb 2026), <em>loop engineering</em> (jun 2026), <em>"graph engineering"</em> (jul
+            2026). Thoughtworks lo llama <strong>difusión semántica</strong>: términos nuevos antes
+            de que haya una definición compartida.
+          </p>
+          <p>
+            Debajo no cambia nada: <strong>especificar con claridad, verificar con evidencia y
+            entender lo que se entrega</strong>. Las tres ideas que se lleva la charla terminan en
+            la regla que tienen desde la clase 1 — <strong>"Ship it, but own it"</strong>: el
+            criterio sigue siendo suyo.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Las láminas, para volver sobre ellas</span>
+          <p>
+            La presentación completa queda publicada acá:
+            <a href="../docs/charla-del-prompt-al-harness.pdf">📄 Del prompt al harness — SDD y
+            Harness Engineering</a>. Las dos que conviene tener a mano cuando estén trabajando con
+            un asistente son la tabla de <strong>guías y sensores</strong> y la de los
+            <strong>cinco frenos</strong> que hubieran evitado el borrado de la base.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-titulo">Continúa el jueves 29/10, 19 hs</span>
+          <p>
+            Hay una <strong>charla de Adhoc en la UAI</strong> que cuenta el otro extremo del
+            problema: cómo organiza esto una empresa con un equipo grande. La de hoy es la del
+            desarrollador trabajando con un cliente; aquella es la de la organización.
+          </p>
+        </div>
+      </section>
+
+      <section id="tp">
+        <h2>2. El Trabajo Práctico N° 1</h2>
+        <p class="lead">
+          Es un <strong>informe escrito, individual</strong>, que analiza el sistema que vienen
+          construyendo con los contenidos de las <strong>Unidades I a IV</strong>. No es una
+          monografía sobre metodologías: cada afirmación tiene que apoyarse en el propio
+          repositorio, con ruta de archivo, commit o URL.
+        </p>
+
+        <div class="callout callout-alerta">
+          <span class="callout-titulo">Se responde y se entrega en UAI Online Ultra</span>
+          <p>
+            <strong>El TP no se entrega por este sitio ni por el repositorio.</strong> Se responde en
+            la <strong>plataforma UAI Online Ultra</strong>, donde está cargado con sus tres ítems
+            por separado. Lo que está acá abajo es la consigna, para leerla y trabajarla; la entrega
+            se hace allá.
+          </p>
+        </div>
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Qué</th><th>Detalle</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Modalidad</strong></td><td>Se puede elaborar en equipo; <strong>la entrega y la nota son individuales</strong>, y cada integrante responde por todo lo que entrega</td></tr>
+              <tr><td><strong>Extensión</strong></td><td>De cuatro a seis páginas, sin contar carátula, índice ni el diagrama si ocupa página completa</td></tr>
+              <tr><td><strong>Partes</strong></td><td>Seis, obligatorias y en orden: 0, A, B, C, D y E</td></tr>
+              <tr><td><strong>Diagrama</strong></td><td>Un <strong>diagrama UML de despliegue</strong>, adentro del informe y legible</td></tr>
+              <tr><td><strong>Entrega</strong></td><td><strong>Martes 10/11</strong> hasta las 23:00, por UAI Online Ultra</td></tr>
+              <tr><td><strong>Devolución</strong></td><td>Martes 17/11, individual y con la rúbrica completada</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <a href="../docs/tp-1-consigna.pdf">📄 Consigna completa del TP N° 1 (PDF)</a>
+        </p>
+
+        <div class="callout">
+          <span class="callout-titulo">Lo que más pesa, y dónde se pierde la nota</span>
+          <p>
+            El criterio de mayor peso es <strong>el anclaje en el sistema propio (35%)</strong>: una
+            afirmación sin evidencia verificable <strong>no se computa</strong>. "Aplicamos Scrum"
+            no vale; "las historias están en <span class="etiq">docs/spec.md</span> y cada PR cierra
+            una, ver PR #14" sí.
+          </p>
+          <p>
+            Y la advertencia que vale repetir: un asistente redacta sin dificultad tres páginas
+            correctas sobre Scrum, sobre CORBA o sobre usabilidad. <strong>Ninguna de esas páginas
+            sirve acá</strong>, porque el trabajo no pide explicar los conceptos: pide encontrarlos
+            en un sistema que solo ustedes conocen.
+          </p>
+        </div>
+
+        <div class="callout callout-puente">
+          <span class="callout-titulo">Casi todo lo que pide ya está escrito en el repositorio</span>
+          <p>
+            Conviene verlo así antes de empezar de cero: la trazabilidad de un requisito sale de la
+            spec y de los tests; las prácticas del equipo salen de los commits y los Pull Requests;
+            la discusión de monolito frente a servicios es la clase 6 y está en sus ADR; el servicio
+            externo es la clase 7; las capas, la clase 5; MVC, la clase 8.
+          </p>
+          <p>
+            <strong>El trabajo no es investigar: es leer lo que hicieron y explicar por qué.</strong>
+          </p>
+        </div>
+      </section>
+
+      <section id="entregable">
+        <h2>Lo que queda para la próxima</h2>
+        <ul class="checklist">
+          <li>El <strong>cuestionario de la clase 10</strong>, en Ultra.</li>
+          <li>Leer <strong>"Programación para móviles"</strong>, que es la lectura del 27/10.</li>
+          <li>Leer la <strong>consigna del TP</strong> completa y abrir el repositorio al lado: la mitad de las respuestas ya está escrita ahí.</li>
+        </ul>
+
+        <h3>Lo que viene</h3>
+        <p>
+          El <strong>martes 27/10</strong>, en la <strong>clase 12</strong>, la interfaz empieza a
+          escribir: <strong>formularios, mutaciones y mobile-first</strong>. Ahí se cierra el hito
+          del proyecto —<strong>el flujo principal navegable desde la UI</strong>—, que es lo que se
+          defiende en el Parcial II.
+        </p>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>MDW 2026 — Clase 11 — Ingeniería en Sistemas Informáticos — UAI</p>
+    </footer>
+
+  </body>
+</html>

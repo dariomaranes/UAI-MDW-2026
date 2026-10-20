@@ -14,10 +14,10 @@
 | 8 | mar 29/09 | React moderno dentro de Next.js | MVC | Cuestionario clase 7 |
 | 9 | **mar 06/10** | **PARCIAL I — defensa del backend** | — | Cuestionario clase 8 |
 | 10 | mar 13/10 | UI, design system y consumo de la API | APIs, API First, REST | — |
-| 11 | mar 20/10 | Formularios, mutaciones y mobile-first | Programación para móviles | Cuestionario clase 10 |
-| 12 | mar 27/10 | Testing y calidad | Pruebas | Cuestionario clase 11 |
-| 13 | mar 03/11 | IA dentro del producto | Agentes de software | Cuestionario clase 12 |
-| 14 | mar 10/11 | El sistema bajo carga | Programación paralela | Cuestionario clase 13 |
+| 11 | mar 20/10 | Charla: SDD, Harness Engineering y desarrollo web con IA | — | Cuestionario clase 10 · **se publica el TP N° 1** |
+| 12 | mar 27/10 | Formularios, mutaciones y mobile-first | Programación para móviles | — |
+| 13 | mar 03/11 | Testing y calidad | Pruebas | Cuestionario clase 12 |
+| 14 | mar 10/11 | El sistema bajo carga | Programación paralela | Cuestionario clase 13 · **TP N° 1 — se entrega hoy** |
 | 15 | **mar 17/11** | **PARCIAL II — defensa de la aplicación** | — | Cuestionario clase 14 |
 | 16 | **mar 24/11** | **DEMO DAY** — presentaciones, retrospectiva y recuperatorios | Programación paralela (2) | Cuestionario clase 16 |
 
@@ -26,6 +26,8 @@
 - **Asistencia:** se requiere el **70%** de las clases para aprobar la cursada.
 
 - **Cuestionarios:** se entregan en **UAI Online Ultra**, al **inicio** de la clase siguiente a la lectura, y se siguen clase a clase. **Al 24/11 tienen que estar todos entregados**; los que falten inciden en la nota de concepto.
+- **TP N° 1 Integrador:** se publica el **20/10** y se entrega por Ultra el **martes 10/11**. Es un informe de 4 a 6 páginas que analiza el sistema propio con los contenidos de las Unidades I a IV. Se elabora en equipo, pero **la entrega y la nota son individuales**, y cada integrante responde por todo lo que entrega.
+
 - **Parciales (clases 9 y 15):** se evalúa sobre **producción**. Si la URL pública no responde, el parcial no se toma y pasa a la recuperación del 24/11.
 - **Recuperatorios:** única instancia, el 24/11, **al cierre del Demo Day** y solo con el docente. Se puede recuperar uno o los dos parciales.
 - **Demo Day:** es una presentación, no un examen. Se puede presentar en cualquier clase anterior; al 24/11 todos los equipos tienen que haber presentado al menos una vez.
@@ -39,7 +41,8 @@
 | 25/08 | Modelo de datos migrado en la base cloud |
 | 22/09 | Backend completo: CRUD, validaciones, auth con 2 roles, servicio externo |
 | **06/10** | **Parcial I** |
-| 20/10 | Flujo principal navegable desde la UI |
+| 27/10 | Flujo principal navegable desde la UI |
+| **10/11** | **TP N° 1 Integrador entregado** |
 | 10/11 | Testing, performance y seguridad revisados |
 | **17/11** | **Parcial II** |
 | **24/11** | **Demo Day** con datos reales |
